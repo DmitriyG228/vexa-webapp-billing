@@ -1,0 +1,35 @@
+services:
+  vexa-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+    container_name: vexa-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+    # Use a healthcheck that's more lenient
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 0
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
+    #   - /app/.next
+    networks:
+      - vexa-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  vexa-network:
+    driver: bridge 

@@ -1,0 +1,25 @@
+name: vexa_billing
+
+services:
+  billing:
+    build:
+      context: ./apps/billing
+      dockerfile: Dockerfile
+    ports:
+      - "${BILLING_HOST_PORT:-19000}:9000"
+    environment:
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - ADMIN_API_URL=${ADMIN_API_URL:-http://host.docker.internal:18057}
+      - ADMIN_API_TOKEN=${ADMIN_API_TOKEN}
+      - LOG_LEVEL=DEBUG
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - billing_default
+    restart: unless-stopped
+
+# Independent network - no dependency on vexa
+networks:
+  billing_default:
+    driver: bridge
