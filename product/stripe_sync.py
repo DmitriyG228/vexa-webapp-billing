@@ -6,28 +6,22 @@ Moved from docs/scripts/stripe_sync.py – single source of truth for Product & 
 from __future__ import annotations
 import os
 import sys
+import json
 import stripe
 from typing import Any, Dict
 
-CONFIG: Dict[str, Any] = {
-    "product": {"name": "Bot subscription", "type": "service"},
-    "prices": [
-        {
-            "nickname": "Startup",
-            "currency": "usd",
-            "recurring": {"interval": "month", "trial_period_days": 7},
-            "billing_scheme": "tiered",
-            "tiers_mode": "volume",
-            "tiers": [
-                {"up_to": 1, "unit_amount": 1200},
-                {"up_to": 5, "unit_amount": 2400},
-                {"up_to": 50, "unit_amount": 2000},
-                {"up_to": 200, "unit_amount": 1500},
-                {"up_to": "inf", "unit_amount": 1000},
-            ],
-        }
-    ],
-}
+def load_config() -> Dict[str, Any]:
+    """Load configuration from pricing_tiers.json"""
+    config_path = os.path.join(os.path.dirname(__file__), "pricing_tiers.json")
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        sys.exit(f"❌  Configuration file not found: {config_path}")
+    except json.JSONDecodeError as e:
+        sys.exit(f"❌  Invalid JSON in configuration file: {e}")
+
+CONFIG = load_config()
 
 api_key = os.getenv("STRIPE_SECRET_KEY")
 if not api_key:
@@ -69,7 +63,14 @@ def price_matches_spec(price: stripe.Price, spec: Dict[str, Any]) -> bool:
     if price.billing_scheme != spec.get("billing_scheme", "per_unit"):
         return False
     if price.billing_scheme == "tiered":
-        return getattr(price, "nickname", None) == spec.get("nickname")
+        if getattr(price, "nickname", None) != spec.get("nickname"):
+            return False
+        # Check metadata for proration settings
+        if spec.get("metadata"):
+            for key, value in spec["metadata"].items():
+                if getattr(price, "metadata", {}).get(key) != value:
+                    return False
+        return True
     else:
         return price.unit_amount == spec["unit_amount"]
 

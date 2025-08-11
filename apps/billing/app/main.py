@@ -4,6 +4,8 @@ import os
 import json
 import hmac
 import hashlib
+from datetime import datetime
+import time
 from typing import Any, Dict, Optional
 
 import stripe
@@ -16,6 +18,8 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 ADMIN_API_URL = os.getenv("ADMIN_API_URL")
 ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")
+# Default return URL for Customer Portal
+PORTAL_RETURN_URL = os.getenv("PORTAL_RETURN_URL") or "http://localhost:3001/dashboard"
 
 if not STRIPE_SECRET_KEY:
     raise RuntimeError("STRIPE_SECRET_KEY env var is required for billing service")
@@ -94,24 +98,48 @@ def compute_entitlements_from_subscription(sub: Dict[str, Any]) -> Dict[str, Any
         first_item = items[0]
         quantity = int(first_item.get("quantity") or 0)
     
-    # Bot count logic: 0 for canceled/deleted, quantity for active/trialing
-    max_bots = quantity if status_val in ("active", "trialing") else 0
-    
     # Cancellation tracking fields
     scheduled_to_cancel = bool(sub.get("cancel_at_period_end"))
-    cancel_at = sub.get("cancel_at")  # Unix timestamp when cancellation takes effect
-    canceled_at = sub.get("canceled_at")  # Unix timestamp when subscription was canceled
+    cancel_at = sub.get("cancel_at")  # Unix timestamp when cancellation will take effect (Stripe)
+    canceled_at = sub.get("canceled_at")  # Unix timestamp when subscription was actually canceled
     current_period_end = sub.get("current_period_end")
     current_period_start = sub.get("current_period_start")
     trial_end = sub.get("trial_end")
     trial_start = sub.get("trial_start")
     
+    # Normalize status: reflect scheduled cancellation explicitly
+    normalized_status = (
+        "scheduled_to_cancel" if scheduled_to_cancel and status_val == "active" else status_val
+    )
+
+    # Bot count logic: 
+    # - 0 for actually canceled/deleted/unpaid subscriptions
+    # - quantity for active/trialing subscriptions (even if scheduled to cancel)
+    # - User keeps access until subscription actually ends
+    if normalized_status in ("canceled", "incomplete_expired", "unpaid"):
+        print(f"🚫 [WEBHOOK] Subscription canceled/expired - setting max_bots to 0")
+        max_bots = 0
+    elif normalized_status in ("active", "trialing", "scheduled_to_cancel"):
+        if normalized_status == "scheduled_to_cancel":
+            print(f"⚠️ [WEBHOOK] Subscription scheduled for cancellation - keeping max_bots at {quantity} until {cancel_at or sub.get('current_period_end')}")
+        max_bots = quantity
+    else:
+        print(f"⚠️ [WEBHOOK] Unknown subscription status '{normalized_status}' - setting max_bots to 0")
+        max_bots = 0
+    
+    # Determine the displayed cancellation date:
+    # - If scheduled to cancel, show the effective end date (cancel_at or current_period_end)
+    # - If already canceled, show canceled_at
+    cancellation_date = (
+        (cancel_at or sub.get("current_period_end")) if scheduled_to_cancel else canceled_at
+    )
+
     return {
-        "subscription_status": status_val,
+        "subscription_status": normalized_status,
         "max_concurrent_bots": max_bots,
         "subscription_scheduled_to_cancel": scheduled_to_cancel,
         "subscription_cancel_at_period_end": scheduled_to_cancel,
-        "subscription_cancellation_date": canceled_at,
+        "subscription_cancellation_date": cancellation_date,
         "subscription_current_period_end": current_period_end,
         "subscription_current_period_start": current_period_start,
         "subscription_trial_end": trial_end,
@@ -167,12 +195,24 @@ async def stripe_webhook(request: Request):
             # Some admin responses may wrap the user
             user_id = (user_data.get("data") or {}).get("id")
 
-        # Patch user with subscription details
-        patch_payload = {
+        # Separate root-level fields from data fields
+        root_fields = {
+            "max_concurrent_bots": entitlements["max_concurrent_bots"]
+        }
+        
+        data_fields = {
+            # Use UNIX seconds for all timestamps for consistency
+            "updated_by_webhook": int(time.time()),
             "stripe_customer_id": sub.get("customer"),
             "stripe_subscription_id": sub.get("id"),
-            **entitlements,
             "subscription_tier": (sub.get("metadata") or {}).get("tier") or "standard",
+            **{k: v for k, v in entitlements.items() if k != "max_concurrent_bots"}
+        }
+        
+        # Patch user with both root fields and data
+        patch_payload = {
+            **root_fields,
+            "data": data_fields
         }
         resp2 = await admin_request("PATCH", f"/admin/users/{user_id}", patch_payload)
         if resp2.status_code not in (200, 201):
@@ -214,7 +254,8 @@ async def create_api_key_trial(req: TrialRequest):
         if not startup_price:
             raise HTTPException(status_code=400, detail="Price 'Startup' not found. Run stripe_sync script.")
 
-        trial_end = int(__import__("time").time()) + 60 * 60  # 1 hour
+        # Quick-test trial duration: 1 minute
+        trial_end = int(__import__("time").time()) + 60
         sub_obj = stripe.Subscription.create(
             customer=customer.id,
             items=[{"price": startup_price.id, "quantity": 1}],
@@ -275,16 +316,65 @@ async def create_portal_session(req: PortalRequest):
     if not customers.data:
         raise HTTPException(status_code=404, detail="No customer found for this email")
     customer = customers.data[0]
-    subs = stripe.Subscription.list(customer=customer.id, status="all", limit=5)
-    active = next((s for s in subs.data if s.status in ("active", "trialing")), None)
-    args: Dict[str, Any] = {
-        "customer": customer.id,
-        "return_url": req.returnUrl or "http://localhost:3001/dashboard", #TODO: Should be dynamic
-    }
-    if active and active.status == "trialing":
-        args["flow_data"] = {"type": "payment_method_update"}
-    session = stripe.billing_portal.Session.create(**args)  # type: ignore[attr-defined]
-    return {"url": session.url}
+    
+    # Create a dynamic portal configuration with full access
+    try:
+        # Get the Bot subscription product and Startup price
+        products = stripe.Product.list(active=True, limit=100)
+        bot_product = next((p for p in products.data if p.name == "Bot subscription"), None)
+        if not bot_product:
+            raise HTTPException(status_code=400, detail="Product 'Bot subscription' not found. Run stripe_sync script.")
+        
+        prices = stripe.Price.list(product=bot_product.id, active=True, limit=100)
+        startup_price = next((p for p in prices.data if getattr(p, "nickname", None) == "Startup"), None)
+        if not startup_price:
+            raise HTTPException(status_code=400, detail="Price 'Startup' not found. Run stripe_sync script.")
+        
+        # Create portal configuration with full subscription management
+        conf = stripe.billing_portal.Configuration.create(
+            features={
+                "subscription_update": {
+                    "enabled": True,
+                    "default_allowed_updates": ["price", "quantity"],
+                    "products": [{"product": bot_product.id, "prices": [startup_price.id]}],
+                    "proration_behavior": "always_invoice",
+                },
+                "subscription_cancel": {"enabled": True},
+                "payment_method_update": {"enabled": True},
+                "invoice_history": {"enabled": True},
+                "customer_update": {
+                    "enabled": True,
+                    "allowed_updates": ["email", "address", "phone", "tax_id"]
+                },
+            },
+            default_return_url=PORTAL_RETURN_URL,
+        )
+        
+        # Create portal session with the dynamic configuration
+        session = stripe.billing_portal.Session.create(
+            customer=customer.id,
+            return_url=req.returnUrl or PORTAL_RETURN_URL,
+            configuration=conf.id,  # <- ensures full access
+        )
+        
+        return {"url": session.url}
+        
+    except stripe.error.StripeError as e:
+        print(f"❌ Stripe error creating portal: {e}")
+        # Fallback to default portal if configuration creation fails
+        session = stripe.billing_portal.Session.create(
+            customer=customer.id,
+            return_url=req.returnUrl or PORTAL_RETURN_URL,
+        )
+        return {"url": session.url}
+    except Exception as e:
+        print(f"❌ Error creating portal: {e}")
+        # Fallback to default portal if anything fails
+        session = stripe.billing_portal.Session.create(
+            customer=customer.id,
+            return_url=req.returnUrl or PORTAL_RETURN_URL,
+        )
+        return {"url": session.url}
 
 
 # Add alias route for Stripe webhook (matches the public URL)

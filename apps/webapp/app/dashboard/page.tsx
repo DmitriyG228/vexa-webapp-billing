@@ -32,14 +32,14 @@ interface UserData {
   name?: string
   max_concurrent_bots: number
   data?: {
-    subscription_end_date?: string
+    subscription_end_date?: number | string
     subscription_status?: string
     subscription_tier?: string
     stripe_subscription_id?: string
     original_bot_count?: number
     subscription_scheduled_to_cancel?: boolean
-    subscription_cancellation_date?: string
-    subscription_current_period_end?: number
+    subscription_cancellation_date?: number | string
+    subscription_current_period_end?: number | string
   }
 }
 
@@ -151,18 +151,48 @@ export default function DashboardPage() {
     }
   }
 
-  const formatPaymentDueDate = (dateString?: string) => {
-    if (!dateString) return "No active subscription"
-    
+  const formatDate = (value?: number | string) => {
+    if (value === undefined || value === null) return 'N/A'
     try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      let ms: number
+      if (typeof value === 'number') {
+        // Treat as seconds if clearly a UNIX seconds value
+        ms = value < 1e12 ? value * 1000 : value
+      } else if (/^\d+$/.test(value)) {
+        const num = Number(value)
+        ms = num < 1e12 ? num * 1000 : num
+      } else {
+        ms = new Date(value).getTime()
+      }
+      if (Number.isNaN(ms)) return 'Invalid date'
+      const date = new Date(ms)
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    } catch {
+      return 'Invalid date'
+    }
+  }
+
+  const formatDateTime = (value?: number | string) => {
+    if (value === undefined || value === null) return 'N/A'
+    try {
+      let ms: number
+      if (typeof value === 'number') {
+        ms = value < 1e12 ? value * 1000 : value
+      } else if (/^\d+$/.test(value)) {
+        const num = Number(value)
+        ms = num < 1e12 ? num * 1000 : num
+      } else {
+        ms = new Date(value).getTime()
+      }
+      if (Number.isNaN(ms)) return 'Invalid date'
+      const date = new Date(ms)
+      return date.toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'UTC', timeZoneName: 'short'
       })
     } catch {
-      return "Invalid date"
+      return 'Invalid date'
     }
   }
 
@@ -273,7 +303,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {(() => {
-                const count = userData?.max_concurrent_bots || 1
+                const count = (userData?.max_concurrent_bots ?? 0)
                 console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
                 return `${count} bot${count > 1 ? 's' : ''}`
               })()}
@@ -281,7 +311,11 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">
               {userData?.data?.subscription_status === 'cancelling' ? (
                 <>
-                  Grace period - access until {userData?.data?.subscription_end_date ? formatPaymentDueDate(userData.data.subscription_end_date) : 'billing period ends'}
+                  Grace period - access until {userData?.data?.subscription_end_date ? formatDate(userData.data.subscription_end_date) : 'billing period ends'}
+                </>
+              ) : userData?.data?.subscription_status === 'trialing' ? (
+                <>
+                  Trial ends on {formatDateTime((userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end) as any)}
                 </>
               ) : userData?.data?.subscription_tier ? (
                 `${userData.data.subscription_tier.charAt(0).toUpperCase() + userData.data.subscription_tier.slice(1)} Plan`
@@ -306,12 +340,14 @@ export default function DashboardPage() {
               <div className="text-sm text-muted-foreground">
                 {userData?.data?.subscription_status === 'active' || userData?.data?.subscription_status === 'cancelling' ? (
                   <>
-                    {userData?.data?.subscription_end_date ? (
-                      `Next payment due: ${formatPaymentDueDate(userData.data.subscription_end_date)}`
+                    {(userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) ? (
+                      `Next payment due: ${formatDate((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}`
                     ) : (
                       "Active subscription"
                     )}
                   </>
+                ) : userData?.data?.subscription_status === 'trialing' ? (
+                  <>Trial ends on {formatDateTime((userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end) as any)}</>
                 ) : userData?.data?.subscription_status === 'canceled' ? (
                   "Subscription canceled"
                 ) : (
@@ -388,10 +424,8 @@ export default function DashboardPage() {
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Opening Portal...
                     </>
-                  ) : userData?.data?.subscription_status === 'trialing' ? (
-                    'Add Payment Method'
                   ) : (
-                    'Open Billing Portal'
+                    'Manage Subscription'
                   )}
                 </Button>
                 
@@ -433,16 +467,13 @@ export default function DashboardPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Cancellation Date:</span>
                     <span className="text-sm text-orange-600 font-medium">
-                      {new Date(userData.data.subscription_cancellation_date).toLocaleDateString()}
+                      {formatDate(userData.data.subscription_cancellation_date)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Period End:</span>
                     <span className="text-sm text-muted-foreground">
-                      {userData.data.subscription_current_period_end 
-                        ? new Date(userData.data.subscription_current_period_end * 1000).toLocaleDateString()
-                        : 'N/A'
-                      }
+                      {formatDate(userData.data.subscription_current_period_end)}
                     </span>
                   </div>
                 </>

@@ -159,31 +159,11 @@ export default function PricingPage() {
           
           {/* Main Pricing Plans */}
           <div className="mx-auto max-w-5xl space-y-8">
-            
-            {/* MVP + Dynamic Business Plan Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* MVP Plan */}
-              <PricingCard
-                name="MVP"
-                description="Start with 7-day free trial, no credit card required"
-                price="$12"
-                period="/mo"
-                features={[
-                  "7-day free trial • No credit card required",
-                  "1 concurrent meeting", 
-                  "Unlimited transcription volume", 
-                  "Community Slack support"
-                ]}
-                icon={<Users className="h-5 w-5 text-primary" />}
-                badge="No Credit Card Required"
-                isPopular={true}
-                idealFor="Ideal for: Freelancers, students, MVP builders"
-                planType="mvp"
-              />
-
-              {/* Dynamic Business Plan */}
-              <DynamicPricingCard />
+            {/* Dynamic Business Plan Only */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-md md:max-w-2xl">
+                <DynamicPricingCard />
+              </div>
             </div>
 
             {/* Enterprise Plan - Separate Section */}
