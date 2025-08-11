@@ -15,7 +15,7 @@ interface DbUser {
 
 // Internal API call to find or create user in our database
 async function findOrCreateUser(email: string, name?: string | null, image?: string | null): Promise<DbUser | null> {
-  const adminApiUrl = process.env.ADMIN_API_URL || 'http://localhost:8000';
+  const adminApiUrl = process.env.ADMIN_API_URL;
   const adminApiToken = process.env.ADMIN_API_TOKEN;
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 500; // ms
@@ -94,12 +94,15 @@ async function findOrCreateUser(email: string, name?: string | null, image?: str
 
 // Function to create a trial subscription for new users (delegated to Billing service)
 async function createTrialSubscription(email: string, userId: number) {
-  const BILLING_URL = process.env.BILLING_URL || 'http://localhost:9000' //TODO: no fallbacks please
+  const BILLING_URL = process.env.BILLING_URL
   const resp = await fetch(`${BILLING_URL}/v1/trials/api-key`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, userId })
   })
+  if (!BILLING_URL) {
+    throw new Error('Server misconfiguration: BILLING_URL is not set')
+  }
   if (!resp.ok) {
     const text = await resp.text()
     throw new Error(`Billing trial creation failed: ${resp.status} ${text}`)
@@ -182,8 +185,8 @@ export const authOptions: AuthOptions = {
       if (token?.isNewUser && session.user) {
         try {
           // Check if user has any API tokens (indicates they've used the platform)
-          const adminApiUrl = process.env.ADMIN_API_URL || 'http://localhost:18056';
-          const adminApiToken = process.env.ADMIN_API_TOKEN || '';
+          const adminApiUrl = process.env.ADMIN_API_URL;
+          const adminApiToken = process.env.ADMIN_API_TOKEN;
           
           const userResponse = await fetch(`${adminApiUrl}/admin/users/${token.id}`, {
             headers: { 'X-Admin-API-Key': adminApiToken },

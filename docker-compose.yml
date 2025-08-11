@@ -10,8 +10,9 @@ services:
     environment:
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - ADMIN_API_URL=${ADMIN_API_URL:-http://host.docker.internal:18057}
+      - ADMIN_API_URL=${ADMIN_API_URL}
       - ADMIN_API_TOKEN=${ADMIN_API_TOKEN}
+      - PORTAL_RETURN_URL=${PORTAL_RETURN_URL}
       - LOG_LEVEL=DEBUG
     extra_hosts:
       - "host.docker.internal:host-gateway"

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 
-const BILLING_URL = process.env.BILLING_URL || 'http://localhost:9000'
+const BILLING_URL = process.env.BILLING_URL
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const returnUrl = `${request.headers.get('origin') || 'http://localhost:3001'}/dashboard`
+    if (!BILLING_URL) {
+      return NextResponse.json({ error: 'Server misconfiguration: BILLING_URL is not set' }, { status: 500 })
+    }
+    const origin = request.headers.get('origin')
+    if (!origin) {
+      return NextResponse.json({ error: 'Missing Origin header to construct return URL' }, { status: 400 })
+    }
+    const returnUrl = `${origin}/dashboard`
     const resp = await fetch(`${BILLING_URL}/v1/portal/session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

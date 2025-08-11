@@ -33,24 +33,11 @@ export interface PricingConfig {
   }
 }
 
-// Load pricing configuration from the API endpoint
-export async function loadPricingConfig(): Promise<PricingConfig> {
-  try {
-    const response = await fetch('/api/pricing-config')
-    if (!response.ok) {
-      throw new Error(`Failed to load pricing config: ${response.statusText}`)
-    }
-    return await response.json()
-  } catch (error) {
-    console.error('Error loading pricing config:', error)
-    // Fallback to default configuration if loading fails
-    return getDefaultPricingConfig()
-  }
-}
+// Load pricing configuration directly from a single source of truth JSON
+import pricingConfig from '@pricing_tiers.json'
 
-// No fallback configuration - pricing must be loaded from JSON file
-function getDefaultPricingConfig(): PricingConfig {
-  throw new Error('Pricing configuration must be loaded from pricing_tiers.json')
+export async function loadPricingConfig(): Promise<PricingConfig> {
+  return pricingConfig as unknown as PricingConfig
 }
 
 /**

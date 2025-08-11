@@ -13,7 +13,8 @@ export default function EmailPreviewPage() {
   const [email, setEmail] = useState("user@example.com");
   const [showingHTML, setShowingHTML] = useState(true);
   const [showingText, setShowingText] = useState(false);
-  const [verifyLink, setVerifyLink] = useState(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/email-verification/demo-token-placeholder`);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  const [verifyLink, setVerifyLink] = useState(`${appUrl}/email-verification/demo-token-placeholder`);
   const [emailConfigs, setEmailConfigs] = useState<{
     verifyEmailConfig: any;
     welcomeEmailConfig: any;
@@ -25,7 +26,11 @@ export default function EmailPreviewPage() {
   // Generate random token only on the client side after component mounts
   useEffect(() => {
     const randomToken = Math.floor(Math.random() * 1000000);
-    const newVerifyLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/email-verification/demo-token-${randomToken}`;
+    if (!appUrl) {
+      console.error('Missing NEXT_PUBLIC_APP_URL; cannot generate preview links');
+      return;
+    }
+    const newVerifyLink = `${appUrl}/email-verification/demo-token-${randomToken}`;
     setVerifyLink(newVerifyLink);
     
     // Get host to properly display images in the preview

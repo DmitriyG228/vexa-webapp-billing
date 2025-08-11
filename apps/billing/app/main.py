@@ -19,7 +19,9 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 ADMIN_API_URL = os.getenv("ADMIN_API_URL")
 ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")
 # Default return URL for Customer Portal
-PORTAL_RETURN_URL = os.getenv("PORTAL_RETURN_URL") or "http://localhost:3001/dashboard"
+PORTAL_RETURN_URL = os.getenv("PORTAL_RETURN_URL")
+if not PORTAL_RETURN_URL:
+    raise RuntimeError("PORTAL_RETURN_URL env var is required for billing service")
 
 if not STRIPE_SECRET_KEY:
     raise RuntimeError("STRIPE_SECRET_KEY env var is required for billing service")
@@ -317,63 +319,84 @@ async def create_portal_session(req: PortalRequest):
         raise HTTPException(status_code=404, detail="No customer found for this email")
     customer = customers.data[0]
     
-    # Create a dynamic portal configuration with full access
+    print(f"🔧 [PORTAL] Creating portal for customer {customer.id} ({req.email})")
+    
+    # Get the Bot subscription product and Startup price
+    products = stripe.Product.list(active=True, limit=100)
+    bot_product = next((p for p in products.data if p.name == "Bot subscription"), None)
+    if not bot_product:
+        raise HTTPException(status_code=400, detail="Product 'Bot subscription' not found. Run stripe_sync script.")
+    
+    prices = stripe.Price.list(product=bot_product.id, active=True, limit=100)
+    startup_price = next((p for p in prices.data if getattr(p, "nickname", None) == "Startup"), None)
+    if not startup_price:
+        raise HTTPException(status_code=400, detail="Price 'Startup' not found. Run stripe_sync script.")
+    
+    print(f"✅ [PORTAL] Found product {bot_product.id} and price {startup_price.id}")
+    
+    # Try to reuse existing portal configuration or create new one
     try:
-        # Get the Bot subscription product and Startup price
-        products = stripe.Product.list(active=True, limit=100)
-        bot_product = next((p for p in products.data if p.name == "Bot subscription"), None)
-        if not bot_product:
-            raise HTTPException(status_code=400, detail="Product 'Bot subscription' not found. Run stripe_sync script.")
+        # Check for existing configurations
+        existing_configs = stripe.billing_portal.Configuration.list(limit=10)
+        portal_config = None
         
-        prices = stripe.Price.list(product=bot_product.id, active=True, limit=100)
-        startup_price = next((p for p in prices.data if getattr(p, "nickname", None) == "Startup"), None)
-        if not startup_price:
-            raise HTTPException(status_code=400, detail="Price 'Startup' not found. Run stripe_sync script.")
+        for config in existing_configs.data:
+            if (config.features.subscription_update.enabled and 
+                config.features.subscription_cancel.enabled):
+                portal_config = config
+                print(f"♻️ [PORTAL] Reusing existing configuration {config.id}")
+                break
         
-        # Create portal configuration with full subscription management
-        conf = stripe.billing_portal.Configuration.create(
-            features={
-                "subscription_update": {
-                    "enabled": True,
-                    "default_allowed_updates": ["price", "quantity"],
-                    "products": [{"product": bot_product.id, "prices": [startup_price.id]}],
-                    "proration_behavior": "always_invoice",
+        if not portal_config:
+            print(f"➕ [PORTAL] Creating new portal configuration")
+            # Create portal configuration with full subscription management
+            portal_config = stripe.billing_portal.Configuration.create(
+                features={
+                    "subscription_update": {
+                        "enabled": True,
+                        "default_allowed_updates": ["price", "quantity"],
+                        "products": [{"product": bot_product.id, "prices": [startup_price.id]}],
+                        "proration_behavior": "always_invoice",
+                    },
+                    "subscription_cancel": {"enabled": True},
+                    "payment_method_update": {"enabled": True},
+                    "invoice_history": {"enabled": True},
+                    # "customer_update": {
+                    #     "enabled": True,
+                    #     "allowed_updates": ["email", "address", "phone", "tax_id"]
+                    # },
                 },
-                "subscription_cancel": {"enabled": True},
-                "payment_method_update": {"enabled": True},
-                "invoice_history": {"enabled": True},
-                "customer_update": {
-                    "enabled": True,
-                    "allowed_updates": ["email", "address", "phone", "tax_id"]
-                },
-            },
-            default_return_url=PORTAL_RETURN_URL,
-        )
+                default_return_url=PORTAL_RETURN_URL,
+            )
+            print(f"✅ [PORTAL] Created configuration {portal_config.id}")
         
-        # Create portal session with the dynamic configuration
+        # Create portal session with the configuration
         session = stripe.billing_portal.Session.create(
             customer=customer.id,
             return_url=req.returnUrl or PORTAL_RETURN_URL,
-            configuration=conf.id,  # <- ensures full access
+            configuration=portal_config.id,
         )
         
+        print(f"✅ [PORTAL] Created session {session.id} with config {portal_config.id}")
         return {"url": session.url}
         
     except stripe.error.StripeError as e:
-        print(f"❌ Stripe error creating portal: {e}")
+        print(f"❌ [PORTAL] Stripe error creating portal: {e}")
         # Fallback to default portal if configuration creation fails
         session = stripe.billing_portal.Session.create(
             customer=customer.id,
             return_url=req.returnUrl or PORTAL_RETURN_URL,
         )
+        print(f"⚠️ [PORTAL] Fallback to default portal: {session.id}")
         return {"url": session.url}
     except Exception as e:
-        print(f"❌ Error creating portal: {e}")
+        print(f"❌ [PORTAL] Unexpected error creating portal: {e}")
         # Fallback to default portal if anything fails
         session = stripe.billing_portal.Session.create(
             customer=customer.id,
             return_url=req.returnUrl or PORTAL_RETURN_URL,
         )
+        print(f"⚠️ [PORTAL] Fallback to default portal: {session.id}")
         return {"url": session.url}
 
 

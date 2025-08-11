@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
-const BILLING_URL = process.env.BILLING_URL || 'http://localhost:9000'
+const BILLING_URL = process.env.BILLING_URL
 
 export async function POST(_: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Authentication required. Please sign in.' }, { status: 401 })
+    }
+    if (!BILLING_URL) {
+      return NextResponse.json({ error: 'Server misconfiguration: BILLING_URL is not set' }, { status: 500 })
     }
     const resp = await fetch(`${BILLING_URL}/`)
     const data = await resp.json()
@@ -24,6 +27,9 @@ export async function GET(_: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Authentication required. Please sign in.' }, { status: 401 })
+    }
+    if (!BILLING_URL) {
+      return NextResponse.json({ error: 'Server misconfiguration: BILLING_URL is not set' }, { status: 500 })
     }
     const resp = await fetch(`${BILLING_URL}/`)
     const data = await resp.json()
