@@ -40,14 +40,12 @@ export default function TrialCheckoutPage() {
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await fetch('/api/stripe/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          planType: 'mvp', // This will create the trial subscription
-        }),
+        body: JSON.stringify({}),
       })
 
       const data = await response.json()
@@ -89,11 +87,11 @@ export default function TrialCheckoutPage() {
         throw new Error(errorData.error || 'Failed to create trial checkout session')
       }
 
-      // Redirect to Stripe Checkout
+      // Redirect to Stripe Portal
       if (data.url) {
         window.location.href = data.url
       } else {
-        throw new Error('No checkout URL received')
+        throw new Error('No portal URL received')
       }
     } catch (error) {
       console.error('Error creating trial checkout session:', error)

@@ -11,6 +11,8 @@ interface GetStartedButtonProps {
   isEnterprise?: boolean
   isLoading?: boolean
   planType?: 'mvp' | 'dynamic' | 'enterprise' | 'local' | 'community' | 'nomad' | 'dedicated'
+  botCount?: number
+  href?: string
 }
 
 export function GetStartedButton({
@@ -20,6 +22,8 @@ export function GetStartedButton({
   isEnterprise = false,
   isLoading = false,
   planType = 'dynamic',
+  botCount,
+  href,
 }: GetStartedButtonProps) {
   const { data: session } = useSession()
   const [isSubscribing, setIsSubscribing] = useState(false)
@@ -32,61 +36,26 @@ export function GetStartedButton({
 
     setIsSubscribing(true)
     try {
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      // Use customer portal managed by the billing service instead of a checkout route
+      const response = await fetch('/api/stripe/create-portal-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          planType: 'mvp',
-          botCount: 1, // MVP has 1 concurrent meeting
-        }),
+        body: JSON.stringify({}),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        if (data.error === 'You already have an active subscription') {
-          // User already has subscription, redirect to billing portal
-          alert('You already have an active subscription. Redirecting to billing portal...')
-          
-          // Redirect to billing portal after a short delay
-          setTimeout(async () => {
-            try {
-              const portalResponse = await fetch('/api/stripe/create-portal-session', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              })
-              
-              const portalData = await portalResponse.json()
-              if (portalData.url) {
-                window.location.href = portalData.url
-              } else {
-                window.location.href = '/dashboard'
-              }
-            } catch (portalError) {
-              console.error('Error opening portal:', portalError)
-              window.location.href = '/dashboard'
-            }
-          }, 2000)
-          
-          return
-        }
-        
-        throw new Error(data.error || 'Failed to create checkout session')
+        throw new Error(data.error || 'Failed to open billing portal')
       }
 
-      if (data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url
-      } else {
-        throw new Error(data.error || 'Failed to start checkout')
-      }
+      if (data.url) window.location.href = data.url
+      else throw new Error(data.error || 'Failed to open billing portal')
     } catch (error) {
-      console.error('Error creating MVP checkout session:', error)
-      alert('Failed to start checkout. Please try again.')
+      console.error('Error opening billing portal:', error)
+      alert('Failed to open billing portal. Please try again.')
     } finally {
       setIsSubscribing(false)
     }
@@ -94,8 +63,9 @@ export function GetStartedButton({
 
   const handleButtonClick = () => {
     if (isEnterprise) {
-      // Enterprise buttons should link to a contact form/page
-      window.location.href = '/contact-sales' // Or your specific contact URL
+      // Enterprise buttons: route to scheduling link if provided
+      if (href) window.location.href = href
+      else window.location.href = '/contact-sales'
       return
     }
 
@@ -115,10 +85,10 @@ export function GetStartedButton({
   }
 
   const getButtonText = () => {
-    if (isEnterprise) return 'Contact Sales'
-    if (planType === 'mvp' && session) return 'Start Free Trial - No Credit Card'
+    if (isEnterprise) return buttonText || 'Talk to Founder'
+    if (buttonText) return buttonText
     if (!session) return 'Sign in to Get Started'
-    return buttonText // e.g., 'Go to Dashboard' or the original 'Get Started'
+    return 'Go to Dashboard'
   }
 
   return (
