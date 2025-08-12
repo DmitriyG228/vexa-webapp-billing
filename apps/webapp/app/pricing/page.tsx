@@ -1,9 +1,11 @@
 import { Metadata } from 'next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Cloud, Server, Shield, Users, Zap, Globe } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Progress } from '@/components/ui/progress'
+import { CheckCircle2, Cloud, Server, Shield, Users, Zap, Globe, Info, Star } from 'lucide-react'
 import Link from 'next/link'
 import { DynamicPricingCard } from './components/DynamicPricingCard'
 import { GetStartedButton } from './components/GetStartedButton'
@@ -49,53 +51,65 @@ function PricingCard({
   planType = 'dynamic',
 }: PricingCardProps) {
   const cardClassName = isEnterprise 
-    ? 'relative rounded-xl border bg-gradient-to-br from-primary/5 to-primary/10 shadow-lg flex flex-col'
-    : `relative rounded-xl border ${isPopular ? 'border-2 border-primary bg-card shadow-lg' : 'bg-card shadow-sm transition-all hover:shadow-md'} flex flex-col`;
+    ? 'relative h-full rounded-2xl border-0 bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-2xl shadow-primary/10 flex flex-col overflow-hidden'
+    : `relative h-full rounded-xl border-0 ${isPopular ? 'bg-gradient-to-br from-card to-muted/50 shadow-xl shadow-primary/5' : 'bg-card shadow-lg hover:shadow-xl transition-all duration-300'} flex flex-col overflow-hidden`;
   
   return (
     <Card className={cardClassName}>
       {badge && (
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-primary text-primary-foreground px-3 py-1">
+        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1">
             {badge}
           </Badge>
-        </div>
       )}
-      <CardHeader className={`flex-shrink-0 ${isPopular ? 'text-center' : ''}`}>
-        <CardTitle className={`flex items-center gap-2 ${isPopular ? 'justify-center text-xl' : ''}`}>
+      <CardHeader className="relative flex-shrink-0 p-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
           {icon}
+            </div>
+            <div>
+              <CardTitle className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
           {name}
         </CardTitle>
-        <CardDescription className={`min-h-[2.5rem] flex items-center ${isPopular ? 'justify-center' : ''}`}>
+              <CardDescription className="text-xs text-muted-foreground">
           {description}
         </CardDescription>
-        <div className={`${isPopular ? 'text-4xl' : 'text-3xl'} font-bold ${isEnterprise ? 'text-primary' : ''}`}>
+            </div>
+          </div>
+          <div className="text-center space-y-1">
+            <div className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
           {price}
-          <span className={`${isPopular ? 'text-lg' : 'text-base'} font-normal text-muted-foreground`}>
-            {period}
-          </span>
+              {period && (
+                <span className="text-base font-normal text-muted-foreground">{period}</span>
+              )}
+            </div>
           {extraBot && (
-            <span className="text-sm font-normal text-muted-foreground"> • Extra bot: {extraBot}</span>
+              <div className="text-xs text-muted-foreground">
+                Extra bot: {extraBot}
+              </div>
           )}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col justify-between space-y-4">
+      <CardContent className="relative flex-1 flex flex-col justify-between p-6 space-y-4">
         <div className="space-y-3">
           {features.map((feature, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span className="text-sm">{feature}</span>
+            <div key={index} className="flex items-center gap-3">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
+                <CheckCircle2 className="h-3 w-3 text-green-600" />
+              </div>
+              <span className="text-xs font-medium">{feature}</span>
             </div>
           ))}
         </div>
-        <div className={`mt-auto pt-4 ${isPopular ? 'text-center' : ''}`}>
+        <div className="mt-auto pt-4 space-y-3">
           {valueProposition && (
-            <p className="text-xs text-muted-foreground mb-2">
+            <p className="text-xs text-muted-foreground">
               {valueProposition}
             </p>
           )}
           {idealFor && (
-            <p className="text-xs text-muted-foreground font-medium mb-4">
+            <p className="text-xs text-muted-foreground font-medium">
               {idealFor}
             </p>
           )}
@@ -116,66 +130,72 @@ function PricingCard({
 
 export default function PricingPage() {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-10">
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+        <div className="container mx-auto px-4 py-4 space-y-4">
       {/* Header Section */}
-      <section className="py-10">
-        <div className="mx-auto max-w-5xl text-center space-y-6">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Vexa <span className="text-primary">Pricing & Deployment</span>
+        <section className="py-4">
+          <div className="mx-auto max-w-6xl text-center space-y-4">
+            <div className="space-y-2">
+              <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 px-2 py-1 text-xs">
+                <Zap className="h-2 w-2 mr-1" />
+                Simple, Transparent Pricing
+              </Badge>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                Vexa <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Pricing</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-4xl mx-auto">
+            </div>
+            <p className="text-base text-muted-foreground max-w-3xl mx-auto leading-normal">
             Transcribe live conversations —from a single Zoom call on your laptop to hundreds of concurrent streams in a regulated enterprise—without ever locking up your data.
           </p>
-          <p className="text-lg text-muted-foreground">
-            Everything is <span className="text-primary font-medium">open-source (Apache-2)</span>, fully peer-reviewed, and self-hostable at any time.
-          </p>
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <Shield className="h-3 w-3 text-primary" />
+              <span className="text-muted-foreground">Everything is</span>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                open-source (Apache-2)
+              </Badge>
+              <span className="text-muted-foreground">, fully peer-reviewed, and self-hostable</span>
+            </div>
         </div>
       </section>
 
-      {/* Main Tabs */}
-      <section className="py-10">
-        <Tabs defaultValue="cloud" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="cloud" className="flex items-center gap-2">
-              <Cloud className="h-4 w-4" />
-              Cloud Hosting
-            </TabsTrigger>
-            <TabsTrigger value="self-hosting" className="flex items-center gap-2">
-              <Server className="h-4 w-4" />
-              Self-Hosting
-            </TabsTrigger>
-          </TabsList>
-        
-        <TabsContent value="cloud" className="space-y-10">
-          <div className="mx-auto max-w-5xl text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Cloud className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold tracking-tight">Managed Cloud</h2>
+        <Separator className="my-6 opacity-20" />
+
+        {/* Main Pricing Section */}
+        <section className="py-2">
+          <div className="mx-auto max-w-7xl space-y-4">
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+                <Cloud className="h-3 w-3 text-primary" />
+                <h2 className="text-lg font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                  Managed Cloud
+                </h2>
             </div>
-            <p className="text-lg text-muted-foreground">
-              Concurrency-based pricing. <span className="text-primary font-medium">*Pay yearly and get two months free.</span>
+              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                Concurrency-based pricing with transparent costs.{" "}
+                <span className="inline-flex items-center gap-1 text-primary font-medium">
+                  <Zap className="h-3 w-3" />
+                  Pay yearly and get two months free
+                </span>
             </p>
           </div>
           
-          {/* Main Pricing Plans */}
-          <div className="mx-auto max-w-5xl space-y-8">
-            {/* Dynamic Business Plan Only */}
-            <div className="flex justify-center">
-              <div className="w-full max-w-md md:max-w-2xl">
+                                    {/* Main Pricing Plans Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch max-w-6xl mx-auto">
+              {/* Dynamic Business Plan - Wider */}
+              <div className="lg:col-span-3">
                 <DynamicPricingCard />
-              </div>
             </div>
 
-            {/* Enterprise Plan - Separate Section */}
-            <div className="flex justify-center">
-              <div className="w-full max-w-sm">
+              {/* Enterprise Plan - Narrower */}
+              <div className="lg:col-span-2">
                 <PricingCard
                   name="Enterprise"
                   description="Dedicated Cloud • Isolated VPC"
                   price="Contact sales"
                   period=""
-                  features={["≥500-bot fleets", "Regulated workloads", "24 × 7, contractual SLA, DPA"]}
-                  icon={<Shield className="h-5 w-5 text-primary" />}
+                  features={[">50-bot fleets", "Regulated workloads", "24 × 7, contractual SLA, DPA"]}
+                  icon={<Shield className="h-6 w-6 text-primary" />}
                   isPopular={true}
                   isEnterprise={true}
                   buttonText="Contact Sales"
@@ -187,187 +207,77 @@ export default function PricingPage() {
           </div>
 
           {/* Always Included Section */}
-          <div className="mx-auto max-w-5xl space-y-6">
-            <h3 className="text-2xl font-bold tracking-tight text-center">Always included</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="rounded-xl border bg-card shadow-sm">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Unlimited languages (translation = target_lang parameter)</span>
+          <div className="mx-auto max-w-6xl space-y-3 mt-4">
+            <div className="text-center">
+              <h3 className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-1">
+                Always included
+              </h3>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Unlimited integrations & webhooks</span>
+                        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-card to-card/50 shadow-lg shadow-primary/5">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
+              <CardContent className="relative p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                      <Globe className="h-3 w-3 text-primary" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">7-day rolling storage • extra retention $0.05 / record-hr / 30 d</span>
+                    <div className="flex-1">
+                      <div className="font-medium text-xs">100+ Languages</div>
+                      <div className="text-xs text-muted-foreground">Real-time translation</div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">EU, US & APAC regions</span>
-                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Automatic language detection and translation to any target language</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-xl border bg-card shadow-sm">
-                <CardHeader>
-                  <CardTitle>Add-ons</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Extra concurrency (Solo/Startup)</span>
-                    <Badge variant="secondary" className="text-xs">$20 / bot / mo</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Extra concurrency (Growth+)</span>
-                    <Badge variant="secondary" className="text-xs">$15 → $10 / bot / mo</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Long-term storage</span>
-                    <Badge variant="secondary" className="text-xs">$0.05 / record-hr / 30 d</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Dedicated GPU region</span>
-                    <Badge variant="secondary" className="text-xs">+15% to plan</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Premium 4 h SLA (Startup/Growth)</span>
-                    <Badge variant="secondary" className="text-xs">+20%</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  
+                  <Separator className="opacity-30" />
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                      <Server className="h-3 w-3 text-primary" />
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="self-hosting" className="space-y-10">
-          <div className="mx-auto max-w-5xl text-center space-y-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Server className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold tracking-tight">Self-hosting options</h2>
-            </div>
-            <p className="text-lg text-muted-foreground">
-              <span className="text-primary font-medium">† Effort scale</span> — ● high, ◐ medium, ○ low.
-            </p>
-          </div>
-          
-          {/* Self-hosting Options Table */}
-          <div className="mx-auto max-w-5xl space-y-4">
-            {/* Option A - Local CPU */}
-            <PricingCard
-              name="A. Local CPU"
-              description="Docker-Compose, Whisper-tiny CPU, 0-1 bots"
-              price="$0"
-              period="runs on your laptop"
-              features={["Ops effort†: ●●●◐◐", "Latency / quality: ~1 s lag, medium accuracy (EN)"]}
-              icon={<Users className="h-5 w-5 text-primary" />}
-              isPopular={true}
-              idealFor="Demos, coursework, hack-days"
-              planType="local"
-            />
-
-            {/* Option B - Community GPU */}
-            <PricingCard
-              name="B. Community GPU"
-              description="1 × T4 VM, Whisper-base, 2 bots"
-              price="$0.52 / hr → $375 / mo"
-              period="≈"
-              features={["Ops effort†: ●●●◐◐", "Latency / quality: &lt;300 ms lag, good accuracy"]}
-              icon={<Zap className="h-5 w-5 text-primary" />}
-              idealFor="Solo founders needing a public API"
-              planType="community"
-            />
-
-            {/* Option C - Nomad Starter */}
-            <PricingCard
-              name="C. Nomad Starter"
-              description="3-node Nomad (3 × T4) · 5–8 bots"
-              price="$1 050 / mo cloud + $500 support"
-              period="≈"
-              features={["Ops effort†: ●●◐◐◐", "Latency / quality: &lt;250 ms lag"]}
-              icon={<Globe className="h-5 w-5 text-primary" />}
-              idealFor="Seed-stage SaaS, privacy-critical"
-              planType="nomad"
-            />
-
-            {/* Option D - Nomad Growth / Enterprise */}
-            <PricingCard
-              name="D. Nomad Growth / Ent."
-              description="Autoscaled Nomad cluster · 30–200 bots"
-              price="$4 500–$8 000 / mo cloud + $1 500–$4 000 support"
-              period="$"
-              features={["Ops effort†: ●◐◐◐◐", "Latency / quality: 200 ms lag, 99.9% SLA"]}
-              icon={<Server className="h-5 w-5 text-primary" />}
-              idealFor="Contact-centre tech, regulated"
-              planType="nomad"
-            />
-
-            {/* Option E - Dedicated Cloud */}
-            <PricingCard
-              name="E. Dedicated Cloud"
-              description="Single-tenant cluster managed by Vexa"
-              price="Contact sales"
-              period=""
-              features={["Ops effort†: Vexa fully manages", "Latency / quality: Same as D"]}
-              icon={<Shield className="h-5 w-5 text-primary" />}
-              isPopular={true}
-              buttonText="Contact Sales"
-              buttonVariant="outline"
-              idealFor="Isolation with zero infra work"
-              planType="dedicated"
-            />
-            </div>
-
-                        {/* Quick Decision Table */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold tracking-tight text-center">Quick decision table</h3>
-              <Card className="rounded-xl border bg-card shadow-sm">
-                <CardHeader className="bg-muted">
-                  <CardTitle>You...</CardTitle>
-                  <CardDescription>Choose the best option based on your needs</CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 border-b border-border/50">
-                      <span className="text-sm font-medium">Just experimenting, no server budget</span>
-                      <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 w-fit">
-                        Local CPU
-                      </Badge>
+                    <div className="flex-1">
+                      <div className="font-medium text-xs">7-day storage</div>
+                      <div className="text-xs text-muted-foreground">Rolling retention</div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 border-b border-border/50">
-                      <span className="text-sm font-medium">Need public endpoint, ≤2 streams</span>
-                      <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 w-fit">
-                        Community GPU
-                      </Badge>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Automatic cleanup after 7 days. Download before expiry.</p>
+                      </TooltipContent>
+                    </Tooltip>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 border-b border-border/50">
-                      <span className="text-sm font-medium">Need privacy + ≤10 bots, have 1 DevOps FTE</span>
-                      <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 w-fit">
-                        Nomad Starter
-                      </Badge>
+                  
+                  <Separator className="opacity-30" />
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                      <Zap className="h-3 w-3 text-primary" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 border-b border-border/50">
-                      <span className="text-sm font-medium">Promise 99.9% uptime or &gt;30 bots</span>
-                      <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 w-fit">
-                        Nomad Growth / Ent.
-                      </Badge>
+                    <div className="flex-1">
+                      <div className="font-medium text-xs">Global regions</div>
+                      <div className="text-xs text-muted-foreground">EU, US & APAC</div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3">
-                      <span className="text-sm font-medium">Want isolation but no on-call</span>
-                      <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 w-fit">
-                        Dedicated Cloud
-                      </Badge>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Choose your region for optimal performance and compliance</p>
+                      </TooltipContent>
+                    </Tooltip>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
-        </TabsContent>
-      </Tabs>
       </section>
 
       {/* Privacy & Data-Stewardship Pledge */}
@@ -524,5 +434,7 @@ export default function PricingPage() {
         </div>
       </section>
     </div>
+      </div>
+    </TooltipProvider>
   )
 } 

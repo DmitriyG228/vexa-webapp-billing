@@ -106,7 +106,7 @@ export function getPricingBreakdown(userCount: number, tiers: PricingTier[]) {
       if (remainingUsers > 0) {
         const previousUpTo = i > 0 ? (typeof tiers[i - 1].up_to === 'number' ? tiers[i - 1].up_to : 0) : 0
         breakdown.push({
-          tierRange: `${previousUpTo + 1}+ users`,
+          tierRange: `${previousUpTo + 1}+ bots`,
           usersInTier: remainingUsers,
           pricePerUser: unitAmount / 100, // Convert cents to dollars
           totalForTier: (remainingUsers * unitAmount) / 100
@@ -121,7 +121,7 @@ export function getPricingBreakdown(userCount: number, tiers: PricingTier[]) {
       
       if (tierUsers > 0) {
         breakdown.push({
-          tierRange: `${tierStart}-${upTo} users`,
+          tierRange: `${tierStart}-${upTo} bots`,
           usersInTier: tierUsers,
           pricePerUser: unitAmount / 100,
           totalForTier: (tierUsers * unitAmount) / 100
@@ -173,30 +173,28 @@ export function getPricingTierInfo(userCount: number, tiers: PricingTier[]) {
 
 // Helper functions for tier information
 function getTierName(tierIndex: number): string {
-  const names = ['Startup', 'Growth', 'Scale', 'Enterprise', 'Enterprise+']
+  const names = ['MVP', 'Startup', 'Startup', 'Growth', 'Scale']
   return names[tierIndex] || `Tier ${tierIndex + 1}`
 }
 
 function getTierDescription(tierIndex: number): string {
   const descriptions = [
-    'For early products and internal products for small teams',
-    'For medium-sized companies and growing conversation-AI vendors',
-    'For mid-market tooling platforms',
-    'For large enterprises and regulated workloads',
-    'For ultra-scale deployments'
+    'For early products and sole users',
+    'For small teams and growing conversation-AI vendors',
+    'For small teams and growing conversation-AI vendors',
+    'For mid-market tooling platforms'
   ]
   return descriptions[tierIndex] || 'Professional tier'
 }
 
 function getTierFeatures(tierIndex: number): string[] {
-  const baseFeatures = ['Unlimited transcription volume']
+  const baseFeatures = ['Unlimited transcription & translation over 100+ languages']
   
   const tierFeatures = [
-    ['Community Slack support'],
+    ['Community Discord support'],
     ['1 h solutions consult / month'],
-    ['24 × 5 e-mail + Slack support', '4 h P1 SLA, quarterly review'],
-    ['24 × 7 support', '1 h P1 SLA, monthly review'],
-    ['Dedicated support team', 'Custom SLA, weekly review']
+    ['e-mail + Discord support', '4 h P1 SLA, quarterly review'],
+    ['1 h P1 SLA, monthly review'],
   ]
   
   return [...baseFeatures, ...(tierFeatures[tierIndex] || [])]

@@ -123,13 +123,24 @@ export function GetStartedButton({
 
   return (
     <Button
-      className={`${isPopular ? 'w-full' : 'w-full'} ${buttonVariant === 'outline' ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground' : ''}`}
+      className={`w-full h-10 text-sm font-semibold transition-all duration-300 ${
+        buttonVariant === 'outline' 
+          ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground shadow-lg hover:shadow-xl' 
+          : 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl'
+      }`}
       variant={buttonVariant}
       size="lg"
       onClick={handleButtonClick}
       disabled={isLoading || isSubscribing}
     >
-      {isSubscribing ? 'Loading...' : getButtonText()}
+      {isSubscribing ? (
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current/30 border-t-current" />
+          Loading...
+        </div>
+      ) : (
+        getButtonText()
+      )}
     </Button>
   )
 } 
