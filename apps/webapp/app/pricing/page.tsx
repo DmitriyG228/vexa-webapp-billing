@@ -76,7 +76,7 @@ function PricingCard({
               </div>
             )}
             <div className="flex-1">
-              <CardTitle className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              <CardTitle className="text-lg font-display bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
           {name}
         </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
@@ -100,7 +100,7 @@ function PricingCard({
                 </Link>
               </div>
             )}
-            <div className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+            <div className="text-3xl font-display bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
           {price}
               {period && (
                 <span className="text-base font-normal text-muted-foreground">{period}</span>
@@ -161,12 +161,12 @@ export default function PricingPage() {
         <section className="py-6">
           <div className="mx-auto max-w-5xl text-center space-y-4">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-display tracking-tight sm:text-4xl md:text-5xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                 API transcription for <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Google Meet</span>
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-7">
-              Hosted SaaS, API-first. Unlimited minutes. Open-source core (Apache-2) with <span className="font-semibold">no lock-in</span>—self-host anytime. <em>MS Teams & Zoom coming next.</em>
+              Hosted Open-source —self-host anytime - no lock-in.  MS Teams & Zoom coming next.
             </p>
             <div className="flex items-center justify-center gap-2 text-xs md:text-sm flex-wrap">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Unlimited minutes</Badge>
@@ -225,7 +225,7 @@ export default function PricingPage() {
       {/* Open source reassurance */}
       <section className="py-12">
         <div className="mx-auto max-w-5xl space-y-6 text-center">
-          <h2 className="text-2xl font-bold tracking-tight">Open source, no lock-in</h2>
+          <h2 className="text-2xl font-display tracking-tight">Open source, no lock-in</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             <Card className="rounded-xl border bg-card shadow-sm">
               <CardContent className="p-6 space-y-2">
@@ -247,7 +247,7 @@ export default function PricingPage() {
       <section className="py-12">
         <div className="mx-auto max-w-5xl space-y-8">
           <div className="text-center space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">Built for products & automation (API)</h2>
+            <h2 className="text-2xl font-display tracking-tight">Built for products & automation (API)</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="rounded-xl border bg-card shadow-sm">
@@ -277,7 +277,7 @@ export default function PricingPage() {
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Shield className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-bold tracking-tight">Privacy & Data-Stewardship Pledge</h2>
+              <h2 className="text-2xl font-display tracking-tight">Privacy & Data-Stewardship Pledge</h2>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -314,7 +314,7 @@ export default function PricingPage() {
         <div className="mx-auto max-w-5xl space-y-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Users className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-bold tracking-tight">Deployment Services (Optional)</h2>
+            <h2 className="text-2xl font-display tracking-tight">Deployment Services (Optional)</h2>
           </div>
           <p className="text-muted-foreground">
             Need zero-trust Vexa in your cloud? We deploy, harden, and operate the OSS code in AWS/GCP/Azure/Vultr.
@@ -368,7 +368,7 @@ export default function PricingPage() {
           <div className="rounded-2xl border shadow-lg overflow-hidden">
             <div className="bg-primary p-6 md:p-8 text-primary-foreground">
               <div className="text-center space-y-6">
-                <h2 className="text-2xl font-bold">Start transcribing via API for Google Meet today.</h2>
+                <h2 className="text-2xl font-display">Start transcribing via API for Google Meet today.</h2>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link href="/api/auth/signin">
                     <Button size="lg" variant="secondary" className="gap-2">Start from $12</Button>

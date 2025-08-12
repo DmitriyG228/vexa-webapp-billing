@@ -13,7 +13,10 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getServerSession } from 'next-auth/next';
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter'
+})
 
 export const metadata: Metadata = {
   title: 'Vexa | Meeting Transcription API with Bot Integration',
@@ -76,7 +79,7 @@ export default async function RootLayout({
           </>
         )}
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} font-sans`}>
         <AuthProvider>
           <ThemeProvider
             attribute="class"
@@ -86,7 +89,7 @@ export default async function RootLayout({
           >
             <div className="flex flex-col min-h-screen">
               <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center gap-2">
                       <Image
@@ -96,37 +99,37 @@ export default async function RootLayout({
                         height={32}
                         className="h-8 w-8"
                       />
-                      <span className="font-bold text-xl">Vexa</span>
+                      <span className="font-display text-xl">Vexa</span>
                     </Link>
                   </div>
                   <nav className="hidden md:flex items-center gap-6">
-                    <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
+                    <Link href="/" className="text-sm font-caption transition-colors hover:text-primary">
                       Home
                     </Link>
-                    <Link href="/get-started" className="text-sm font-medium transition-colors hover:text-primary">
+                    <Link href="/get-started" className="text-sm font-caption transition-colors hover:text-primary">
                       Get Started
                     </Link>
                     <Link 
                       href="https://github.com/Vexa-ai/vexa/blob/feature/traefik/docs/user_api_guide.md" 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium transition-colors hover:text-primary"
+                      className="text-sm font-caption transition-colors hover:text-primary"
                     >
                       API Docs
                     </Link>
-                    <Link href="/pricing" className="text-sm font-medium transition-colors hover:text-primary">
+                    <Link href="/pricing" className="text-sm font-caption transition-colors hover:text-primary">
                       Pricing
                     </Link>
-                    <Link href="/blog" className="text-sm font-medium transition-colors hover:text-primary">
+                    <Link href="/blog" className="text-sm font-caption transition-colors hover:text-primary">
                       Blog
                     </Link>
                     {session && (
-                      <Link href="/dashboard/api-keys" className="text-sm font-medium transition-colors hover:text-primary">
+                      <Link href="/dashboard/api-keys" className="text-sm font-caption transition-colors hover:text-primary">
                         API Keys
                       </Link>
                     )}
                     {session && (
-                      <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
+                      <Link href="/dashboard" className="text-sm font-caption transition-colors hover:text-primary">
                         Dashboard
                       </Link>
                     )}
@@ -155,12 +158,12 @@ export default async function RootLayout({
                 </div>
               </header>
               <main className="flex-1">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                   {children}
                 </div>
               </main>
               <footer className="w-full border-t py-6">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between gap-4 md:flex-row">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between gap-4 md:flex-row">
                   <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
                     © {new Date().getFullYear()} Vexa.ai Inc. All rights reserved.
                   </p>

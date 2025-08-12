@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
+
 
 @layer utilities {
   .text-balance {
@@ -89,6 +87,34 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  
+  /* Font weight standardization */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+  
+  /* Consistent font weights for semantic elements */
+  .font-display {
+    @apply font-semibold;
+  }
+  
+  .font-body {
+    @apply font-normal;
+  }
+  
+  .font-caption {
+    @apply font-medium;
+  }
+  
+  /* Ensure Inter is used for all text */
+  * {
+    font-family: var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+  
+  /* Keep monospace for code */
+  code, pre, kbd, samp {
+    font-family: ui-monospace, 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
   }
 }

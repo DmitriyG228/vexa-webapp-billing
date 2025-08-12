@@ -5,6 +5,7 @@ import { Metadata, ResolvingMetadata } from 'next';
 import Image from 'next/image'; // Import next/image
 import Link from 'next/link'; // Import Link
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+import { PageContainer, Section } from '@/components/ui/page-container';
 
 export const dynamic = 'force-dynamic';
 
@@ -132,10 +133,12 @@ export default async function Post({ params }: PostProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <article className="container mx-auto px-4 py-8 max-w-3xl">
+      <PageContainer maxWidth="4xl">
+        <Section>
+          <article>
         {/* Hero Image */} 
         {post.heroImage && (
-          <div className="mb-8 overflow-hidden rounded-lg shadow-lg">
+            <div className="mb-8 overflow-hidden rounded-xl shadow-sm">
             <Image
               src={post.heroImage} 
               alt={`${post.title} hero image`}
@@ -147,8 +150,8 @@ export default async function Post({ params }: PostProps) {
           </div>
         )}
 
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold leading-tight mb-4">{post.title}</h1>
+            <header className="mb-8">
+              <h1 className="text-2xl font-bold leading-tight mb-4">{post.title}</h1>
           <div className="flex items-center space-x-4 text-muted-foreground text-sm">
             {/* Author Avatar and Link */} 
             {post.authorLinkedIn ? (
@@ -181,8 +184,10 @@ export default async function Post({ params }: PostProps) {
           dangerouslySetInnerHTML={{ __html: post.contentHtml! }}
         />
 
-        {/* Consider adding components for sharing, comments, related posts etc. */}
-      </article>
+            {/* Consider adding components for sharing, comments, related posts etc. */}
+          </article>
+        </Section>
+      </PageContainer>
     </>
   );
 }

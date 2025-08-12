@@ -35,6 +35,8 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import confetti from 'canvas-confetti';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageContainer, Section } from "@/components/ui/page-container";
+import { Metric } from "@/components/ui/metric";
 
 export default function GetStartedPage() {
   const [apiKey, setApiKey] = useState("");
@@ -355,12 +357,12 @@ export default function GetStartedPage() {
         className={isSubstep ? "ml-8" : ""}
       >
         <Card className={`
-          relative 
+          relative rounded-xl border bg-card text-card-foreground shadow-sm
           ${isUnlocked ? 'opacity-100' : 'opacity-50'} 
-          ${isCompleted ? 'border-green-500 shadow-md' : ''}
+          ${isCompleted ? 'border-green-500' : ''}
           ${isSubstep ? 'border-l-4 border-l-blue-500' : ''}
         `}>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between p-6">
             <div className="flex items-center gap-2">
               <div className={`
                 flex items-center justify-center w-8 h-8 rounded-full 
@@ -381,7 +383,7 @@ export default function GetStartedPage() {
               </div>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-0">
             {children}
           </CardContent>
         </Card>
@@ -453,21 +455,22 @@ export default function GetStartedPage() {
   }, []);
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-4xl font-bold mb-2">Starting Guide</h1>
-      <div className="flex justify-between items-center mb-6">
-        <p className="text-xl">
-          Follow these steps to get your first transcription in under 5 minutes.
-        </p>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={resetProgress}
-          className="text-sm"
-        >
-          Reset Progress
-        </Button>
-      </div>
+    <PageContainer>
+      <Section padding="lg">
+        <div className="text-center mb-8">
+          <h1 className="text-[44px] leading-[52px] font-bold mb-4">Get Started with Vexa</h1>
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-7 mb-6">
+            Follow these steps to get your first transcription in under 5 minutes.
+          </p>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={resetProgress}
+            className="text-sm"
+          >
+            Reset Progress
+          </Button>
+        </div>
       
       {/* Mobile warning message */}
       {isMobile && (
@@ -492,28 +495,30 @@ export default function GetStartedPage() {
         </Alert>
       )}
       
-      {/* Progress bar */}
-      <div className="mb-8">
-        <div className="flex justify-between mb-2">
-          <span className="text-sm">Progress</span>
-          <span className="text-sm font-bold">{progress}%</span>
-        </div>
-        <Progress value={progress} className="h-2" />
-        
-        {/* Success message */}
-        {currentMessage && progress > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 mt-2 text-green-600"
-          >
-            <StarIcon size={16} className="text-yellow-500" />
-            <span>{currentMessage}</span>
-          </motion.div>
-        )}
-      </div>
+        {/* Progress bar */}
+        <Card className="rounded-xl border bg-card shadow-sm mb-8">
+          <CardContent className="p-6">
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Progress</span>
+              <Metric value={progress} unit="%" size="sm" className="text-right" />
+            </div>
+            <Progress value={progress} className="h-3" />
+            
+            {/* Success message */}
+            {currentMessage && progress > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 mt-4 text-green-600"
+              >
+                <StarIcon size={16} className="text-yellow-500" />
+                <span className="text-sm font-medium">{currentMessage}</span>
+              </motion.div>
+            )}
+          </CardContent>
+        </Card>
       
-      <div className="space-y-8 mb-10">
+        <div className="space-y-6 mb-10">
         <StepCard 
           stepNumber={1} 
           title="Get Your API Key" 
@@ -706,12 +711,12 @@ export default function GetStartedPage() {
 
         {showOptionalSteps && (
           <>
-            <div className="relative py-4">
+            <div className="relative py-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t"></div>
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-background px-4 text-sm text-muted-foreground">
+                <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
                   Optional Steps
                 </span>
               </div>
@@ -923,7 +928,7 @@ export default function GetStartedPage() {
               <div className="border-t border-white/20 pt-6">
                 <div className="flex flex-col md:flex-row gap-6 items-start">
                   <img 
-                    src="https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1647969193758?e=1750896000&v=beta&t=-xq4LQ-_9gYfy57ZbNVOonH-mfe7hCd6IobEZ5PDtR4" 
+                    src="https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs" 
                     alt="Dmitry Grankin, CEO of Vexa" 
                     className="w-24 h-24 rounded-full object-cover border-2 border-white"
                   />
@@ -968,7 +973,8 @@ export default function GetStartedPage() {
             </div>
           </motion.div>
         )}
-      </div>
-    </div>
+        </div>
+      </Section>
+    </PageContainer>
   );
 } 

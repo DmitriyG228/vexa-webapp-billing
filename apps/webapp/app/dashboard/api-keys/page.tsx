@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react"
 
 import { DiscordIcon } from "@/components/DiscordIcon"
 import { Button } from "@/components/ui/button"
+import { PageContainer, Section } from "@/components/ui/page-container"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -334,11 +335,12 @@ export default function ApiKeysPage() {
     // This component now assumes it's rendered within a layout that provides
     // the overall page structure (header, sidebar, etc.)
     // It focuses only on the API key management section.
-          <div className="mx-auto max-w-4xl space-y-8">
+    <PageContainer maxWidth="4xl">
+      <Section>
       {/* Header Section */} 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
+                <h1 className="text-2xl font-bold tracking-tight">API Keys</h1>
           <p className="mt-2 text-muted-foreground">Create and manage your API keys.</p>
               </div>
         {/* --- Create Key Dialog Trigger --- */}
@@ -453,7 +455,7 @@ export default function ApiKeysPage() {
               <TabsContent value="active" className="space-y-4">
           {/* Show message if no keys and not loading/error */}
           {!isLoading && !error && apiKeys.filter((key: ApiKey) => key.active !== false).length === 0 ? (
-                  <Card>
+                  <Card className="rounded-xl border bg-card text-card-foreground shadow-sm">
                     <CardContent className="flex flex-col items-center justify-center py-10 text-center">
                       <Key className="h-12 w-12 text-muted-foreground mb-4" />
                       <h3 className="text-lg font-medium mb-2">No active API keys</h3>
@@ -468,7 +470,7 @@ export default function ApiKeysPage() {
             !isLoading && !error && apiKeys
               .filter((key: ApiKey) => key.active !== false)
               .map((key: ApiKey) => (
-                      <Card key={key.id}>
+                      <Card key={key.id} className="rounded-xl border bg-card text-card-foreground shadow-sm">
                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                           <div className="space-y-1">
                             <CardTitle>
@@ -606,7 +608,7 @@ export default function ApiKeysPage() {
         <CardHeader>
           <div className="flex items-start gap-4">
             <img 
-              src="https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1647969193758?e=1750896000&v=beta&t=-xq4LQ-_9gYfy57ZbNVOonH-mfe7hCd6IobEZ5PDtR4" 
+              src="https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs" 
               alt="Dmitry Grankin, CEO of Vexa" 
               className="w-16 h-16 rounded-full object-cover border-2 border-white" // Adjusted size for card header
             />
@@ -670,7 +672,8 @@ export default function ApiKeysPage() {
       </Card>
 
       <Toaster />
-    </div>
+      </Section>
+    </PageContainer>
   );
 }
 

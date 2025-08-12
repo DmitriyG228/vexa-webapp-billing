@@ -2,7 +2,7 @@
 title: 'How to Get Google Meet Transcripts in n8n (Easy 2-Node Setup)'
 date: '2025-05-14'
 author: 'Dmitry Grankin'
-authorImage: 'https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1647969193758?e=1749686400&v=beta&t=BeWR1qADrtmw-DZ4-WvvRhmsN91V-jHrGoksgs8mq9E'
+authorImage: 'https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs'
 authorLinkedIn: 'https://www.linkedin.com/in/dmitry-grankin/'
 heroImage: '/images/blog/google-meet-transcription-n8n-workflow-diagram.png'
 slug: 'google-meet-transcription-n8n-workflow'

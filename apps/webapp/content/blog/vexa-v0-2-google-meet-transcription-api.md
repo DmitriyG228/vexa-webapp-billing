@@ -2,7 +2,7 @@
 title: 'Announcing Vexa v0.2: Open-Source Real-Time Google Meet Transcription via API!'
 date: '2025-04-10'
 author: 'Dmitry Grankin'
-authorImage: 'https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1647969193758?e=1749686400&v=beta&t=BeWR1qADrtmw-DZ4-WvvRhmsN91V-jHrGoksgs8mq9E'
+authorImage: 'https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs'
 authorLinkedIn: 'https://www.linkedin.com/in/dmitry-grankin/'
 heroImage: '/images/blog/vexa-v0.2-announcement.png' # Reference image in public/images/blog
 slug: 'vexa-v0-2-google-meet-transcription-api'

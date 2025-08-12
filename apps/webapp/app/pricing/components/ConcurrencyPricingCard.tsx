@@ -86,15 +86,15 @@ export function ConcurrencyPricingCard() {
 
       <CardHeader className="relative flex-shrink-0 gap-2 p-6">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <span className="font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+          <span className="font-display bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Simple concurrency pricing
           </span>
         </CardTitle>
         <div className="flex items-end gap-2">
-          <span className="text-[44px] leading-[52px] font-semibold tabular-nums">{avgPerBotFormatted}</span>
+          <span className="text-[44px] leading-[52px] font-display tabular-nums">{avgPerBotFormatted}</span>
           <span className="text-muted-foreground">/mo per bot</span>
         </div>
-        <div className="text-sm text-muted-foreground">Total: <span className="font-mono tabular-nums font-semibold">{totalFormatted}</span>/mo</div>
+        <div className="text-sm text-muted-foreground">Total: <span className="font-mono tabular-nums font-display">{totalFormatted}</span>/mo</div>
         <p className="text-base leading-6 text-muted-foreground">Bots = concurrent meetings. Minutes & meetings are unlimited.</p>
       </CardHeader>
 
@@ -117,7 +117,7 @@ export function ConcurrencyPricingCard() {
               </div>
               <div className="text-right text-base" aria-live="polite">
                 <span className="text-muted-foreground">Live total</span>{' '}
-                <span className="font-mono tabular-nums font-semibold">{totalFormatted}/mo</span>
+                <span className="font-mono tabular-nums font-display">{totalFormatted}/mo</span>
               </div>
             </div>
             <div className="relative">
@@ -167,25 +167,25 @@ export function ConcurrencyPricingCard() {
           </div>
 
           <div className="space-y-2">
-            <div className="text-sm font-semibold">Includes</div>
+            <div className="text-sm font-caption">Includes</div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
                   <CheckCircle2 className="h-3 w-3 text-green-600" />
                 </div>
-                <span className="text-sm">Join up to <span className="font-semibold">{bots} simultaneous meetings</span></span>
+                <span className="text-sm">Join up to <span className="font-caption">{bots} simultaneous meetings</span></span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
                   <CheckCircle2 className="h-3 w-3 text-green-600" />
                 </div>
-                <span className="text-sm"><span className="font-semibold">Unlimited</span> transcription & real-time translation (100+ languages)</span>
+                <span className="text-sm"><span className="font-caption">Unlimited</span> transcription & real-time translation (100+ languages)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
                   <CheckCircle2 className="h-3 w-3 text-green-600" />
                 </div>
-                <span className="text-sm">Regions: <span className="font-semibold">EU/US/APAC</span>, 7-day rolling storage (configurable)</span>
+                <span className="text-sm">Regions: <span className="font-caption">EU/US/APAC</span>, 7-day rolling storage (configurable)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
@@ -201,7 +201,7 @@ export function ConcurrencyPricingCard() {
       <CardFooter className="flex flex-col gap-2 p-6">
         <GetStartedButton buttonText="Start from $12" planType="mvp" botCount={bots} />
         <p className="text-sm text-muted-foreground">
-          <span className="font-semibold">Card required.</span> Change bot count anytime—prorates instantly; reductions become credit.
+          <span className="font-caption">Card required.</span> Change bot count anytime—prorates instantly; reductions become credit.
         </p>
       </CardFooter>
     </Card>

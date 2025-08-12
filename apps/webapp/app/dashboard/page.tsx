@@ -25,6 +25,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2 } from "lucide-react"
+import { PageContainer, Section } from "@/components/ui/page-container"
+import { Metric } from "@/components/ui/metric"
 
 interface UserData {
   id: number
@@ -254,60 +256,67 @@ export default function DashboardPage() {
 
   if (sessionStatus !== "authenticated") {
     return (
-      <div className="container py-10">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Please sign in to view your dashboard.
-          </AlertDescription>
-        </Alert>
-      </div>
+      <PageContainer>
+        <Section>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please sign in to view your dashboard.
+            </AlertDescription>
+          </Alert>
+        </Section>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
-      <div className="container py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Your current plan and usage</p>
-        </div>
-        
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error}
-          </AlertDescription>
-        </Alert>
-      </div>
+      <PageContainer>
+        <Section>
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
+            <p className="text-muted-foreground">Your current plan and usage</p>
+          </div>
+          
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        </Section>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="container py-10">
-      <Toaster />
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {userData?.name || userData?.email || 'User'}
-        </p>
-            </div>
+    <PageContainer>
+      <Section>
+        <Toaster />
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {userData?.name || userData?.email || 'User'}
+          </p>
+        </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Current Bot Limit */}
-                <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="rounded-xl border bg-card text-card-foreground shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
             <CardTitle className="text-sm font-medium">Current Bot Limit</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {(() => {
+          </CardHeader>
+          <CardContent className="p-6 pt-0">
+            <Metric 
+              value={(() => {
                 const count = (userData?.max_concurrent_bots ?? 0)
                 console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
-                return `${count} bot${count > 1 ? 's' : ''}`
-              })()}
-            </div>
+                return count
+              })()} 
+              unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
+              size="lg"
+            />
             <p className="text-xs text-muted-foreground">
               {userData?.data?.subscription_status === 'cancelling' ? (
                 <>
@@ -327,12 +336,12 @@ export default function DashboardPage() {
                 </Card>
 
         {/* Next Payment Due */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="rounded-xl border bg-card text-card-foreground shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
             <CardTitle className="text-sm font-medium">Subscription Status</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-0">
               <div className="space-y-2">
               <div className="flex items-center gap-2">
                 {getSubscriptionStatus(userData?.data?.subscription_status)}
@@ -482,7 +491,8 @@ export default function DashboardPage() {
         </Card>
         </div>
       )}
-    </div>
+      </Section>
+    </PageContainer>
   )
 }
 
