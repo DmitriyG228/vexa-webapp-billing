@@ -169,9 +169,7 @@ export default function PricingPage() {
               Hosted SaaS, API-first. Unlimited minutes. Open-source core (Apache-2) with <span className="font-semibold">no lock-in</span>—self-host anytime. <em>MS Teams & Zoom coming next.</em>
             </p>
             <div className="flex items-center justify-center gap-2 text-xs md:text-sm flex-wrap">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Google Meet</Badge>
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Unlimited minutes</Badge>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">API & webhooks</Badge>
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Open-source (Apache-2)</Badge>
             </div>
           </div>
