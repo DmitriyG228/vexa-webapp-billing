@@ -174,6 +174,8 @@ export default async function Post({ params }: PostProps) {
             
             <span>|</span>
             <span>Published on {formatDate(post.date)}</span>
+            <span>|</span>
+            <span className="text-xs text-muted-foreground">Refreshes every 5s</span>
           </div>
         </header>
 
@@ -192,5 +194,5 @@ export default async function Post({ params }: PostProps) {
   );
 }
 
-// Add revalidate if needed for ISR
-// export const revalidate = 60; // Revalidate every 60 seconds 
+// Add revalidate for ISR
+export const revalidate = 5; // Revalidate every 5 seconds 

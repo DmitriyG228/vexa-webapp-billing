@@ -3,15 +3,16 @@ import { MetadataRoute } from 'next';
 import { getSortedPostsData } from '@/lib/posts';
 import { absoluteUrl } from '@/lib/utils';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const posts = getSortedPostsData();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  try {
+    const posts = await getSortedPostsData();
 
-  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: absoluteUrl(`/blog/${post.slug}`),
-    lastModified: new Date(post.date).toISOString(),
-    changeFrequency: 'monthly', 
-    priority: 0.8,
-  }));
+    const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+      url: absoluteUrl(`/blog/${post.slug}`),
+      lastModified: new Date(post.date).toISOString(),
+      changeFrequency: 'monthly' as const, 
+      priority: 0.8,
+    }));
 
   // Add other static pages (adjust paths and priorities as needed)
   const staticPages = [
@@ -31,5 +32,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
 
-  return [...staticEntries, ...postEntries];
+    return [...staticEntries, ...postEntries];
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    // Return only static entries if blog posts fail to load
+    return staticEntries;
+  }
 } 

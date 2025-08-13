@@ -1,18 +1,27 @@
 import Link from 'next/link';
 import { getSortedPostsData, PostData } from '@/lib/posts';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"; // Assuming shadcn card component
-import { formatDate } from '@/lib/utils'; // Assuming a date formatting utility exists
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { formatDate } from '@/lib/utils';
 import { PageContainer, Section } from '@/components/ui/page-container';
+import { BlogRefreshButton } from './blog-refresh-button';
 
-export default function BlogIndex() {
-  const allPostsData = getSortedPostsData();
+export default async function BlogIndex() {
+  const allPostsData = await getSortedPostsData();
 
   return (
     <PageContainer>
       <Section>
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-4">Blog</h1>
-          <p className="text-muted-foreground">Latest insights and updates from the Vexa team</p>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h1 className="text-2xl font-bold">Blog</h1>
+            <BlogRefreshButton />
+          </div>
+          <p className="text-muted-foreground">
+            Latest insights and updates from the Vexa team
+            <span className="block text-xs mt-2">
+              Content refreshes every 5 seconds
+            </span>
+          </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {allPostsData.map(({ slug, date, title, summary }: PostData) => (
@@ -22,7 +31,7 @@ export default function BlogIndex() {
                 <CardHeader className="p-6">
                   <CardTitle className="text-lg leading-tight">{title}</CardTitle>
                   <CardDescription className="text-sm text-muted-foreground">
-                    {formatDate(date)} {/* Use formatDate utility */}
+                    {formatDate(date)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 pt-0">
@@ -41,5 +50,5 @@ export default function BlogIndex() {
   );
 }
 
-// Add revalidate if needed for Incremental Static Regeneration (ISR)
-// export const revalidate = 60; // Revalidate every 60 seconds 
+// Add revalidate for Incremental Static Regeneration (ISR)
+export const revalidate = 5; // Revalidate every 5 seconds 

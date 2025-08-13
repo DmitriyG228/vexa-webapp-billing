@@ -6,7 +6,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string | undefined): string {
+  if (!dateString) {
+    return 'Date not available';
+  }
+  
   try {
     const date = parseISO(dateString); // Parse the ISO string (like 'YYYY-MM-DD')
     return format(date, 'LLLL d, yyyy'); // Format as "Month day, year"
