@@ -124,28 +124,28 @@ export default function DashboardPage() {
     console.log('[Dashboard] Opening Stripe portal...')
     setIsOpeningPortal(true)
     try {
-      const response = await fetch('/api/stripe/create-portal-session', {
+      const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ context: 'dashboard' }),
       })
 
       const data = await response.json()
       console.log('[Dashboard] Portal response:', data)
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to open billing portal')
+        throw new Error(data.error || 'Failed to resolve billing URL')
       }
 
       console.log('[Dashboard] Redirecting to:', data.url)
-      // Redirect to Stripe Customer Portal
       window.location.href = data.url
     } catch (error) {
-      console.error('Error opening portal:', error)
+      console.error('Error resolving billing URL:', error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to open billing portal. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to continue. Please try again.',
         variant: "destructive",
       })
     } finally {

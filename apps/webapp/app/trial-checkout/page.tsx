@@ -40,12 +40,12 @@ export default function TrialCheckoutPage() {
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/stripe/create-portal-session', {
+      const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ context: 'pricing', quantity: 1 }),
       })
 
       const data = await response.json()
@@ -62,11 +62,12 @@ export default function TrialCheckoutPage() {
           // Redirect to billing portal after a short delay
           setTimeout(async () => {
             try {
-              const portalResponse = await fetch('/api/stripe/create-portal-session', {
+              const portalResponse = await fetch('/api/stripe/resolve-url', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ context: 'dashboard' }),
               })
               
               const portalData = await portalResponse.json()

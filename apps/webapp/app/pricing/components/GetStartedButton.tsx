@@ -36,26 +36,26 @@ export function GetStartedButton({
 
     setIsSubscribing(true)
     try {
-      // Use customer portal managed by the billing service instead of a checkout route
-      const response = await fetch('/api/stripe/create-portal-session', {
+      // Use the new resolve-url endpoint for proper routing
+      const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ context: 'pricing', quantity: botCount || 1 }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to open billing portal')
+        throw new Error(data.error || 'Failed to resolve billing URL')
       }
 
       if (data.url) window.location.href = data.url
-      else throw new Error(data.error || 'Failed to open billing portal')
+      else throw new Error(data.error || 'Failed to resolve billing URL')
     } catch (error) {
-      console.error('Error opening billing portal:', error)
-      alert('Failed to open billing portal. Please try again.')
+      console.error('Error resolving billing URL:', error)
+      alert('Failed to continue. Please try again.')
     } finally {
       setIsSubscribing(false)
     }

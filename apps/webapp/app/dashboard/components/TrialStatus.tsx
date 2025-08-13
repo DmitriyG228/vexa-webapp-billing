@@ -23,24 +23,25 @@ export function TrialStatus({
   const handleAddPaymentMethod = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/stripe/create-portal-session', {
+      const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ context: 'dashboard' }),
       })
 
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to open billing portal')
+        throw new Error(data.error || 'Failed to resolve billing URL')
       }
       
       if (data.url) {
         window.location.href = data.url
       }
     } catch (error) {
-      console.error('Error opening billing portal:', error)
+      console.error('Error resolving billing URL:', error)
     } finally {
       setIsLoading(false)
     }

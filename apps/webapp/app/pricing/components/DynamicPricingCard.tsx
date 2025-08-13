@@ -145,22 +145,23 @@ export function DynamicPricingCard() {
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/stripe/create-portal-session', {
+      const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ context: 'pricing', quantity: sliderValue[0] }),
       })
 
       const data = await response.json()
       if (!response.ok || !data?.url) {
-        throw new Error(data?.error || 'Failed to open billing portal')
+        throw new Error(data?.error || 'Failed to resolve billing URL')
       }
 
       window.location.href = data.url
     } catch (error) {
-      console.error('Error opening portal:', error)
-      alert('Failed to open billing portal. Please try again.')
+      console.error('Error resolving billing URL:', error)
+      alert('Failed to continue. Please try again.')
     } finally {
       setIsLoading(false)
     }
