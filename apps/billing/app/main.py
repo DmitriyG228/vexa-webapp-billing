@@ -537,6 +537,11 @@ class ResolveUrlRequest(BaseModel):
     returnUrl: Optional[str] = None
 
 
+class StatsResponse(BaseModel):
+    total_accounts: int  # Only accounts with more than 0 contracted bots
+    total_contracted_bots: int
+
+
 def _get_bot_product_and_price():
     products = stripe.Product.list(active=True, limit=100)
     bot_product = next((p for p in products.data if p.name == "Bot subscription"), None)
@@ -733,6 +738,40 @@ async def resolve_billing_url(req: ResolveUrlRequest):
 async def stripe_webhook_alias(request: Request):
     """Alias route for Stripe webhook to match public URL path."""
     return await stripe_webhook(request)
+
+
+@app.get("/v1/stats")
+async def get_current_stats() -> StatsResponse:
+    """
+    Get current statistics about contracted bots and number of accounts.
+    Returns aggregated data about user accounts that have more than 0 contracted bots.
+    
+    Returns:
+        StatsResponse: Contains total_accounts (only accounts with >0 bots) and total_contracted_bots
+    """
+    try:
+        # Query admin API to get all users
+        resp = await admin_request("GET", "/admin/users?limit=10000")  # Use high limit to get all users
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail=f"Admin API failed: {resp.text}")
+        
+        users_data = resp.json()
+        
+        # Filter accounts with more than 0 contracted bots
+        accounts_with_bots = [user for user in users_data if user.get("max_concurrent_bots", 0) > 0]
+        
+        # Calculate statistics
+        total_accounts = len(accounts_with_bots)
+        total_contracted_bots = sum(user.get("max_concurrent_bots", 0) for user in accounts_with_bots)
+        
+        return StatsResponse(
+            total_accounts=total_accounts,
+            total_contracted_bots=total_contracted_bots
+        )
+        
+    except Exception as e:
+        print(f"❌ [STATS] Error getting current stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve current statistics")
 
 
 @app.get("/")
