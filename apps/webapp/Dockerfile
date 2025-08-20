@@ -1,59 +1,60 @@
-# ---- Base Stage ----
-# Install dependencies
-FROM node:20-alpine AS base
-WORKDIR /app
-COPY package.json pnpm-lock.yaml* ./
-# Install pnpm and all dependencies (including devDependencies)
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Use Node.js 18 Alpine as base image
+FROM node:18-alpine AS base
 
-# ---- Builder Stage ----
-# Build the application
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY apps/webapp/package.json apps/webapp/package-lock.json* ./
+RUN npm ci --legacy-peer-deps
+
+# Rebuild the source code only when needed
 FROM base AS builder
-
-# Accept ADMIN_API_TOKEN as a build argument
-ARG ADMIN_API_TOKEN
-# Make it available as an environment variable during this build stage
-ENV ADMIN_API_TOKEN=$ADMIN_API_TOKEN
-
 WORKDIR /app
-# Copy all source files (respecting .dockerignore or .gitignore for gcloud builds submit)
-COPY . .
-# Run the build (output: 'standalone' is configured in next.config.mjs)
-RUN pnpm run build
+COPY --from=deps /app/node_modules ./node_modules
+COPY apps/webapp/ ./
+COPY product/ ./product/
 
-# ---- Runner Stage ----
-# Create the final, lean production image
-FROM node:20-alpine AS runner
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-# Set environment variables for production
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-# PORT will be set by Cloud Run, but 3000 is a common default if run locally
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV NODE_ENV production
+# Uncomment the following line in case you want to disable telemetry during runtime.
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Make ADMIN_API_TOKEN available in the runner stage as well
-# It can be overridden by Cloud Run service environment variables at runtime
-ARG ADMIN_API_TOKEN
-ENV ADMIN_API_TOKEN=$ADMIN_API_TOKEN
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Copy the standalone output from the builder stage.
-# This includes the server.js and other necessary files for running the app.
-COPY --from=builder /app/.next/standalone ./
-
-# Copy the public assets from the builder stage to the 'public' directory
-# in the standalone app directory. The standalone server.js will serve these.
 COPY --from=builder /app/public ./public
 
-# Copy the static Next.js assets (JS, CSS chunks) from the builder stage
-# to the '.next/static' directory within the standalone app directory.
-# The server.js will serve these from .next/static.
-COPY --from=builder /app/.next/static ./.next/static
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
 
-# Expose the port the app runs on
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
 EXPOSE 3000
 
-# The command to run the standalone server.
-# We are in /app, which now contains the contents of .next/standalone.
+ENV PORT 3000
+# set hostname to localhost
+ENV HOSTNAME "0.0.0.0"
+
+# server.js is created by next build from the standalone output
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"] 

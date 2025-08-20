@@ -1,6 +1,33 @@
 name: vexa_billing
 
 services:
+  webapp:
+    build:
+      context: .
+      dockerfile: ./apps/webapp/Dockerfile
+    ports:
+      - "${WEBAPP_HOST_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - ADMIN_API_URL=${ADMIN_API_URL}
+      - ADMIN_API_TOKEN=${ADMIN_API_TOKEN}
+      - PORTAL_RETURN_URL=${PORTAL_RETURN_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - BILLING_URL=http://billing:9000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - billing_default
+    restart: unless-stopped
+    depends_on:
+      - billing
+
   billing:
     build:
       context: ./apps/billing
