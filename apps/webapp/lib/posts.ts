@@ -25,6 +25,8 @@ export async function getSortedPostsData(): Promise<PostData[]> {
   try {
     const files = await githubService.getMarkdownFiles();
     
+    console.log('GitHub files found:', files.map(f => ({ name: f.name, path: f.path })));
+    
     const allPostsData = await Promise.all(
       files.map(async (file) => {
         const fileContents = await githubService.getFileContent(file.path);
@@ -33,18 +35,51 @@ export async function getSortedPostsData(): Promise<PostData[]> {
         // Use slug from frontmatter if available, otherwise use filename
         const slug = (matterResult.data as any).slug || file.name.replace(/\.mdx?$/, '');
         
-        // Debug: Log the parsed frontmatter
-        console.log(`Parsed frontmatter for ${slug}:`, matterResult.data);
+        // Debug: Log the parsed frontmatter and file info
+        console.log(`File: ${file.name} (${file.path}) -> Slug: ${slug}`, {
+          frontmatter: matterResult.data,
+          filename: file.name,
+          filepath: file.path
+        });
 
         return {
           slug,
+          filename: file.name,
+          filepath: file.path,
           ...(matterResult.data as { title: string; date: string; author: string; summary: string; }),
         };
       })
     );
 
+    // Debug: Log all slugs to check for duplicates
+    const slugs = allPostsData.map(post => post.slug);
+    console.log('All generated slugs:', slugs);
+
+    // Handle duplicate slugs by adding index suffix
+    const slugMap = new Map<string, number>();
+    const processedPosts = allPostsData.map(post => {
+      const originalSlug = post.slug;
+      const count = slugMap.get(originalSlug) || 0;
+      slugMap.set(originalSlug, count + 1);
+
+      if (count > 0) {
+        // If this slug already exists, add a suffix
+        post.slug = `${originalSlug}-${count}`;
+        console.warn(`Duplicate slug "${originalSlug}" resolved to "${post.slug}" for file: ${post.filename}`);
+      }
+
+      return post;
+    });
+
+    // Check for any remaining duplicates after processing
+    const finalSlugs = processedPosts.map(post => post.slug);
+    const remainingDuplicates = finalSlugs.filter((slug, index) => finalSlugs.indexOf(slug) !== index);
+    if (remainingDuplicates.length > 0) {
+      console.error('Remaining duplicate slugs after processing:', remainingDuplicates);
+    }
+
     // Sort posts by date
-    return allPostsData.sort((a, b) => {
+    return processedPosts.sort((a, b) => {
       if (a.date < b.date) {
         return 1;
       } else {
@@ -60,15 +95,15 @@ export async function getSortedPostsData(): Promise<PostData[]> {
 export async function getAllPostSlugs() {
   try {
     const files = await githubService.getMarkdownFiles();
-    
+
     const slugs = await Promise.all(
       files.map(async (file) => {
         const fileContents = await githubService.getFileContent(file.path);
         const matterResult = matter(fileContents);
-        
+
         // Use slug from frontmatter if available, otherwise use filename
         const slug = (matterResult.data as any).slug || file.name.replace(/\.mdx?$/, '');
-        
+
         return {
           params: {
             slug,
@@ -76,8 +111,23 @@ export async function getAllPostSlugs() {
         };
       })
     );
-    
-    return slugs;
+
+    // Handle duplicate slugs by adding index suffix (same logic as getSortedPostsData)
+    const slugMap = new Map<string, number>();
+    const processedSlugs = slugs.map(item => {
+      const originalSlug = item.params.slug;
+      const count = slugMap.get(originalSlug) || 0;
+      slugMap.set(originalSlug, count + 1);
+
+      if (count > 0) {
+        item.params.slug = `${originalSlug}-${count}`;
+        console.warn(`Duplicate slug in getAllPostSlugs: "${originalSlug}" resolved to "${item.params.slug}"`);
+      }
+
+      return item;
+    });
+
+    return processedSlugs;
   } catch (error) {
     console.error('Error fetching post slugs from GitHub:', error);
     return [];

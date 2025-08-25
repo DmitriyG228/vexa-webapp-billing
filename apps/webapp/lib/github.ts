@@ -36,16 +36,37 @@ export class GitHubContentService {
     const pathSegment = path === '' ? '' : `/${path}`;
     const url = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents${pathSegment}`;
     
+    // Debug logging
+    console.log('GitHub API Debug:', {
+      owner: this.owner,
+      repo: this.repo,
+      basePath: this.basePath,
+      path,
+      pathSegment,
+      url,
+      hasToken: !!this.token
+    });
+    
     const response = await fetch(url, {
       headers: this.headers,
-      next: { revalidate: parseInt(process.env.NEXT_REVALIDATE_SECONDS || '5') }
+      next: { revalidate: 3600 } // Cache for 1 hour
     });
 
     if (!response.ok) {
+      console.error('GitHub API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url
+      });
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log('GitHub API Success Response:', {
+      dataType: Array.isArray(data) ? 'array' : 'object',
+      dataLength: Array.isArray(data) ? data.length : 1
+    });
+    
     return Array.isArray(data) ? data : [data];
   }
 
@@ -54,7 +75,7 @@ export class GitHubContentService {
     
     const response = await fetch(url, {
       headers: this.headers,
-      next: { revalidate: parseInt(process.env.NEXT_REVALIDATE_SECONDS || '3600') }
+      next: { revalidate: 3600 } // Cache for 1 hour
     });
 
     if (!response.ok) {
