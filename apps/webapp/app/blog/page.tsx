@@ -48,5 +48,5 @@ export default async function BlogIndex() {
 }
 
 // Add revalidate for Incremental Static Regeneration (ISR)
-// Set to 0 for development (always revalidate) or reasonable interval for production
-export const revalidate = process.env.NODE_ENV === 'production' ? 300 : 0; // 5 minutes in production, no cache in dev 
+// Using 0 for development-like behavior (always revalidate on each request)
+export const revalidate = 0; 

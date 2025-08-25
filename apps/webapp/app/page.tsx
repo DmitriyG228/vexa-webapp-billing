@@ -162,7 +162,7 @@ export default function LandingPage() {
                     <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">request</span>
                   </div>
                 </div>
-                <pre className="text-sm font-mono language-bash overflow-auto"><code>{`curl -X POST https://gateway.dev.vexa.ai \
+                <pre className="text-sm font-mono language-bash overflow-auto"><code>{`curl -X POST https://api.cloud.vexa.ai \
   -d '{
     "platform": "google_meet",
     "native_meeting_id": "abc-defg-hij",

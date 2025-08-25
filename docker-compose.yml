@@ -19,7 +19,7 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - BILLING_URL=http://billing:9000
+      - BILLING_URL=${BILLING_URL}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

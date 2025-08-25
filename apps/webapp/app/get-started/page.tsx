@@ -261,7 +261,7 @@ export default function GetStartedPage() {
     if (!apiKey || !meetingId) return "";
     
     return `curl -X POST \\
-  https://gateway.dev.vexa.ai/bots \\
+  https://api.cloud.vexa.ai/bots \\
   -H 'Content-Type: application/json' \\
   -H 'X-API-Key: ${apiKey}' \\
   -d '{
@@ -276,7 +276,7 @@ export default function GetStartedPage() {
     if (!apiKey || !meetingId) return "";
     
     return `curl -X GET \\
-  https://gateway.dev.vexa.ai/transcripts/google_meet/${meetingId} \\
+  https://api.cloud.vexa.ai/transcripts/google_meet/${meetingId} \\
   -H 'X-API-Key: ${apiKey}'`;
   };
   
@@ -285,7 +285,7 @@ export default function GetStartedPage() {
     if (!apiKey) return "";
     
     return `curl -X GET \\
-  https://gateway.dev.vexa.ai/bots/status \\
+  https://api.cloud.vexa.ai/bots/status \\
   -H 'X-API-Key: ${apiKey}'`;
   };
 
@@ -294,7 +294,7 @@ export default function GetStartedPage() {
     if (!apiKey || !meetingId) return "";
     
     return `curl -X PUT \\
-  https://gateway.dev.vexa.ai/bots/google_meet/${meetingId}/config \\
+  https://api.cloud.vexa.ai/bots/google_meet/${meetingId}/config \\
   -H 'Content-Type: application/json' \\
   -H 'X-API-Key: ${apiKey}' \\
   -d '{
@@ -307,7 +307,7 @@ export default function GetStartedPage() {
     if (!apiKey || !meetingId) return "";
     
     return `curl -X DELETE \\
-  https://gateway.dev.vexa.ai/bots/google_meet/${meetingId} \\
+  https://api.cloud.vexa.ai/bots/google_meet/${meetingId} \\
   -H 'X-API-Key: ${apiKey}'`;
   };
   
@@ -316,7 +316,7 @@ export default function GetStartedPage() {
     if (!apiKey) return "";
     
     return `curl -X GET \\
-  https://gateway.dev.vexa.ai/meetings \\
+  https://api.cloud.vexa.ai/meetings \\
   -H 'X-API-Key: ${apiKey}'`;
   };
 

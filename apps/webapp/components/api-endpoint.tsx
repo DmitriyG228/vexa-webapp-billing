@@ -35,12 +35,12 @@ export function ApiEndpoint({
     PATCH: "text-purple-600",
   }
 
-  const curlExample = `curl -X ${method} "https://gateway.dev.vexa.ai${endpoint}" \\
+  const curlExample = `curl -X ${method} "https://api.cloud.vexa.ai${endpoint}" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json"${requestBody ? ` \\
   -d '${requestBody}'` : ""}`
 
-  const jsExample = `const response = await fetch('https://gateway.dev.vexa.ai${endpoint}', {
+  const jsExample = `const response = await fetch('https://api.cloud.vexa.ai${endpoint}', {
   method: '${method}',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -59,7 +59,7 @@ headers = {
 }
 
 response = requests.${method.toLowerCase()}(
-    'https://gateway.dev.vexa.ai${endpoint}',
+    'https://api.cloud.vexa.ai${endpoint}',
     headers=headers${requestBody ? `,
     json=${requestBody}` : ""}
 )
