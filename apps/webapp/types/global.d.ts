@@ -1,12 +1,14 @@
-// Google Analytics
+// Google Analytics and Umami Analytics
 interface Window {
   gtag: (
-    command: 'config' | 'event',
-    targetId: string,
-    params?: {
-      [key: string]: string | number | boolean | null | undefined;
-    }
+    command: 'event' | 'config' | 'set' | 'js',
+    targetId: string | Date,
+    params?: Record<string, any>
   ) => void;
+  dataLayer: Array<Record<string, any>>;
+  umami: {
+    track: (eventName: string, eventData?: Record<string, any>) => void;
+  };
 }
 
 // Additional type declarations can be added here 

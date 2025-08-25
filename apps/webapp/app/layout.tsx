@@ -37,8 +37,9 @@ export const metadata: Metadata = {
   }
 }
 
-// Google Analytics Measurement ID from environment variable
+// Analytics Configuration from environment variables
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
 
 export default async function RootLayout({
   children,
@@ -77,6 +78,17 @@ export default async function RootLayout({
               `
             }} />
           </>
+        )}
+
+        {/* Umami Analytics - Privacy-focused analytics */}
+        {UMAMI_WEBSITE_ID && UMAMI_WEBSITE_ID !== 'umami-website-id' && (
+          <script
+            async
+            defer
+            data-website-id={UMAMI_WEBSITE_ID}
+            src="https://analytics.umami.is/script.js"
+            data-domains="webapp.cloud.vexa.ai"
+          />
         )}
       </head>
       <body className={`${inter.variable} font-sans`}>

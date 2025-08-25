@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { trackPageView } from '@/lib/analytics';
+import { trackPageView, trackUmamiPageView } from '@/lib/analytics';
 
 /**
- * Component that tracks page views in Google Analytics
+ * Component that tracks page views in Google Analytics and Umami
  * Can be included on any page to ensure tracking works correctly
  * Redesigned to avoid useSearchParams() which requires Suspense boundaries
  */
@@ -18,9 +18,10 @@ export function PageViewTracker({ title, path }: { title?: string; path?: string
     // Skip if the path hasn't changed and we've already tracked it
     if (currentPath === prevPathname.current) return;
     
-    // Track the page view
+    // Track the page view in both GA and Umami
     console.log(`📊 PageViewTracker: Tracking page view for ${currentPath}`);
     trackPageView(currentPath, title);
+    trackUmamiPageView(currentPath, title);
     
     // Update the previous pathname
     prevPathname.current = currentPath;
