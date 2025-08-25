@@ -181,9 +181,20 @@ export default function PricingPage() {
         <section className="py-2" id="pricing">
           <div className="mx-auto max-w-5xl space-y-4">
            <div className="grid grid-cols-1 gap-6 items-stretch max-w-5xl mx-auto">
+             {/* Trial information */}
+             <div className="text-center">
+               <Link href="/dashboard/api-keys">
+                 <Button variant="outline" size="lg" className="gap-3 px-8 py-6 text-lg font-semibold">
+                   <Zap className="h-6 w-6" />
+                   Start free 1-hour trial in 2 clicks
+                 </Button>
+               </Link>
+             </div>
+
              <div>
                <ConcurrencyPricingCard />
              </div>
+
              {/* Two separate cards: Enterprise and Speak to Founder */}
               <div className="grid grid-cols-1 gap-6">
                <PricingCard
@@ -371,7 +382,7 @@ export default function PricingPage() {
                 <h2 className="text-2xl font-display">Start transcribing via API for Google Meet today.</h2>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link href="/api/auth/signin">
-                    <Button size="lg" variant="secondary" className="gap-2">Start from $12</Button>
+                    <Button size="lg" variant="secondary" className="gap-2">Get Started</Button>
                   </Link>
                   <Link href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md" target="_blank" rel="noopener noreferrer">
                     <Button size="lg" variant="outline" className="border-primary-foreground/20 bg-primary-foreground/10 hover:bg-primary-foreground/20 gap-2">

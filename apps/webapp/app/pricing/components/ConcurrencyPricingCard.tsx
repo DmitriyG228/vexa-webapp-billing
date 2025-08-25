@@ -199,7 +199,7 @@ export function ConcurrencyPricingCard() {
       </CardContent>
 
       <CardFooter className="flex flex-col gap-2 p-6">
-        <GetStartedButton buttonText="Start from $12" planType="mvp" botCount={bots} />
+        <GetStartedButton buttonText="Start from $12" planType="mvp" botCount={bots} totalPrice={totalFormatted} />
         <p className="text-sm text-muted-foreground">
           <span className="font-caption">Card required.</span> Change bot count anytime—prorates instantly; reductions become credit.
         </p>

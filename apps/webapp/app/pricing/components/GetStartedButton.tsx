@@ -12,6 +12,7 @@ interface GetStartedButtonProps {
   isLoading?: boolean
   planType?: 'mvp' | 'dynamic' | 'enterprise' | 'local' | 'community' | 'nomad' | 'dedicated'
   botCount?: number
+  totalPrice?: string
   href?: string
 }
 
@@ -23,6 +24,7 @@ export function GetStartedButton({
   isLoading = false,
   planType = 'dynamic',
   botCount,
+  totalPrice,
   href,
 }: GetStartedButtonProps) {
   const { data: session } = useSession()
@@ -86,6 +88,13 @@ export function GetStartedButton({
 
   const getButtonText = () => {
     if (isEnterprise) return buttonText || 'Talk to Founder'
+
+    // If we have bot count and total price, show dynamic pricing text
+    if (botCount && totalPrice) {
+      const botText = botCount === 1 ? '1 bot' : `${botCount} bots`
+      return `Subscribe for ${botText} for ${totalPrice}/mo`
+    }
+
     if (buttonText) return buttonText
     if (!session) return 'Sign in to Get Started'
     return 'Go to Dashboard'

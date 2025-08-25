@@ -361,12 +361,7 @@ export default function ApiKeysPage() {
               </div>
         {/* --- Create Key Dialog Trigger --- */}
               <Dialog open={newKeyDialogOpen} onOpenChange={setNewKeyDialogOpen}>
-                <DialogTrigger asChild>
-            <Button className="gap-1.5" disabled={sessionStatus !== 'authenticated'}>
-                    <Plus className="h-4 w-4" />
-                    Create new API key
-                  </Button>
-                </DialogTrigger>
+
           {/* --- Create Key Dialog Content (No longer needs userId input) --- */}
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
@@ -441,6 +436,19 @@ export default function ApiKeysPage() {
               */}
             </div>
 
+            {/* Trial Information Banner */}
+            <div className="mb-6 p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20 rounded-xl">
+              <div className="text-center space-y-3">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Start 1-hour trial by issuing a new API key
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+                  Each time you create a new API key, you'll automatically get a fresh 1-hour trial with 1 bot access.
+                  This works anytime - you can get a new trial whenever you need one by simply creating another API key.
+                </p>
+              </div>
+            </div>
+
       {/* Display error message if any */} 
       {error && (
         <div className="p-4 bg-destructive/10 text-destructive rounded-md text-sm">
@@ -478,7 +486,10 @@ export default function ApiKeysPage() {
                       <p className="text-muted-foreground mb-4">
                   Create your first API key to get started.
                       </p>
-                <Button onClick={() => setNewKeyDialogOpen(true)} disabled={sessionStatus !== 'authenticated'}>Create API key</Button>
+                <Button onClick={() => setNewKeyDialogOpen(true)} disabled={sessionStatus !== 'authenticated'} className="gap-1.5">
+                  <Plus className="h-4 w-4" />
+                  Create API key
+                </Button>
                     </CardContent>
                   </Card>
                 ) : (
