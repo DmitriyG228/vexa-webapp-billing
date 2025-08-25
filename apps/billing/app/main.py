@@ -344,8 +344,8 @@ async def create_api_key_trial(req: TrialRequest):
         if not startup_price:
             raise HTTPException(status_code=400, detail="Price 'Startup' not found. Run stripe_sync script.")
 
-        # Quick-test trial duration: 1 minute
-        trial_end = int(__import__("time").time()) + 60
+        # Trial duration: 1 hour
+        trial_end = int(__import__("time").time()) + 3600
         sub_obj = stripe.Subscription.create(
             customer=customer.id,
             items=[{"price": startup_price.id, "quantity": 1}],
