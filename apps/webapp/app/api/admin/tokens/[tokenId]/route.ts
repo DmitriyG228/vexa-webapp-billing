@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Admin API endpoint
-const ADMIN_API_URL = process.env.ADMIN_API_URL || 'http://localhost:8000';
-const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN;
-
-// Check if Admin API token is configured
-if (!ADMIN_API_TOKEN) {
-  console.error('ADMIN_API_TOKEN environment variable is not set. Admin API operations will fail.');
-}
+import { getAdminAPIClient } from '@/lib/admin-api-client';
 
 /**
  * Handler for DELETE /api/admin/tokens/[tokenId]
@@ -18,14 +10,6 @@ export async function DELETE(
   { params }: { params: { tokenId: string } }
 ) {
   try {
-    // Check if admin token is configured
-    if (!ADMIN_API_TOKEN) {
-      return NextResponse.json(
-        { error: 'Admin API is not properly configured on the server.' },
-        { status: 500 }
-      );
-    }
-
     const tokenId = params.tokenId;
 
     if (!tokenId) {
@@ -37,11 +21,9 @@ export async function DELETE(
 
     console.log(`Attempting to delete token ID: ${tokenId}`);
 
-    const response = await fetch(`${ADMIN_API_URL}/admin/tokens/${tokenId}`, {
+    const adminAPI = getAdminAPIClient();
+    const response = await adminAPI.fetch(`/admin/tokens/${tokenId}`, {
       method: 'DELETE',
-      headers: {
-        'X-Admin-API-Key': ADMIN_API_TOKEN,
-      },
     });
 
     console.log(`Admin API DELETE /admin/tokens/${tokenId} status: ${response.status}`);
@@ -80,7 +62,33 @@ export async function DELETE(
 
   } catch (error) {
     console.error('Error in DELETE /api/admin/tokens/[tokenId]:', error);
-    
+
+    // Provide specific error messages based on error type
+    if (error.message.includes('Circuit breaker is open')) {
+      return NextResponse.json({
+        error: 'Service temporarily unavailable',
+        details: 'The admin API is temporarily unavailable due to recent failures. Please try again in a few minutes.',
+        retryAfter: 60
+      }, {
+        status: 503,
+        headers: { 'Retry-After': '60' }
+      })
+    }
+
+    if (error.message.includes('timeout') || error.name === 'AbortError') {
+      return NextResponse.json({
+        error: 'Request timeout',
+        details: 'The admin API is taking too long to respond. Please try again.'
+      }, { status: 504 })
+    }
+
+    if (error.message.includes('fetch failed') || error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+      return NextResponse.json({
+        error: 'Service unavailable',
+        details: 'Cannot connect to the admin API service. This may be due to network issues or service maintenance.'
+      }, { status: 503 })
+    }
+
     return NextResponse.json(
       { error: 'Failed to revoke API token. Please try again later.' },
       { status: 500 }

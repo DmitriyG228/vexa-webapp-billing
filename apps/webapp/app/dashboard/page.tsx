@@ -59,12 +59,7 @@ export default function DashboardPage() {
         return
       }
 
-      // Check if this is a new user and redirect to trial checkout
-      if ((session?.user as any)?.isNewUser) {
-        console.log('[Dashboard] New user detected, redirecting to trial checkout')
-        window.location.href = '/trial-checkout'
-        return
-      }
+      // New users can access the dashboard directly - no trial checkout redirect needed
 
       try {
         const response = await fetch(`/api/admin/tokens?userId=${(session?.user as any).id}&_t=${Date.now()}`, {

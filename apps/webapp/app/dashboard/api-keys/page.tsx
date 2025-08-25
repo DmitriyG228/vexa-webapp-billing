@@ -83,11 +83,27 @@ export default function ApiKeysPage() {
     }
     
     const userId = (session?.user as any)?.id; // Get user ID from session
+
+    // Debug logging to identify userId issues
+    console.log('[api-keys] Fetching API keys for userId:', userId, 'type:', typeof userId);
+    console.log('[api-keys] Session status:', sessionStatus);
+    console.log('[api-keys] Session user object:', session?.user);
+    console.log('[api-keys] Full session:', JSON.stringify(session, null, 2));
+
+    if (!userId) {
+      console.error('[api-keys] No userId available in session');
+      console.error('[api-keys] Session status:', sessionStatus);
+      console.error('[api-keys] Session user:', session?.user);
+      setError('User session invalid - please refresh and try again');
+      setIsLoading(false);
+      return;
+    }
+
     if (!isLoading) setIsLoading(true); // Set loading state
     setError(null); // Clear previous errors
 
     try {
-      const response = await fetch(`/api/admin/tokens?userId=${userId}&_t=${Date.now()}`, {
+      const response = await fetch(`/api/admin/tokens?userId=${encodeURIComponent(userId)}&_t=${Date.now()}`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache'

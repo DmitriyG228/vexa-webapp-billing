@@ -34,7 +34,7 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
-  output: 'standalone',
+  // output: 'standalone', // Commented out to fix server startup issues
 }
 
 mergeConfig(nextConfig, userConfig)
