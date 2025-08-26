@@ -4,6 +4,8 @@ import { useSession, signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 
+
+
 interface GetStartedButtonProps {
   buttonText?: string
   buttonVariant?: 'default' | 'outline'
@@ -30,6 +32,7 @@ export function GetStartedButton({
   const { data: session } = useSession()
   const [isSubscribing, setIsSubscribing] = useState(false)
 
+
   const handleMvpSubscription = async () => {
     if (!session) {
       signIn('google', { callbackUrl: '/pricing' })
@@ -44,7 +47,14 @@ export function GetStartedButton({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ context: 'pricing', quantity: botCount || 1 }),
+        body: JSON.stringify({
+          context: 'pricing',
+          quantity: botCount || 1,
+          consent: {
+            timestamp: new Date().toISOString(),
+            userId: session?.user?.email
+          }
+        }),
       })
 
       const data = await response.json()

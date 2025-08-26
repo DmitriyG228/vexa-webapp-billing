@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2 } from "lucide-react"
+import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2, Shield, Mail, BarChart3 } from "lucide-react"
 import { PageContainer, Section } from "@/components/ui/page-container"
 import { Metric } from "@/components/ui/metric"
 
@@ -51,6 +51,11 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+
+  // Privacy settings state
+  const [marketingConsent, setMarketingConsent] = useState(false)
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false)
+  const [isUpdatingPrivacy, setIsUpdatingPrivacy] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -89,6 +94,17 @@ export default function DashboardPage() {
 
     fetchUserData()
   }, [sessionStatus, session])
+
+  // Load privacy settings
+  useEffect(() => {
+    if (session?.user?.email) {
+      const marketingPrefs = localStorage.getItem(`marketing-consent-${session.user.email}`)
+      const analyticsPrefs = localStorage.getItem(`analytics-enabled-${session.user.email}`)
+
+      setMarketingConsent(marketingPrefs === 'true')
+      setAnalyticsEnabled(analyticsPrefs !== 'false') // Default to true
+    }
+  }, [session])
 
   // Pricing calculation functions (same as in DynamicPricingCard)
   const calculatePrice = (bots: number): number => {
@@ -145,6 +161,62 @@ export default function DashboardPage() {
       })
     } finally {
       setIsOpeningPortal(false)
+    }
+  }
+
+  // Privacy settings functions
+  const updateMarketingConsent = async (consent: boolean) => {
+    if (!session?.user?.email) return
+
+    setIsUpdatingPrivacy(true)
+    try {
+      localStorage.setItem(`marketing-consent-${session.user.email}`, consent.toString())
+      setMarketingConsent(consent)
+
+      toast({
+        title: "Marketing Preferences Updated",
+        description: consent ? "You'll receive updates about Vexa.ai" : "You've unsubscribed from marketing emails",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update marketing preferences",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdatingPrivacy(false)
+    }
+  }
+
+  const updateAnalyticsPreference = async (enabled: boolean) => {
+    if (!session?.user?.email) return
+
+    setIsUpdatingPrivacy(true)
+    try {
+      localStorage.setItem(`analytics-enabled-${session.user.email}`, enabled.toString())
+      setAnalyticsEnabled(enabled)
+
+      // Apply analytics preference
+      if (enabled) {
+        window.localStorage.setItem("ga-enabled", "true")
+        window.localStorage.setItem("umami-enabled", "true")
+      } else {
+        window.localStorage.setItem("ga-enabled", "false")
+        window.localStorage.setItem("umami-enabled", "false")
+      }
+
+      toast({
+        title: "Analytics Preferences Updated",
+        description: enabled ? "Analytics enabled for better service" : "Analytics disabled",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update analytics preferences",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdatingPrivacy(false)
     }
   }
 
@@ -437,6 +509,119 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+      </div>
+
+      {/* Privacy Settings Section */}
+      <div className="mt-8 space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Privacy Settings</h2>
+          <p className="text-muted-foreground text-sm">
+            Manage your privacy preferences and data controls.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Marketing Consent */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Marketing Communications
+              </CardTitle>
+              <CardDescription>
+                Receive updates about new features, tips, and promotions from Vexa.ai.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="marketing-consent" className="text-sm font-medium">
+                  Email marketing
+                </Label>
+                <input
+                  type="checkbox"
+                  id="marketing-consent"
+                  checked={marketingConsent}
+                  onChange={(e) => updateMarketingConsent(e.target.checked)}
+                  disabled={isUpdatingPrivacy}
+                  className="h-4 w-4 rounded border border-gray-300"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                You can unsubscribe at any time. We respect your privacy.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Analytics Preferences */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Analytics & Diagnostics
+              </CardTitle>
+              <CardDescription>
+                Help improve Vexa.ai by sharing anonymous usage data and error reports.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="analytics-enabled" className="text-sm font-medium">
+                  Enable analytics
+                </Label>
+                <input
+                  type="checkbox"
+                  id="analytics-enabled"
+                  checked={analyticsEnabled}
+                  onChange={(e) => updateAnalyticsPreference(e.target.checked)}
+                  disabled={isUpdatingPrivacy}
+                  className="h-4 w-4 rounded border border-gray-300"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Data is anonymized and used only to improve our service.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Data Rights Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Your Data Rights
+            </CardTitle>
+            <CardDescription>
+              Access, export, or delete your personal data as required by law.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Under GDPR and other privacy laws, you have the right to:
+              </p>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                <li>Access your personal data</li>
+                <li>Correct inaccurate data</li>
+                <li>Export your data</li>
+                <li>Delete your account and data</li>
+                <li>Object to processing</li>
+              </ul>
+              <div className="flex gap-2 mt-4">
+                <Button variant="outline" size="sm">
+                  <Link href="mailto:info@vexa.ai?subject=Data%20Export%20Request">
+                    Request Data Export
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Link href="mailto:info@vexa.ai?subject=Account%20Deletion%20Request">
+                    Request Account Deletion
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Subscription Info */}

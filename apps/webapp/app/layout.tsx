@@ -9,6 +9,8 @@ import { Github, Linkedin } from 'lucide-react'
 import { CookieConsent } from '@/components/cookie-consent'
 import AuthProvider from "@/components/AuthProvider";
 import AuthButtons from "@/components/AuthButtons";
+import { CookiePrefsButton } from "@/components/cookie-prefs-button";
+import { LegalDropdown } from "@/components/legal-dropdown";
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getServerSession } from 'next-auth/next';
 import './globals.css'
@@ -180,20 +182,23 @@ export default async function RootLayout({
                     © {new Date().getFullYear()} Vexa.ai Inc. All rights reserved.
                   </p>
                   <div className="flex items-center gap-4">
+                    <div className="hidden md:flex">
+                      <LegalDropdown />
+                    </div>
                     <div className="flex items-center gap-4">
                       <Link href="https://github.com/Vexa-ai/vexa" className="text-muted-foreground hover:text-foreground">
                         <Github className="h-5 w-5" />
                         <span className="sr-only">GitHub</span>
                       </Link>
                       <Link href="https://discord.gg/Ga9duGkVz9" className="text-muted-foreground hover:text-foreground">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                           className="h-5 w-5"
                         >
                           <circle cx="9" cy="12" r="1"/>
@@ -210,27 +215,16 @@ export default async function RootLayout({
                         <span className="sr-only">LinkedIn</span>
                       </Link>
                       <Link href="https://x.com/grankin_d" className="text-muted-foreground hover:text-foreground">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          viewBox="0 0 1200 1227" 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 1200 1227"
+                          fill="none"
+                          stroke="currentColor"
                           className="h-5 w-5"
                         >
                           <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="currentColor"/>
                         </svg>
                         <span className="sr-only">X (Twitter)</span>
-                      </Link>
-                    </div>
-                    <div className="hidden md:flex gap-4">
-                      <Link href="/terms" className="text-sm text-muted-foreground hover:underline">
-                        Terms
-                      </Link>
-                      <Link href="/privacy" className="text-sm text-muted-foreground hover:underline">
-                        Privacy
-                      </Link>
-                      <Link href="/contact" className="text-sm text-muted-foreground hover:underline">
-                        Contact
                       </Link>
                     </div>
                   </div>
