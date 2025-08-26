@@ -89,7 +89,7 @@ export default async function RootLayout({
             defer
             data-website-id={UMAMI_WEBSITE_ID}
             src="https://analytics.umami.is/script.js"
-            data-domains="webapp.cloud.vexa.ai"
+            data-domains="vexa.ai"
           />
         )}
       </head>
