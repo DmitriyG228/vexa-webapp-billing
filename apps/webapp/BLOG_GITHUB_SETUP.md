@@ -52,11 +52,35 @@ Ensure your `blog_articles` repository has this structure:
 
 ```
 blog_articles/
-└── blog/
-    ├── post-1.md
-    ├── post-2.md
-    └── post-3.mdx
+├── blog/
+│   ├── post-1.md
+│   ├── post-2.md
+│   └── post-3.mdx
+└── assets/
+    ├── hero-image.png
+    ├── diagram.png
+    └── screenshots/
+        └── feature-demo.png
 ```
+
+### 4. Image Handling
+
+Images are stored in the `assets/` folder and referenced using GitHub raw URLs:
+
+```markdown
+![Alt Text](https://raw.githubusercontent.com/Vexa-ai/blog_articles/main/assets/image-name.png)
+```
+
+**Benefits:**
+- Images are versioned with your content
+- No need for custom asset serving
+- Direct access from GitHub's CDN
+- Simple maintenance and updates
+
+**Supported formats:** PNG, JPG, SVG, WebP
+**File size:** Keep hero images under 2MB, inline images under 500KB
+
+### 5. Markdown Frontmatter
 
 Each markdown file should have frontmatter like:
 
@@ -67,12 +91,12 @@ date: '2025-01-15'
 author: 'Author Name'
 authorImage: 'https://example.com/author.jpg'
 authorLinkedIn: 'https://linkedin.com/in/author'
-heroImage: '/images/blog/hero-image.png'
+heroImage: 'https://raw.githubusercontent.com/Vexa-ai/blog_articles/main/assets/hero-image.png'
 summary: 'Brief description of the post'
 ---
 ```
 
-### 4. Test the Integration
+### 6. Test the Integration
 
 1. Start your development server:
    ```bash
@@ -83,7 +107,7 @@ summary: 'Brief description of the post'
 
 3. Check the console for any error messages
 
-### 5. Set Up Webhook (Optional)
+### 7. Set Up Webhook (Optional)
 
 For real-time updates when content changes:
 
