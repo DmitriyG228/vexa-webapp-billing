@@ -177,7 +177,7 @@ export async function getPostData(slug: string): Promise<PostData> {
     contentHtml = transformAssetReferences(contentHtml);
 
     // Transform the heroImage if it exists
-    const transformedData = { ...(matterResult.data as { title: string; date: string; author: string; summary: string; }) };
+    const transformedData = { ...(matterResult.data as { title: string; date: string; author: string; summary: string; heroImage?: string; }) };
     if (transformedData.heroImage && transformedData.heroImage.startsWith('/assets/')) {
       transformedData.heroImage = transformedData.heroImage.replace('/assets/', '/api/assets/');
     }
