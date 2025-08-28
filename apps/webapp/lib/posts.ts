@@ -176,10 +176,16 @@ export async function getPostData(slug: string): Promise<PostData> {
     // Transform asset references in markdown to use our authenticated API
     contentHtml = transformAssetReferences(contentHtml);
 
+    // Transform the heroImage if it exists
+    const transformedData = { ...(matterResult.data as { title: string; date: string; author: string; summary: string; }) };
+    if (transformedData.heroImage && transformedData.heroImage.startsWith('/assets/')) {
+      transformedData.heroImage = transformedData.heroImage.replace('/assets/', '/api/assets/');
+    }
+
     return {
       slug,
       contentHtml,
-      ...(matterResult.data as { title: string; date: string; author: string; summary: string; }),
+      ...transformedData,
     };
   } catch (error) {
     console.error(`Error fetching post data for slug "${slug}":`, error);
