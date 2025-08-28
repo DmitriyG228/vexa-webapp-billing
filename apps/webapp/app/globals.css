@@ -118,3 +118,29 @@
     font-family: ui-monospace, 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
   }
 }
+
+/* Code block copy button styles */
+.prose-code-copy-buttons pre {
+  position: relative;
+}
+
+.prose-code-copy-buttons .code-block-wrapper {
+  position: relative;
+}
+
+.prose-code-copy-buttons .copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.prose-code-copy-buttons .code-block-wrapper:hover .copy-button {
+  opacity: 1;
+}
+
+.prose-code-copy-buttons .copy-button:hover {
+  opacity: 1;
+}

@@ -182,8 +182,107 @@ export default async function Post({ params }: PostProps) {
         {/* Render the HTML content */}
         {/* Add prose styles for better readability (e.g., using @tailwindcss/typography) */}
         <div
-          className="prose dark:prose-invert max-w-none"
+          className="prose dark:prose-invert max-w-none prose-code-copy-buttons"
           dangerouslySetInnerHTML={{ __html: post.contentHtml! }}
+        />
+        {/* Copy-Button handler: decode base64 from data attribute and copy */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                function setButtonState(btn, svg){
+                  const original = btn.innerHTML;
+                  btn.innerHTML = svg;
+                  setTimeout(()=>{ btn.innerHTML = original; }, 2000);
+                }
+                document.addEventListener('click', function(e){
+                  const button = e.target.closest && e.target.closest('.copy-button');
+                  if(!button) return;
+                  try{
+                    const b64 = button.getAttribute('data-code-b64') || '';
+                    const code = atob(b64);
+                    if (navigator.clipboard && window.isSecureContext){
+                      navigator.clipboard.writeText(code).then(()=>{
+                        setButtonState(button, '<svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>');
+                      });
+                    } else {
+                      const ta = document.createElement('textarea');
+                      ta.value = code; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta);
+                      ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                      setButtonState(button, '<svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>');
+                    }
+                  }catch(err){
+                    setButtonState(button, '<svg class="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>');
+                    console.error('Copy failed', err);
+                  }
+                });
+              })();
+            `
+          }}
+        />
+        
+        {/* Copy button functionality script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Global copy function
+              window.copyCodeToClipboard = async function(button, code) {
+                try {
+                  // Try modern clipboard API first
+                  if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(code);
+                  } else {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-999999px';
+                    textarea.style.top = '-999999px';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                  }
+                  
+                  // Update button to show success state
+                  const originalHTML = button.innerHTML;
+                  button.innerHTML = \`
+                    <svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  \`;
+                  button.classList.add('text-green-400');
+                  button.classList.remove('text-zinc-300');
+                  
+                  // Reset after 2 seconds
+                  setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('text-green-400');
+                    button.classList.add('text-zinc-300');
+                  }, 2000);
+                  
+                } catch (err) {
+                  console.error('Failed to copy code:', err);
+                  // Show error state briefly
+                  const originalHTML = button.innerHTML;
+                  button.innerHTML = \`
+                    <svg class="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  \`;
+                  button.classList.add('text-red-400');
+                  button.classList.remove('text-zinc-300');
+                  
+                  setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('text-red-400');
+                    button.classList.add('text-zinc-300');
+                  }, 2000);
+                }
+              };
+            `
+          }}
         />
 
             {/* Consider adding components for sharing, comments, related posts etc. */}

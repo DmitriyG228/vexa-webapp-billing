@@ -4,6 +4,7 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeStringify from 'rehype-stringify';
+// Copy script is injected at the page level; no import needed here
 import { GitHubContentService } from './github';
 
 const githubService = new GitHubContentService();
@@ -173,6 +174,9 @@ export async function getPostData(slug: string): Promise<PostData> {
 
     let contentHtml = processedContent.toString();
     
+    // Add copy buttons to code blocks
+    contentHtml = addCopyButtonsToHtml(contentHtml);
+    
     // Transform asset references in markdown to use our authenticated API
     contentHtml = transformAssetReferences(contentHtml);
 
@@ -199,5 +203,35 @@ function transformAssetReferences(html: string): string {
   return html.replace(
     /<img([^>]*?)src="\/assets\/([^"]*?)"([^>]*?)>/g,
     '<img$1src="/api/assets/$2"$3>'
+  );
+}
+
+function addCopyButtonsToHtml(html: string): string {
+  // Find all <pre><code> blocks and add copy buttons
+  return html.replace(
+    /(<pre[^>]*>)(<code[^>]*>)([\s\S]*?)(<\/code>)(<\/pre>)/g,
+    (match, preOpen, codeOpen, codeContent, codeClose, preClose) => {
+      // Encode code safely into a data attribute
+      try {
+        const b64 = Buffer.from(codeContent, 'utf-8').toString('base64');
+        return `
+        <div class="code-block-wrapper" style="position: relative;">
+          <button 
+            class="copy-button absolute top-2 right-2 h-8 w-8 rounded-md bg-zinc-800/50 hover:bg-zinc-800/70 text-zinc-300 hover:text-zinc-100 transition-colors flex items-center justify-center"
+            data-code-b64="${b64}"
+            title="Copy code"
+            aria-label="Copy code"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+          </button>
+          ${preOpen}${codeOpen}${codeContent}${codeClose}${preClose}
+        </div>
+      `;
+      } catch (e) {
+        return match;
+      }
+    }
   );
 }
