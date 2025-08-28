@@ -22,7 +22,7 @@ export async function GET(
     return new NextResponse(assetContent, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        'Cache-Control': 'public, max-age=60, s-maxage=60', // 1 minute instead of 1 hour for faster image updates
       },
     });
   } catch (error) {

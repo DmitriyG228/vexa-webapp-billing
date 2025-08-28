@@ -22,9 +22,12 @@ export default async function BlogIndex() {
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {allPostsData.map(({ slug, date, title, summary }: PostData, index: number) => (
-            <Link href={`/blog/${slug}`} key={`${slug}-${index}`} legacyBehavior passHref>
-              <a className="block hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
-                <Card className="h-full rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md">
+            <Link 
+              href={`/blog/${slug}`} 
+              key={`${slug}-${index}`}
+              className="block hover:no-underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
+            >
+              <Card className="h-full rounded-xl border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md">
                 <CardHeader className="p-6">
                   <CardTitle className="text-lg leading-tight">{title}</CardTitle>
                   <CardDescription className="text-sm text-muted-foreground">
@@ -35,8 +38,7 @@ export default async function BlogIndex() {
                   <p className="text-muted-foreground text-sm">{summary}</p>
                 </CardContent>
               </Card>
-            </a>
-          </Link>
+            </Link>
         ))}
         </div>
         {allPostsData.length === 0 && (

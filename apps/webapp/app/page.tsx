@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Bot, FileAudio, Zap, Server, Globe, RefreshCw, CheckCircle2, Clock, Video } from "lucide-react"
+import { MCP, N8n, Claude } from '@lobehub/icons';
 import { Button } from "@/components/ui/button"
 import { trackEvent } from '@/lib/analytics'
 import PageViewTracker from '@/components/analytics/PageViewTracker';
@@ -32,186 +33,116 @@ export default function LandingPage() {
       <section className="relative">
         <div className="container space-y-6 py-10 md:py-16">
           <div className="mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center">
-            <div className="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium">
-              <span className="text-primary">Enterprise ready</span>
 
-            </div>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
               API for <span className="text-primary">Real-Time Meeting Transcription</span>
             </h1>
-            
-            <div className="flex items-center justify-center space-x-8 mt-2">
-              <div className="flex items-center gap-2">
-                <Bot className="h-5 w-5" aria-hidden="true" />
-                <span>Meeting bots</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FileAudio className="h-5 w-5" aria-hidden="true" />
-                <span>Web/mobile streaming</span>
-              </div>
-
-            </div>
-
-      {/* Platform Logos - simplified */}
-      <section className="container py-2">
-        <div className="mx-auto max-w-5xl">
-          <div className="flex flex-wrap items-center justify-center gap-8">
-            <div className="flex flex-col items-center">
-              <Image 
-                src="/google-meet-logo.png" 
-                alt="Google Meet Logo" 
-                width={45} 
-                height={45}
-                className="object-contain"
-              />
-
-            </div>
-            
-            <div className="flex flex-col items-center">
-              <Image 
-                src="/zoom-logo.png" 
-                alt="Zoom Logo" 
-                width={45} 
-                height={45}
-                className="object-contain"
-              />
-
-            </div>
-            
-            <div className="flex flex-col items-center">
-              <Image 
-                src="/microsoft-teams-logo.png" 
-                alt="Microsoft Teams Logo" 
-                width={45} 
-                height={45}
-                className="object-contain"
-              />
-
-            </div>
-          </div>
-        </div>
-      </section>
-            
-
-            
-            <div className="flex flex-wrap gap-4 justify-center mt-4">
-              <Link href="/get-started">
-                <Button size="lg" className="gap-2">
-                  Get Started in 5 Minutes
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-            
 
           </div>
         </div>
       </section>
 
-      {/* n8n Integration Banner */}
+      {/* Use & Hack Vexa - Promos */}
       <section className="container py-3">
         <div className="mx-auto max-w-5xl">
-          <div className="rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0">
-                <Image 
-                  src="/n8n-logo.svg" 
-                  alt="n8n Logo" 
-                  width={50} 
-                  height={50}
-                  className="object-contain"
-                />
+          <div className="grid gap-4 md:grid-cols-3 mb-16 md:mb-20 lg:mb-24">
+            {/* n8n Card */}
+            <div className="rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all flex flex-col">
+              <div className="text-center space-y-4 flex-1">
+                <div className="flex justify-center">
+                  <N8n size={50} />
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold">Google Meet → N8N</h4>
+                  <p className="text-sm text-muted-foreground">Meeting transcripts in n8n flow</p>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <Image src="/google-meet-logo.png" alt="Google Meet" width={28} height={28} className="object-contain" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <Image src="/logodark.svg" alt="Vexa" width={28} height={28} className="object-contain" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <N8n.Color size={28} />
+                </div>
               </div>
-              <div className="flex-grow">
-                <h3 className="text-lg font-semibold mb-1">New: Easy n8n Integration</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get Google Meet transcripts in n8n with our simple 2-node setup. No complex configuration required.
-                </p>
-              </div>
-              <div className="flex-shrink-0">
+              <div className="flex justify-center mt-auto pt-4">
                 <Link href="/blog/google-meet-transcription-n8n-workflow" className="inline-flex items-center gap-1 text-primary hover:underline">
-                  <span>Learn more</span>
+                  <span>Explore N8N nodes</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* MCP Card */}
+            <div className="rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all flex flex-col">
+              <div className="text-center space-y-4 flex-1">
+                <div className="flex justify-center">
+                  <MCP size={50} />
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold">Google Meet → MCP</h4>
+                  <p className="text-sm text-muted-foreground">Claude is now your real-time meeting assistant</p>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <Image src="/google-meet-logo.png" alt="Google Meet" width={28} height={28} className="object-contain" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <Image src="/logodark.svg" alt="Vexa" width={28} height={28} className="object-contain" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <MCP size={28} />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <Claude.Color size={28} />
+                </div>
+              </div>
+              <div className="flex justify-center mt-auto pt-4">
+                <Link href="http://localhost:3002/blog/claude-desktop-vexa-mcp-google-meet-transcripts" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <span>Connect Claude to MCP</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* API Card */}
+            <div className="rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all flex flex-col">
+              <div className="text-center space-y-4 flex-1">
+                <div className="flex justify-center">
+                  <div className="flex h-[50px] w-[50px] items-center justify-center rounded-md border bg-background">
+                    <Zap className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold">Google Meet → API</h4>
+                  <p className="text-sm text-muted-foreground">Simply POST bot, then GET transcript</p>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <Image src="/google-meet-logo.png" alt="Google Meet" width={28} height={28} className="object-contain" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <Image src="/logodark.svg" alt="Vexa" width={28} height={28} className="object-contain" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <Zap className="h-7 w-7" />
+                </div>
+              </div>
+              <div className="flex justify-center mt-auto pt-4">
+                <Link href="/get-started" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <span>Test the API</span>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-
-      {/* API Example */}
-      <section className="container py-10">
-        <div className="mx-auto max-w-5xl">
-          <div className="rounded-xl border bg-card shadow-lg overflow-hidden">
-            <div className="bg-muted p-4 border-b">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-bold tracking-tight">Simple API Integration</h2>
-                <p className="text-lg text-muted-foreground flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span>Set up and running in under 5 minutes</span>
-                </p>
-              </div>
-            </div>
-            
-            <div className="p-4">
-              <div className="rounded-lg bg-background p-4 border">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <div className="font-mono text-muted-foreground">POST /v1/bots</div>
-                  <div className="flex gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">request</span>
-                  </div>
-                </div>
-                <pre className="text-sm font-mono language-bash overflow-auto"><code>{`curl -X POST https://api.cloud.vexa.ai \
-  -d '{
-    "platform": "google_meet",
-    "native_meeting_id": "abc-defg-hij",
-    "bot_name": "MyMeetingBot"
-  }'`}</code></pre>
-              </div>
-              
-              <div className="rounded-lg bg-background p-4 border mt-3">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <div className="font-mono text-muted-foreground">GET /v1/transcripts/{'{meeting_id}'}</div>
-                  <div className="flex gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-xs font-medium">response</span>
-                  </div>
-                </div>
-                <pre className="text-sm font-mono language-json overflow-auto"><code>{`{
-  "data": {
-    "meeting_id": "meet_abc123",
-    "transcripts": [
-      {
-        "time": "00:01:15",
-        "speaker": "John Smith",
-        "text": "Let's discuss the quarterly results."
-      },
-      {
-        "time": "00:01:23",
-        "speaker": "Sarah Johnson",
-        "text": "The Q3 revenue exceeded our projections by 15%."
-      },
-      {
-        "time": "00:01:42",
-        "speaker": "Michael Chen",
-        "text": "Customer acquisition costs decreased by 12% from last quarter."
-      }
-    ]
-  }
-}`}</code></pre>
-              </div>
-            </div>
-            
-            <div className="p-4 border-t bg-muted flex justify-center">
-              <Link href="/get-started">
-                <Button size="lg" className="gap-2">
-                  Starting Guide
-                </Button>
-              </Link>
-            </div>
+          
+          {/* Big Black Button */}
+          <div className="text-center mt-0">
+            <Link href="/get-started">
+              <Button size="lg" className="gap-2 bg-black hover:bg-gray-800 text-white">
+                Test the API in under 5 minutes
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
+
+
+
 
       {/* Features */}
       <section className="container py-10">

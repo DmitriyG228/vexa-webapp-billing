@@ -68,7 +68,7 @@ export function generateWelcomeEmailHtml(props: WelcomeEmailProps): string {
           <p>Your application has been received and is now in our review queue. We're carefully evaluating each request to ensure we can provide the best possible experience during this early access phase.</p>
           
           <h2>What is Vexa?</h2>
-          <p>Vexa is an <strong>API for real-time meeting transcription</strong> that works with meeting bots and direct streaming from web/mobile apps. Our technology allows you to extract valuable knowledge from meetings across platforms like Google Meet, Zoom, and Microsoft Teams.</p>
+          <p>Vexa is an <strong>Real-time meeting transcription for Agents</strong> that works with meeting bots and direct streaming from web/mobile apps. Our technology allows you to extract valuable knowledge from meetings across platforms like Google Meet, Zoom, and Microsoft Teams.</p>
           
           <div class="feature-box">
             <h3 style="margin-top: 0;">Key Features:</h3>
@@ -147,7 +147,7 @@ I'm Dmitry Grankin, the founder of Vexa. Thank you for joining our private beta 
 Your application has been received and is now in our review queue. We're carefully evaluating each request to ensure we can provide the best possible experience during this early access phase.
 
 WHAT IS VEXA?
-Vexa is an API for real-time meeting transcription that works with meeting bots and direct streaming from web/mobile apps. Our technology allows you to extract valuable knowledge from meetings across platforms like Google Meet, Zoom, and Microsoft Teams.
+Vexa is an  that works with meeting bots and direct streaming from web/mobile apps. Our technology allows you to extract valuable knowledge from meetings across platforms like Google Meet, Zoom, and Microsoft Teams.
 
 KEY FEATURES:
 - Multilingual Support: Real-time transcription in 99 languages
