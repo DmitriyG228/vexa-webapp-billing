@@ -171,7 +171,10 @@ export async function getPostData(slug: string): Promise<PostData> {
       .use(rehypeStringify) // Convert rehype AST to HTML string
       .process(matterResult.content);
 
-    const contentHtml = processedContent.toString();
+    let contentHtml = processedContent.toString();
+    
+    // Transform asset references in markdown to use our authenticated API
+    contentHtml = transformAssetReferences(contentHtml);
 
     return {
       slug,
@@ -182,4 +185,13 @@ export async function getPostData(slug: string): Promise<PostData> {
     console.error(`Error fetching post data for slug "${slug}":`, error);
     throw new Error(`Post with slug "${slug}" not found.`);
   }
-} 
+}
+
+function transformAssetReferences(html: string): string {
+  // Transform markdown image references like ![alt](/assets/image.png) 
+  // to use our authenticated asset API endpoint
+  return html.replace(
+    /<img([^>]*?)src="\/assets\/([^"]*?)"([^>]*?)>/g,
+    '<img$1src="/api/assets/$2"$3>'
+  );
+}

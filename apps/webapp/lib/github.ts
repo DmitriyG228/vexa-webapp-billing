@@ -98,4 +98,42 @@ export class GitHubContentService {
       file.name.endsWith('.md') || file.name.endsWith('.mdx')
     );
   }
+
+  async getAssetUrl(assetPath: string): Promise<string> {
+    // For authenticated access, construct the raw URL with the token
+    const rawUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${assetPath}`;
+    return rawUrl;
+  }
+
+  async getAssetContent(assetPath: string): Promise<ArrayBuffer> {
+    const url = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${assetPath}`;
+    
+    const response = await fetch(url, {
+      headers: this.headers,
+      next: { revalidate: 3600 }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch asset: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.content) {
+      // Content is base64 encoded
+      return Buffer.from(data.content, 'base64').buffer;
+    }
+    
+    throw new Error('Asset content not found');
+  }
+
+  async listAssets(): Promise<GitHubFile[]> {
+    try {
+      const files = await this.getDirectoryContents('assets');
+      return files;
+    } catch (error) {
+      console.warn('Assets directory not found or empty:', error);
+      return [];
+    }
+  }
 }
