@@ -93,7 +93,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex justify-center mt-auto pt-4">
-                <Link href="http://localhost:3002/blog/claude-desktop-vexa-mcp-google-meet-transcripts" className="inline-flex items-center gap-1 text-primary hover:underline">
+                <Link href="/blog/claude-desktop-vexa-mcp-google-meet-transcripts" className="inline-flex items-center gap-1 text-primary hover:underline">
                   <span>Connect Claude to MCP</span>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
