@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, Bot, FileAudio, Zap, Server, Globe, RefreshCw, CheckCircle2, Clock, Video } from "lucide-react"
-import { MCP, N8n, Claude } from '@lobehub/icons';
+import { ArrowRight, Bot, FileAudio, Zap, Server, Globe, RefreshCw, CheckCircle2, Clock, Video, Lock, Plus, Layers, Key } from "lucide-react"
+import { MCP, N8n, Claude, Github } from '@lobehub/icons';
 import { Button } from "@/components/ui/button"
+import { SplitFeature, Placeholder, CodePane } from "@/components/ui/split-feature"
 import { trackEvent } from '@/lib/analytics'
 import PageViewTracker from '@/components/analytics/PageViewTracker';
 import { useEffect } from "react";
@@ -32,12 +33,135 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative">
         <div className="container space-y-6 py-10 md:py-16">
-          <div className="mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center">
+          <div className="mx-auto flex max-w-[46rem] flex-col items-center gap-4 text-center">
 
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              API for <span className="text-primary">Real-Time Meeting Transcription</span>
+            <h1 className="text-3xl md:text-5xl font-semibold tracking-[-0.015em] leading-tight">
+              Real‑time meeting transcription API
             </h1>
+            <div className="flex flex-col items-center gap-2 text-lg md:text-xl font-medium tracking-[-0.01em] text-foreground/90">
 
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-2">
+                  <Image src="/microsoft-teams-logo.png" alt="Microsoft Teams" width={24} height={24} className="h-6 w-6 object-contain" />
+                  Microsoft Teams
+                </span>
+                <span className="text-muted-foreground">·</span>
+                <span className="inline-flex items-center gap-2">
+                  <Image src="/google-meet-logo.png" alt="Google Meet" width={24} height={24} className="h-6 w-6 object-contain" />
+                  Google Meet
+                </span>
+              </div>
+            </div>
+
+            {/* Feature chips intentionally omitted for clarity */}
+            
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <Link href="/get-started">
+                <Button size="lg" className="gap-2">
+                  Quick Start
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="https://github.com/Vexa-ai/vexa" target="_blank" rel="noopener noreferrer">
+                <Button size="lg" variant="ghost" className="gap-2">
+                  <Github size={18} />
+                  View on GitHub
+                </Button>
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      </section>
+      
+      {/* What's new in v0.6 */}
+      <section className="container py-3">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-2xl border bg-gradient-to-b from-muted/40 to-background p-6 md:p-8 shadow-sm relative overflow-hidden">
+            <div className="absolute top-4 right-4">
+              <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground animate-pulse">
+                NEW
+              </span>
+            </div>
+            <div className="text-center mb-5 space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-semibold tracking-tight">What's new in v0.6</h2>
+              </div>
+              <p className="text-xs text-muted-foreground">1 October 2025</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3 text-sm">
+              <div className="rounded-lg border bg-card/50 p-4 flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">Microsoft Teams support (alongside Google Meet)</span>
+              </div>
+              <div className="rounded-lg border bg-card/50 p-4 flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">WebSocket streaming for efficient, sub-second delivery</span>
+              </div>
+              <div className="rounded-lg border bg-card/50 p-4 flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">Reliability improvements from real-world usage</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Audience micro-routing */}
+      <section className="container py-3">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border bg-card p-6 shadow-sm text-center">
+            <p className="text-sm text-muted-foreground mb-3">Who are you? →</p>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+              <Link href="https://github.com/Vexa-ai/vexa/blob/main/DEPLOYMENT.md" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+                Enterprise (Self-host)
+              </Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href="/get-started#teams-quickstart" className="text-primary hover:underline font-medium">
+                Teams quickstart
+              </Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href="/get-started" className="text-primary hover:underline font-medium">
+                SMB (Hosted)
+              </Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href="/blog/google-meet-transcription-n8n-workflow" className="text-primary hover:underline font-medium">
+                n8n & Indie
+              </Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href="/contact-sales" className="text-primary hover:underline font-medium">
+                Considering Recall.ai?
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Enterprise Self-host strip */}
+      <section className="container py-3">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border bg-gradient-to-br from-primary/5 to-primary/10 p-8 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 flex-shrink-0">
+                  <Server className="h-6 w-6 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold">Self-host Vexa for full data control</h2>
+                  <p className="text-muted-foreground">
+                    Open-source core with deployment guides. Run Vexa in your environment and stream transcripts to your internal systems.
+                  </p>
+                </div>
+              </div>
+              <Link href="https://github.com/Vexa-ai/vexa/blob/main/DEPLOYMENT.md" target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                <Button size="lg" className="gap-2">
+                  Self-host guide
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -197,6 +321,337 @@ export default function LandingPage() {
               <p className="text-sm text-muted-foreground">
                 Seamless translation between any language pair in real-time, breaking down communication barriers instantly.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI needs data - Lead section */}
+      <SplitFeature
+        eyebrow="Live conversational intelligence"
+        title="AI needs data. The faster, the better."
+        body={
+          <>
+            Vexa delivers conversations to your AI as they happen — so your systems can act
+            while the meeting is still live.
+          </>
+        }
+        chips={[
+          { label: "WebSocket streaming (near-real time)" },
+          { label: "REST + webhooks/events" },
+          { label: "Meet & Teams" },
+          { label: "p50 ~200 ms WS", tone: "dark" },
+        ]}
+        primaryCta={{ href: "/get-started", label: "Get API Key" }}
+        secondaryCta={{ href: "/get-started#quickstart", label: "See Quickstart" }}
+        visual={<Placeholder caption="Realtime stream → your AI pipeline" />}
+      />
+
+      {/* Agents love APIs */}
+      <SplitFeature
+        eyebrow="For AI-first companies"
+        title="Agents hate UIs. Agents love APIs."
+        body={
+          <>
+            Vexa drops a bot into Meet or Teams and streams transcripts straight into your AI pipelines.
+            Use <span className="font-medium text-foreground">WebSocket</span> for sub-second delivery,
+            <span className="font-medium text-foreground"> REST</span> when you prefer polling, and
+            <span className="font-medium text-foreground"> MCP</span> for direct agent control.
+          </>
+        }
+        chips={[
+          { label: "WebSocket (sub-second)" },
+          { label: "REST + webhooks" },
+          { label: "JS / Python / cURL examples" },
+          { label: "p50 ~200 ms WS", tone: "dark" },
+        ]}
+        primaryCta={{ href: "/get-started", label: "Get API Key" }}
+        secondaryCta={{ href: "/get-started#quickstart", label: "See Quickstart" }}
+        reverse
+        visual={
+          <CodePane
+            caption="Minimal WS client showing partial/final messages"
+            code={`const ws = new WebSocket("wss://<HOST>/ws/transcripts?bot_id=<BOT>&token=<TOKEN>");
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data); // {type: "partial"|"final", ts, text}
+  console.log(msg.type, msg.text);
+};`}
+          />
+        }
+      />
+
+      {/* Simplicity */}
+      <SplitFeature
+        eyebrow="Simplicity"
+        title="POST bot → GET transcripts. That's it."
+        body={
+          <>
+            Start a bot and stream transcripts with two simple calls. Use WebSockets for sub-second
+            latency, or REST if you prefer.
+          </>
+        }
+        chips={[{ label: "2 calls, minutes to first transcript", tone: "dark" }]}
+        primaryCta={{ href: "/get-started#quickstart", label: "Copy the snippets" }}
+        visual={
+          <CodePane
+            caption="Create bot (Meet or Teams) → stream over WS"
+            code={`# 1) Create bot
+curl -X POST https://<HOST>/bots \\
+  -H "Authorization: Bearer <TOKEN>" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "platform": "microsoft_teams",  // or "google_meet"
+    "meeting_url": "<MEETING_URL>",
+    "language": "en"
+  }'
+
+# 2) Stream transcripts (WebSocket)
+wscat -c "wss://<HOST>/ws/transcripts?bot_id=<BOT_ID>&token=<TOKEN>"`}
+          />
+        }
+      />
+
+      {/* MCP-ready */}
+      <SplitFeature
+        eyebrow="MCP-ready"
+        title="Claude Desktop integration (and other MCP-capable agents)"
+        body={
+          <>
+            Use our MCP server so agents can start/stop meeting bots and fetch or stream transcripts on demand.
+            Works alongside your existing agent stack.
+          </>
+        }
+        bullets={[
+          { strong: "Send bots", rest: "via MCP tool calls" },
+          { strong: "Stream or fetch transcripts", rest: "as needed" },
+          { strong: "Claude Desktop today", rest: "and other MCP-capable tools" },
+        ]}
+        primaryCta={{ href: "/blog/claude-desktop-vexa-mcp-google-meet-transcripts", label: "MCP Guide" }}
+        secondaryCta={{ href: "/blog/claude-desktop-vexa-mcp-google-meet-transcripts#example", label: "Example Config" }}
+        reverse
+        visual={
+          <Placeholder caption="Claude Desktop → MCP tools → Vexa transcripts" />
+        }
+      />
+
+      {/* Enterprise-ready */}
+      <SplitFeature
+        eyebrow="Enterprise-ready"
+        title="Self-host for total control."
+        body={
+          <>
+            If parking years of company conversations on a third-party server is unacceptable, run Vexa
+            on your infrastructure. Keep transcripts inside your network, choose your region, and integrate
+            with internal systems.
+          </>
+        }
+        bullets={[
+          { strong: "Open-source core", rest: "(Apache-2.0)" },
+          { strong: "Deploy fast", rest: "with Docker Compose or Nomad" },
+          { strong: "Own retention & keys", rest: "logs stay in your infra" },
+          { strong: "Regions", rest: "choose where data lives" },
+        ]}
+        primaryCta={{ href: "https://github.com/Vexa-ai/vexa/blob/main/DEPLOYMENT.md", label: "Start Self-Host Guide" }}
+        secondaryCta={{ href: "https://github.com/Vexa-ai/vexa", label: "View on GitHub" }}
+        visual={<Placeholder caption="Self-hosted architecture diagram" />}
+      />
+
+      {/* Real-time translation */}
+      <SplitFeature
+        eyebrow="Multilingual"
+        title="Real-time translation, 99+ languages"
+        body={
+          <>
+            Stream conversations in one language and deliver translated transcripts to your apps in near
+            real time. Language coverage depends on the chosen model; defaults work out of the box.
+          </>
+        }
+        chips={[{ label: "Live translation" }, { label: "Language auto-detect" }, { label: "Model-dependent coverage" }]}
+        primaryCta={{ href: "/get-started#translation", label: "Enable translation" }}
+        reverse
+        visual={<Placeholder caption="Original → Translated stream preview" />}
+      />
+
+      {/* Ship your Otter/Fireflies/Fathom */}
+      <SplitFeature
+        eyebrow="Build faster"
+        title="Ship your Otter / Fireflies / Fathom-like app in days"
+        body={
+          <>
+            Focus on UX and insights; Vexa handles bot creation/management, joining Meet & Teams, and
+            real-time transcription. Start on the hosted API and switch to self-host anytime without
+            changing your app's contract.
+          </>
+        }
+        chips={[
+          { label: "One API for Meet & Teams" },
+          { label: "Realtime WS + final transcripts" },
+          { label: "Webhooks for lifecycle/status" },
+        ]}
+        primaryCta={{ href: "/examples", label: "See example app" }}
+        visual={<Placeholder caption="Builder view: transcript → summary → action items" />}
+      />
+
+      {/* n8n automations */}
+      <SplitFeature
+        eyebrow="Automations"
+        title="n8n + Vexa = information-rich flows"
+        body={
+          <>
+            Trigger flows when people speak, push summaries to Slack/Notion/CRM, and pipe transcripts into
+            your RAG stack — no glue code.
+          </>
+        }
+        chips={[{ label: "Importable n8n workflow", tone: "dark" }, { label: "Works with agents" }]}
+        primaryCta={{ href: "/blog/google-meet-transcription-n8n-workflow", label: "Import n8n Workflow" }}
+        secondaryCta={{ href: "/blog/google-meet-transcription-n8n-workflow#video", label: "Watch Tutorial" }}
+        reverse
+        visual={<Placeholder caption="n8n flow: Vexa → Summarize → Slack/Notion" />}
+      />
+
+      {/* Build your own CI app */}
+      <section className="container py-10">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border bg-card p-8 shadow-sm">
+            <h2 className="text-2xl md:text-3xl font-bold">Ship your "conversation intelligence" app in days</h2>
+            <p className="mt-4 text-base text-muted-foreground leading-relaxed">
+              Focus on UX and insights; Vexa handles bot creation/management, joining Meet & Teams, and real-time transcription. 
+              Start with the hosted API and <strong>switch to self-host anytime</strong> without changing your app's contract.
+            </p>
+            <div className="mt-6 grid sm:grid-cols-3 gap-4">
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm text-foreground">One API for Meet & Teams</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm text-foreground">Realtime WS + final transcripts</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm text-foreground">Webhooks for lifecycle/status</p>
+              </div>
+            </div>
+            <Link href="/get-started" className="inline-block mt-6">
+              <Button size="lg" className="gap-2">
+                View Example App
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* n8n automations */}
+      <section className="container py-10">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border bg-card p-8 shadow-sm">
+            <h2 className="text-2xl md:text-3xl font-bold">n8n + Vexa = information-rich automations</h2>
+            <p className="mt-4 text-base text-muted-foreground leading-relaxed">
+              Trigger flows when people speak, push summaries to Slack/Notion/CRM, and pipe transcripts into your RAG stack—no extra glue code.
+            </p>
+            <div className="mt-6 grid sm:grid-cols-3 gap-4">
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm text-foreground">Importable n8n workflow</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm text-foreground">Step-by-step tutorial</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm text-foreground">Plays nicely with your agents</p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <Link href="/blog/google-meet-transcription-n8n-workflow">
+                <Button size="lg" className="gap-2 w-full sm:w-auto">
+                  Import n8n Workflow
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/blog/google-meet-transcription-n8n-workflow#tutorial">
+                <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
+                  Watch Tutorial
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section className="container py-10">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border bg-card p-8 shadow-sm">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Use cases</p>
+            <h2 className="text-2xl md:text-3xl font-bold mt-2">AI needs data. The faster, the better.</h2>
+            <p className="mt-4 text-base text-muted-foreground leading-relaxed">
+              Vexa delivers conversations to your AI as they happen—so your systems can act while the meeting is still live.
+            </p>
+            <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm font-medium text-foreground">Sales & Success</p>
+                <p className="text-xs text-muted-foreground mt-1">notes, CRM, next steps</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm font-medium text-foreground">Recruiting & HR</p>
+                <p className="text-xs text-muted-foreground mt-1">structured feedback, ATS updates</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm font-medium text-foreground">Engineering dailies</p>
+                <p className="text-xs text-muted-foreground mt-1">tickets, changelogs, action items</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm font-medium text-foreground">Support/Operations</p>
+                <p className="text-xs text-muted-foreground mt-1">incident timelines, handoffs</p>
+              </div>
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <p className="text-sm font-medium text-foreground">Research & Interviews</p>
+                <p className="text-xs text-muted-foreground mt-1">themes, highlights</p>
+              </div>
+            </div>
+            <Link href="/get-started#flows" className="inline-block mt-6">
+              <Button size="lg" variant="outline" className="gap-2">
+                See Example Flows
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Contribute */}
+      <section className="container py-10">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border bg-card p-8 shadow-sm">
+            <h2 className="text-2xl md:text-3xl font-bold">Contribute and get noticed</h2>
+            <p className="mt-4 text-base text-muted-foreground leading-relaxed">
+              We welcome issues and PRs. Build reputation in the open—<strong>we highlight contributors</strong> in release notes and social posts.
+            </p>
+            <ul className="mt-6 space-y-2">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">Good-first-issues labeled</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">Maintainers active & responsive</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">OSS-friendly companies and investors watch this repo</span>
+              </li>
+            </ul>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <Link href="https://github.com/Vexa-ai/vexa/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22" target="_blank" rel="noopener noreferrer">
+                <Button size="lg" className="gap-2 w-full sm:w-auto">
+                  Good First Issues
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="https://github.com/Vexa-ai/vexa/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">
+                <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
+                  Contributor Guide
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

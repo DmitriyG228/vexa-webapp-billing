@@ -28,7 +28,9 @@ import {
   PhoneIcon,
   SendIcon,
   AlertTriangleIcon,
-  LaptopIcon
+  LaptopIcon,
+  Video,
+  Zap
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -880,6 +882,117 @@ export default function GetStartedPage() {
             )}
           </div>
         </StepCard>
+        
+        {/* Microsoft Teams Quickstart */}
+        <div className="relative py-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t"></div>
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
+              Platform-Specific Guides
+            </span>
+          </div>
+        </div>
+        
+        <Card className="rounded-xl border bg-card text-card-foreground shadow-sm" id="teams-quickstart">
+          <CardHeader className="p-6">
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Video className="h-6 w-6 text-primary" />
+              Microsoft Teams (Quickstart)
+            </CardTitle>
+            <CardDescription>Get started with Microsoft Teams transcription in minutes</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-0 space-y-4">
+            <ol className="list-decimal list-inside space-y-4">
+              <li className="py-2 px-3 bg-secondary/30 rounded">
+                <span className="font-medium">Tenant permissions:</span> Ensure your Microsoft 365 tenant/app has permissions to let a meeting bot join.
+              </li>
+              <li className="py-2 px-3 bg-secondary/30 rounded">
+                <span className="font-medium">Provide meeting link:</span> Provide the Teams meeting link/ID to the Vexa API when creating a bot.
+              </li>
+              <li className="py-2 px-3 bg-secondary/30 rounded">
+                <span className="font-medium">Receive transcripts:</span> Receive live transcripts via polling or WebSocket (see WebSocket section below).
+              </li>
+            </ol>
+            
+            <div className="mt-6">
+              <p className="text-sm font-medium mb-2">Example API call:</p>
+              <div className="relative">
+                <pre className="bg-secondary p-4 rounded-md overflow-x-auto text-xs">
+                  <code>{`# Replace placeholders with your actual endpoint and token
+curl -X POST https://api.cloud.vexa.ai/bots \\
+  -H "Authorization: Bearer <API_TOKEN>" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "platform": "microsoft_teams",
+    "meeting_url": "<TEAMS_MEETING_URL>",
+    "language": "en"
+  }'`}</code>
+                </pre>
+              </div>
+            </div>
+            
+            <Alert>
+              <AlertDescription>
+                📖 For detailed Teams integration, refer to our <Link href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md" target="_blank" className="text-primary hover:underline">API documentation</Link>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+        
+        {/* WebSocket Streaming Quickstart */}
+        <Card className="rounded-xl border bg-card text-card-foreground shadow-sm" id="websocket-quickstart">
+          <CardHeader className="p-6">
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Zap className="h-6 w-6 text-primary" />
+              WebSocket Streaming (Quickstart)
+            </CardTitle>
+            <CardDescription>Stream transcripts in sub-second real-time with WebSocket</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 pt-0 space-y-4">
+            <div className="space-y-4">
+              <div className="py-2 px-3 bg-secondary/30 rounded">
+                <span className="font-medium">Authentication:</span> Use your issued token to authenticate the WebSocket connection.
+              </div>
+              <div className="py-2 px-3 bg-secondary/30 rounded">
+                <span className="font-medium">Connect:</span> Connect to the transcripts WebSocket and listen for message events.
+              </div>
+              <div className="py-2 px-3 bg-secondary/30 rounded">
+                <span className="font-medium">Handle reconnects:</span> Implement reconnection logic as needed for production reliability.
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <p className="text-sm font-medium mb-2">Example WebSocket connection (JavaScript):</p>
+              <div className="relative">
+                <pre className="bg-secondary p-4 rounded-md overflow-x-auto text-xs">
+                  <code>{`// Replace with your real WS URL and auth
+const ws = new WebSocket("wss://api.cloud.vexa.ai/transcripts?bot_id=<BOT_ID>&token=<API_TOKEN>");
+
+ws.onmessage = (evt) => {
+  const msg = JSON.parse(evt.data);
+  console.log("partial/final:", msg);
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
+ws.onclose = () => {
+  console.log("WebSocket closed, implement reconnection logic");
+};`}</code>
+                </pre>
+              </div>
+            </div>
+            
+            <Alert>
+              <AlertDescription>
+                💡 WebSocket streaming provides sub-second latency for real-time applications. See <Link href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md" target="_blank" className="text-primary hover:underline">API docs</Link> for message schema details.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
         
         {/* Transcript success/failure message at the bottom */}
         {transcriptSuccess !== null && (

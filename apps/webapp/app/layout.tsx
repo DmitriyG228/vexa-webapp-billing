@@ -3,9 +3,10 @@ import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ModeToggle } from '@/components/mode-toggle'
-import { Github, Linkedin } from 'lucide-react'
+import { Github, Linkedin, Menu } from 'lucide-react'
 import { CookieConsent } from '@/components/cookie-consent'
 import AuthProvider from "@/components/AuthProvider";
 import AuthButtons from "@/components/AuthButtons";
@@ -21,8 +22,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Vexa | Meeting Transcription API with Bot Integration',
-  description: 'Multilingual real-time transcription across all major meeting platforms. Integrate meeting bots, streaming audio processing, and knowledge extraction with our API.',
+  title: 'Vexa — Meeting Transcription API (Microsoft Teams & Google Meet, WebSocket)',
+  description: 'Open-source meeting transcription API. Now with Microsoft Teams and Google Meet support, plus WebSocket streaming for sub-second transcripts. Self-host or use our hosted API.',
   icons: {
     icon: [
       {
@@ -148,7 +149,53 @@ export default async function RootLayout({
                       </Link>
                     )}
                   </nav>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* Mobile Menu */}
+                  <Sheet>
+                    <SheetTrigger asChild className="md:hidden">
+                      <Button variant="ghost" size="icon">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Toggle menu</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right">
+                      <nav className="flex flex-col gap-4 mt-8">
+                        <Link href="/" className="text-base font-caption transition-colors hover:text-primary">
+                          Home
+                        </Link>
+                        <Link href="/get-started" className="text-base font-caption transition-colors hover:text-primary">
+                          Get Started
+                        </Link>
+                        <Link
+                          href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-caption transition-colors hover:text-primary"
+                        >
+                          API Docs
+                        </Link>
+                        <Link href="/pricing" className="text-base font-caption transition-colors hover:text-primary">
+                          Pricing
+                        </Link>
+                        <Link href="/blog" className="text-base font-caption transition-colors hover:text-primary">
+                          Blog
+                        </Link>
+                        {session && (
+                          <Link href="/dashboard/api-keys" className="text-base font-caption transition-colors hover:text-primary">
+                            API Keys
+                          </Link>
+                        )}
+                        {session && (
+                          <Link href="/dashboard" className="text-base font-caption transition-colors hover:text-primary">
+                            Dashboard
+                          </Link>
+                        )}
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
+                  
+                  {/* Desktop Actions */}
+                  <div className="hidden md:flex items-center gap-2">
                     <Link 
                       href="https://github.com/Vexa-ai/vexa" 
                       target="_blank" 

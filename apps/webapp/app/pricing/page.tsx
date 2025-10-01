@@ -166,12 +166,16 @@ export default function PricingPage() {
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-7">
-              Hosted Open-source —self-host anytime - no lock-in.  MS Teams & Zoom coming next.
+              Microsoft Teams supported (v0.6). Hosted Open-source — self-host anytime - no lock-in. Zoom coming next.
             </p>
             <div className="flex items-center justify-center gap-2 text-xs md:text-sm flex-wrap">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Unlimited minutes</Badge>
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Open-source (Apache-2)</Badge>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Teams + Meet</Badge>
             </div>
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto mt-2">
+              Prefer full control? Self-host the open-source Vexa core at no license cost.
+            </p>
           </div>
         </section>
 
@@ -367,7 +371,7 @@ export default function PricingPage() {
             </div>
             <div>
               <div className="font-medium">Which platforms are supported?</div>
-              <div className="text-muted-foreground">Google Meet now; Microsoft Teams & Zoom next.</div>
+              <div className="text-muted-foreground">Microsoft Teams & Google Meet (v0.6); Zoom coming next.</div>
             </div>
           </div>
         </div>
