@@ -5,7 +5,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 export function Placeholder({ caption }: { caption?: string }) {
   return (
-    <figure className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-card ring-1 ring-border shadow-sm">
+    <figure className="m-0 relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-card ring-1 ring-border shadow-sm">
       <div className="absolute inset-0">
         <div
           className="h-full w-full"
@@ -28,8 +28,8 @@ export function Placeholder({ caption }: { caption?: string }) {
 
 export function CodePane({ code, caption }: { code: string; caption?: string }) {
   return (
-    <figure className="relative overflow-hidden rounded-2xl ring-1 ring-border shadow-sm bg-[#0b0f14]">
-      <pre className="overflow-x-auto p-4 text-[13px] leading-relaxed text-gray-100">
+    <figure className="m-0 w-full relative overflow-hidden rounded-2xl ring-1 ring-border shadow-sm bg-[#0b0f14]">
+      <pre className="overflow-hidden p-4 text-[13px] leading-relaxed text-gray-100">
         <code>{code}</code>
       </pre>
       {caption && (
@@ -66,15 +66,18 @@ export function SplitFeature({
   reverse?: boolean;
 }) {
   return (
-    <section className="py-12 sm:py-16">
-      <div
-        className={[
-          "grid items-center gap-8 sm:gap-12 lg:grid-cols-2",
-          reverse ? "lg:[&>*:first-child]:order-2" : "",
-        ].join(" ")}
-      >
+    <section className="py-12 sm:py-16 overflow-x-hidden">
+      <div className="max-w-container mx-auto px-4">
+        <div className="rounded-2xl border bg-card/80 backdrop-blur-sm shadow-sm p-8 sm:p-12 overflow-hidden">
+          <div
+            className={[
+              "grid items-stretch gap-8 sm:gap-12 min-h-[400px]",
+              visual ? "lg:grid-cols-2" : "",
+              reverse ? "lg:[&>*:first-child]:order-2" : "",
+            ].join(" ")}
+          >
         {/* Text */}
-        <div>
+        <div className="flex flex-col justify-center min-w-0">
           {eyebrow && (
             <p className="uppercase tracking-wider text-xs text-muted-foreground">{eyebrow}</p>
           )}
@@ -131,7 +134,7 @@ export function SplitFeature({
               {secondaryCta && (
                 <Link
                   href={secondaryCta.href}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-foreground ring-1 ring-border hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-foreground ring-1 ring-border hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ml-auto"
                 >
                   {secondaryCta.label}
                 </Link>
@@ -141,9 +144,13 @@ export function SplitFeature({
         </div>
 
         {/* Visual */}
-        <div className="relative">
-          <div className="pointer-events-none absolute -inset-x-8 -top-10 h-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-3xl opacity-60 sm:opacity-70" />
-          <div className="relative rounded-2xl">{visual}</div>
+        {visual && (
+          <div className="relative flex flex-col justify-center h-full min-w-0">
+            <div className="pointer-events-none absolute inset-x-0 sm:-inset-x-8 -top-10 h-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-3xl opacity-60 sm:opacity-70" />
+            <div className="relative rounded-2xl w-full">{visual}</div>
+          </div>
+          )}
+          </div>
         </div>
       </div>
     </section>

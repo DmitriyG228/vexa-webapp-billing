@@ -14,6 +14,7 @@ import { CookiePrefsButton } from "@/components/cookie-prefs-button";
 import { LegalDropdown } from "@/components/legal-dropdown";
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getServerSession } from 'next-auth/next';
+import { Logo } from '@/components/ui/logo';
 import './globals.css'
 
 const inter = Inter({ 
@@ -106,15 +107,8 @@ export default async function RootLayout({
               <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Link href="/" className="flex items-center gap-2">
-                      <Image
-                        src="/logodark.svg"
-                        alt="Vexa Logo"
-                        width={32}
-                        height={32}
-                        className="h-8 w-8"
-                      />
-                      <span className="font-display text-xl">Vexa</span>
+                    <Link href="/">
+                      <Logo size="md" showVersion={true} version="v0.6" />
                     </Link>
                   </div>
                   <nav className="hidden md:flex items-center gap-6">
