@@ -67,7 +67,7 @@ export function SplitFeature({
 }) {
   return (
     <section className="py-12 sm:py-16 overflow-x-hidden">
-      <div className="max-w-container mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="rounded-2xl border bg-card/80 backdrop-blur-sm shadow-sm p-8 sm:p-12 overflow-hidden">
           <div
             className={[

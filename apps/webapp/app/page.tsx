@@ -255,7 +255,7 @@ export default function LandingPage() {
 
       {/* MCP-ready */}
       <section className="py-12 sm:py-16">
-        <div className="max-w-container mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="rounded-2xl border bg-card/80 backdrop-blur-sm shadow-sm p-8 sm:p-12 overflow-hidden">
             <div className="grid items-stretch gap-8 sm:gap-12 min-h-[400px] lg:grid-cols-2">
               {/* Video - Full left side */}

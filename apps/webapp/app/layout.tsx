@@ -213,9 +213,7 @@ export default async function RootLayout({
                 </div>
               </header>
               <main className="flex-1">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                  {children}
-                </div>
+                {children}
               </main>
               <footer className="w-full border-t py-6">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between gap-4 md:flex-row">
