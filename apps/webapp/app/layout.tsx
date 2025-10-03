@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Github, Linkedin, Menu } from 'lucide-react'
@@ -153,6 +153,7 @@ export default async function RootLayout({
                       </Button>
                     </SheetTrigger>
                     <SheetContent side="right">
+                      <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                       <nav className="flex flex-col gap-4 mt-8">
                         <Link href="/" className="text-base font-caption transition-colors hover:text-primary">
                           Home
