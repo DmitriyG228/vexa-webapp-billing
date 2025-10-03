@@ -76,9 +76,8 @@ function OptionCard({ title, description, eyebrow, features, cta, highlighted = 
 
 export function VexaOptions() {
   return (
-    <section className="py-8 md:py-12">
-      <div className="container">
-        <div className="mx-auto max-w-6xl px-2 sm:px-4">
+    <section className="py-12 sm:py-16">
+      <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               SaaS or Self Hosted?
@@ -88,7 +87,7 @@ export function VexaOptions() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <OptionCard
               eyebrow="Ready to go"
               title="Start with API key in minutes"
@@ -126,7 +125,7 @@ export function VexaOptions() {
             />
           </div>
           
-          <div className="mt-12 max-w-4xl mx-auto">
+          <div className="mt-12">
             <div className="rounded-xl border bg-card/50 backdrop-blur-sm p-6 shadow-sm text-center">
               <h3 className="text-lg font-semibold mb-2 text-foreground">
                 No vendor lock-in.
@@ -136,7 +135,6 @@ export function VexaOptions() {
               </p>
             </div>
           </div>
-        </div>
       </div>
     </section>
   );

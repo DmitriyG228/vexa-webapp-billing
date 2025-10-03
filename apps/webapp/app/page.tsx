@@ -336,8 +336,8 @@ export default function LandingPage() {
 
 
       {/* Use & Hack Vexa - Promos */}
-      <section className="container py-3">
-        <div className="mx-auto max-w-5xl">
+      <section className="py-12 sm:py-16">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="grid gap-4 md:grid-cols-3 mb-16 md:mb-20 lg:mb-24">
             {/* n8n Card */}
             <div className="rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all flex flex-col">
