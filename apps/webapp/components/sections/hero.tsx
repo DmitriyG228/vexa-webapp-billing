@@ -89,13 +89,13 @@ export default function Hero({
           </div>
           {buttons !== false && buttons.length > 0 && (
             <div className="relative z-10 flex flex-col items-center gap-6">
-              <div className="flex justify-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full sm:w-auto">
                 {buttons.map((button, index) => (
                   <Button
                     key={index}
                     variant={button.variant || "default"}
                     size="lg"
-                    className="gap-2 h-12 px-8 text-base"
+                    className="gap-2 h-12 px-8 text-base w-full sm:w-auto"
                     asChild
                   >
                     <a href={button.href}>
