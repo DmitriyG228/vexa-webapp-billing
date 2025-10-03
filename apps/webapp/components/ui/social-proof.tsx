@@ -32,7 +32,7 @@ export function SocialProof({ userCount = "1.3k+", className }: SocialProofProps
           className="h-6 w-6 rounded-full ring-2 ring-background object-cover" 
         />
         <Image 
-          src="https://i.pravatar.cc/64?img=89" 
+          src="https://i.pravatar.cc/64?img=12" 
           alt="User 4" 
           width={24} 
           height={24} 
