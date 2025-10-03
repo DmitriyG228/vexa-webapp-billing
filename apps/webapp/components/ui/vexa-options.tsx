@@ -76,7 +76,7 @@ function OptionCard({ title, description, eyebrow, features, cta, highlighted = 
 
 export function VexaOptions() {
   return (
-    <section className="py-24 md:py-32">
+    <section className="py-8 md:py-12">
       <div className="container">
         <div className="mx-auto max-w-6xl px-2 sm:px-4">
           <div className="text-center mb-16">

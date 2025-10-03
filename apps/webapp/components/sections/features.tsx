@@ -57,7 +57,7 @@ export default function Features({
     <Section className={className}>
       <div className="max-w-6xl mx-auto">
         <div className="rounded-2xl border bg-card/80 backdrop-blur-sm shadow-sm p-8 sm:p-12">
-          <div className="flex flex-col items-center gap-6 sm:gap-20">
+          <div className="flex flex-col items-center gap-2 sm:gap-6">
             <div className="max-w-[560px] text-center space-y-2">
               <h2 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl sm:leading-tight">
                 AI runs on data.

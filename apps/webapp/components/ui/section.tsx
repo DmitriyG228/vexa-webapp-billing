@@ -6,7 +6,7 @@ function Section({ className, ...props }: React.ComponentProps<"section">) {
     <section
       data-slot="section"
       className={cn(
-        "bg-background text-foreground px-4 py-12 sm:py-24 md:py-32",
+        "bg-background text-foreground px-4 py-4 sm:py-8 md:py-12",
         className,
       )}
       {...props}
@@ -15,4 +15,5 @@ function Section({ className, ...props }: React.ComponentProps<"section">) {
 }
 
 export { Section };
+
 

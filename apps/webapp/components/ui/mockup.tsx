@@ -61,3 +61,4 @@ function MockupFrame({ className, size, ...props }: MockupFrameProps) {
 }
 
 export { Mockup, MockupFrame };
+
