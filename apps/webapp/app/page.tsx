@@ -109,12 +109,9 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-background dark:from-slate-900 dark:via-slate-950 dark:to-background">
       {/* Launch-UI inspired background layers with subtle motion */}
       <div className="fixed inset-0 -z-30 pointer-events-none overflow-hidden">
-        {/* Base background */}
-        <div className="absolute inset-0 bg-background animate-drift" />
-        
         {/* Radial glow effects - much more visible */}
         <div className="absolute top-[10%] left-[20%] w-[600px] h-[600px] bg-gradient-radial from-primary/25 via-primary/15 to-transparent rounded-full blur-3xl animate-slow-pulse" />
         <div className="absolute top-[60%] right-[15%] w-[500px] h-[500px] bg-gradient-radial from-primary/20 via-primary/10 to-transparent rounded-full blur-3xl animate-slow-pulse" style={{ animationDelay: '2s' }} />
