@@ -19,6 +19,15 @@ export default function PrivacyPage() {
           <p>
             <a href="mailto:info@vexa.ai" className="text-blue-600 hover:underline">info@vexa.ai</a>.
           </p>
+          <div className="mt-4">
+            <p className="font-medium">Address:</p>
+            <p>
+              Vexa.ai Inc.<br />
+              16192 Coastal Highway<br />
+              Lewes, DE 19958<br />
+              Sussex County, DE
+            </p>
+          </div>
         </section>
 
         <section className="space-y-4">

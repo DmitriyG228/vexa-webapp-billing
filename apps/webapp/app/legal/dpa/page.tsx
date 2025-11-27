@@ -78,6 +78,15 @@ export default function DpaPage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Contact</h2>
           <p>For questions about this DPA, please contact us at: <a href="mailto:info@vexa.ai" className="text-blue-600 hover:underline">info@vexa.ai</a></p>
+          <div className="mt-4">
+            <p className="font-medium">Address:</p>
+            <p>
+              Vexa.ai Inc.<br />
+              16192 Coastal Highway<br />
+              Lewes, DE 19958<br />
+              Sussex County, DE
+            </p>
+          </div>
         </section>
       </div>
     </div>

@@ -86,6 +86,15 @@ export default function SubprocessorsPage() {
           <p>
             For questions about our sub-processors, please contact us at: <a href="mailto:info@vexa.ai" className="text-blue-600 hover:underline">info@vexa.ai</a>
           </p>
+          <div className="mt-4">
+            <p className="font-medium">Address:</p>
+            <p>
+              Vexa.ai Inc.<br />
+              16192 Coastal Highway<br />
+              Lewes, DE 19958<br />
+              Sussex County, DE
+            </p>
+          </div>
         </section>
       </div>
     </div>
