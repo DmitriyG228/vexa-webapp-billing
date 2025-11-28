@@ -3,6 +3,7 @@
 import { useSession, signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
+import { trackEvent } from '@/lib/analytics'
 
 
 
@@ -75,6 +76,13 @@ export function GetStartedButton({
 
   const handleButtonClick = () => {
     if (isEnterprise) {
+      // Track enterprise inquiry event
+      trackEvent('enterprise_inquiry', {
+        event_category: 'conversion',
+        event_label: 'enterprise_contact',
+        value: 100 // Higher value for enterprise leads
+      });
+      
       // Enterprise buttons: route to scheduling link if provided
       if (href) window.location.href = href
       else window.location.href = '/contact-sales'

@@ -36,6 +36,8 @@ async function findOrCreateUser(email: string, name?: string | null, image?: str
         if (responseData && typeof responseData.id === 'number') {
           if (response.status === 201) {
             console.log(`[NextAuth] New user created: ${email}, will access dashboard directly`);
+            // Mark as new user for tracking purposes
+            (responseData as any).isNewUser = true;
           }
 
           return responseData as DbUser;
@@ -111,7 +113,12 @@ export const authOptions: AuthOptions = {
         }
         
         // Add the database user ID to the user object for the JWT callback
-        user.id = String(dbUser.id); 
+        user.id = String(dbUser.id);
+        
+        // Mark as new user if this was a new signup (status 201)
+        if ((dbUser as any).isNewUser) {
+          (user as any).isNewUser = true;
+        }
         
         // All users can access the dashboard directly
         console.log(`[NextAuth] User ${user.email} synced with DB ID: ${user.id}. Allowing sign in.`);
@@ -128,11 +135,11 @@ export const authOptions: AuthOptions = {
         console.log(`[NextAuth] JWT callback: Added id ${user.id} to token for email ${token.email}`);
       }
       
-      // No need to persist isNewUser flag since we're not using trial checkout
-      // if ((user as any)?.isNewUser) {
-      //   token.isNewUser = (user as any).isNewUser;
-      //   console.log(`[NextAuth] JWT callback: Added isNewUser flag to token for email ${token.email}`);
-      // }
+      // Persist isNewUser flag for tracking signup events
+      if ((user as any)?.isNewUser) {
+        token.isNewUser = (user as any).isNewUser;
+        console.log(`[NextAuth] JWT callback: Added isNewUser flag to token for email ${token.email}`);
+      }
       
       return token;
     },
@@ -145,8 +152,11 @@ export const authOptions: AuthOptions = {
         console.log(`[NextAuth] Session callback: Added id ${token.id} to session for user ${session.user.email}`);
       }
       
-      // No need to check isNewUser flag since we're not using trial checkout
-      // New users can access the dashboard directly
+      // Add isNewUser flag to session for client-side tracking
+      if (token?.isNewUser && session.user) {
+        (session.user as any).isNewUser = token.isNewUser;
+        console.log(`[NextAuth] Session callback: Added isNewUser flag to session for user ${session.user.email}`);
+      }
       
       return session;
     },

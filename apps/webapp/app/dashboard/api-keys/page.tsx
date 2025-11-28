@@ -36,6 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { trackEvent } from "@/lib/analytics"
 
 // Define the structure for an API key (adjust based on actual API response)
 interface ApiKey {
@@ -231,6 +232,13 @@ export default function ApiKeysPage() {
 
       // Parse the response to check for trial creation
       const result = await response.json();
+
+      // Track API key generation event
+      trackEvent('api_key_generated', {
+        event_category: 'conversion',
+        event_label: 'api_key',
+        value: 1
+      });
 
       // *** Re-fetch keys after successful creation ***
       await fetchApiKeys(); // Call the shared function to refresh
