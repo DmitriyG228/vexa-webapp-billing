@@ -10,10 +10,34 @@ import Image from 'next/image'
 import { ConcurrencyPricingCard } from './components/ConcurrencyPricingCard'
 import { GetStartedButton } from './components/GetStartedButton'
 import { FOUNDER_IMAGE_URL } from '@/lib/constants'
+import { absoluteUrl } from '@/lib/utils'
 
 export const metadata: Metadata = {
-  title: 'Pricing | Vexa',
-  description: 'API transcription for Google Meet. Hosted SaaS, API-first. Unlimited minutes. Open-source core (Apache-2) with no lock-in—self-host anytime.',
+  title: 'Vexa Pricing - Self-Hosted Transcription API | Free Tier',
+  description: 'Transparent pricing for Vexa self-hosted transcription API. Free tier for developers. Enterprise plans available. No hidden fees. Start free today.',
+  alternates: {
+    canonical: absoluteUrl('/pricing'),
+  },
+  openGraph: {
+    title: 'Vexa Pricing - Self-Hosted Transcription API | Free Tier',
+    description: 'Transparent pricing for Vexa self-hosted transcription API. Free tier for developers. Enterprise plans available. No hidden fees. Start free today.',
+    url: absoluteUrl('/pricing'),
+    siteName: 'Vexa',
+    type: 'website',
+    images: [
+      {
+        url: absoluteUrl('/logodark.svg'),
+        width: 1200,
+        height: 630,
+        alt: 'Vexa Pricing',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Vexa Pricing - Self-Hosted Transcription API | Free Tier',
+    description: 'Transparent pricing for Vexa self-hosted transcription API. Free tier for developers. Enterprise plans available. No hidden fees. Start free today.',
+  },
 }
 
 interface PricingCardProps {
