@@ -6,4 +6,5 @@ Allow: /
 # Disallow: /api/
 # Disallow: /private/
 
-Sitemap: https://yourdomain.com/sitemap.xml # Replace with your actual domain 
+Sitemap: https://vexa.ai/sitemap.xml
+Sitemap: https://vexa.ai/feed.xml 

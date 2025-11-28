@@ -6,7 +6,7 @@ interface SocialProofProps {
   className?: string;
 }
 
-export function SocialProof({ userCount = "1.3k+", className }: SocialProofProps) {
+export function SocialProof({ userCount = "1.5k+", className }: SocialProofProps) {
   return (
     <div className={`flex items-center gap-3 ${className || ""}`}>
       <div className="flex -space-x-3">

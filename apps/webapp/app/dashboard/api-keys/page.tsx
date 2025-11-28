@@ -9,6 +9,7 @@ import { DiscordIcon } from "@/components/DiscordIcon"
 import { Button } from "@/components/ui/button"
 import { PageContainer, Section } from "@/components/ui/page-container"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { FOUNDER_IMAGE_URL, FOUNDER_NAME, FOUNDER_TITLE } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -635,13 +636,13 @@ export default function ApiKeysPage() {
         <CardHeader>
           <div className="flex items-start gap-4">
             <img 
-              src="https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs" 
-              alt="Dmitry Grankin, CEO of Vexa" 
+              src={FOUNDER_IMAGE_URL} 
+              alt={`${FOUNDER_NAME}, ${FOUNDER_TITLE}`} 
               className="w-16 h-16 rounded-full object-cover border-2 border-white" // Adjusted size for card header
             />
             <div>
-              <CardTitle>Connect with Dmitry Grankin</CardTitle>
-              <CardDescription className="mt-1">CEO of Vexa</CardDescription>
+              <CardTitle>Connect with {FOUNDER_NAME}</CardTitle>
+              <CardDescription className="mt-1">{FOUNDER_TITLE}</CardDescription>
             </div>
           </div>
         </CardHeader>

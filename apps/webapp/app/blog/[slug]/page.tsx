@@ -29,14 +29,19 @@ export async function generateMetadata(
     // Assume default OG image is at public/images/og-default.png
     const ogImage = post.heroImage ? absoluteUrl(post.heroImage) : absoluteUrl('/images/og-default.png');
 
+    const postUrl = absoluteUrl(`/blog/${post.slug}`);
+    
     return {
       title: post.title,
       description: post.summary,
+      alternates: {
+        canonical: postUrl,
+      },
       openGraph: {
         title: post.title,
         description: post.summary,
-        url: absoluteUrl(`/blog/${post.slug}`),
-        siteName: 'Vexa Blog', // Replace with your actual site name if different
+        url: postUrl,
+        siteName: 'Vexa',
         images: [
           {
             url: ogImage,
@@ -48,14 +53,25 @@ export async function generateMetadata(
         locale: 'en_US', 
         type: 'article',
         publishedTime: new Date(post.date).toISOString(),
-        authors: [post.author], // Assuming author name is sufficient here
+        authors: [post.author],
       },
       twitter: {
         card: 'summary_large_image',
         title: post.title,
         description: post.summary,
         images: [ogImage],
-        // Add creator handle if desired: creator: '@YourTwitterHandle',
+        creator: '@grankin_d',
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
       },
     };
   } catch (error) {
@@ -96,45 +112,102 @@ export default async function Post({ params }: PostProps) {
       .toUpperCase();
   };
 
-  // Define JSON-LD structure
+  // Define enhanced JSON-LD structure for better SEO
+  const postUrl = absoluteUrl(`/blog/${post.slug}`);
+  const blogUrl = absoluteUrl('/blog');
+  
+  // BreadcrumbList schema for better navigation
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: absoluteUrl('/'),
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: blogUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title,
+        item: postUrl,
+      },
+    ],
+  };
+  
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.summary,
     image: post.heroImage ? absoluteUrl(post.heroImage) : undefined,
+    url: postUrl,
     author: {
       '@type': 'Person',
       name: post.author,
-      url: post.authorLinkedIn, // Use LinkedIn URL if available
-      image: post.authorImage, // Author image URL
+      url: post.authorLinkedIn || undefined,
+      image: post.authorImage || undefined,
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Vexa', // Replace with your organization name
+      name: 'Vexa',
+      url: 'https://vexa.ai',
       logo: {
         '@type': 'ImageObject',
-        url: absoluteUrl('/logodark.svg'), // Replace with your logo URL
+        url: absoluteUrl('/logodark.svg'),
       },
     },
     datePublished: new Date(post.date).toISOString(),
-    dateModified: new Date(post.date).toISOString(), // Consider adding an 'updatedDate' frontmatter field for this
+    dateModified: new Date(post.date).toISOString(),
     mainEntityOfPage: {
-       '@type': 'WebPage',
-       '@id': absoluteUrl(`/blog/${post.slug}`)
-    }
+      '@type': 'WebPage',
+      '@id': postUrl
+    },
+    inLanguage: 'en-US',
+    articleSection: 'Technology',
+    keywords: post.summary.split(' ').slice(0, 5).join(', '), // Basic keywords from summary
   };
 
   return (
     <>
-      {/* JSON-LD Script */}
+      {/* JSON-LD Scripts */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <PageContainer maxWidth="4xl">
         <Section>
+          {/* Breadcrumb navigation */}
+          <nav aria-label="Breadcrumb" className="mb-6">
+            <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <li>
+                <Link href="/" className="hover:text-foreground transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link href="/blog" className="hover:text-foreground transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>/</li>
+              <li className="text-foreground">{post.title}</li>
+            </ol>
+          </nav>
+          
           <article>
         {/* Hero Image */} 
         {post.heroImage && (

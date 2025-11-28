@@ -22,7 +22,8 @@ export function formatDate(dateString: string | undefined): string {
 
 // Function to generate absolute URLs
 export const absoluteUrl = (path: string) => {
-  // Ensure NEXT_PUBLIC_APP_URL is set in .env or environment variables
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  // Use production URL for canonical URLs and SEO, fallback to env or localhost
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                  (process.env.NODE_ENV === 'production' ? 'https://vexa.ai' : 'http://localhost:3000');
   return `${baseUrl}${path.startsWith('/') ? path : '/' + path}`;
 };

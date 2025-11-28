@@ -107,7 +107,7 @@ export default function Hero({
                 ))}
               </div>
               {/* Social proof */}
-              <SocialProof userCount="1.3k+" />
+              <SocialProof userCount="1.5k+" />
             </div>
           )}
           {mockup !== false && (

@@ -52,9 +52,44 @@ export default async function RootLayout({
 }) {
   const session = await getServerSession(authOptions);
 
+  // Organization schema for homepage SEO
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Vexa',
+    url: 'https://vexa.ai',
+    logo: 'https://vexa.ai/logodark.svg',
+    description: 'Open-source meeting transcription API with Microsoft Teams and Google Meet support, plus WebSocket streaming for sub-second transcripts.',
+    sameAs: [
+      'https://github.com/Vexa-ai/vexa',
+      'https://discord.gg/Ga9duGkVz9',
+      'https://www.linkedin.com/in/dmitry-grankin/',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'Customer Support',
+      url: 'https://vexa.ai',
+    },
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://analytics.umami.is" />
+        <link rel="preconnect" href="https://raw.githubusercontent.com" />
+        
+        {/* DNS Prefetch for faster connections */}
+        <link rel="dns-prefetch" href="https://api.github.com" />
         <script dangerouslySetInnerHTML={{
           __html: `
             document.addEventListener('DOMContentLoaded', function() {

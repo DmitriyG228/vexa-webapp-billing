@@ -9,6 +9,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ConcurrencyPricingCard } from './components/ConcurrencyPricingCard'
 import { GetStartedButton } from './components/GetStartedButton'
+import { FOUNDER_IMAGE_URL } from '@/lib/constants'
 
 export const metadata: Metadata = {
   title: 'Pricing | Vexa',
@@ -227,7 +228,7 @@ export default function PricingPage() {
                  buttonText="Schedule 30-min"
                  buttonVariant="outline"
                  planType="enterprise"
-                 avatarUrl="https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs"
+                 avatarUrl={FOUNDER_IMAGE_URL}
                  cleanStyle
                />
              </div>
