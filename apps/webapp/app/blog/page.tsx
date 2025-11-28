@@ -7,13 +7,18 @@ import { BlogRefreshButton } from './blog-refresh-button';
 
 export async function generateMetadata() {
   return {
-    title: 'Blog | Vexa - Meeting Transcription API',
-    description: 'Latest insights and updates from the Vexa team. Learn about meeting transcription, API integration, Microsoft Teams, Google Meet, and more.',
+    title: 'Vexa Blog - Meeting Transcription Tutorials, API Guides & Developer Resources',
+    description: 'Learn how to build meeting transcription into your apps. Tutorials, integration guides, and best practices for developers using Vexa API.',
     openGraph: {
-      title: 'Vexa Blog',
-      description: 'Latest insights and updates from the Vexa team',
+      title: 'Vexa Blog - Meeting Transcription Tutorials, API Guides & Developer Resources',
+      description: 'Learn how to build meeting transcription into your apps. Tutorials, integration guides, and best practices for developers using Vexa API.',
       url: 'https://vexa.ai/blog',
       type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Vexa Blog - Meeting Transcription Tutorials, API Guides & Developer Resources',
+      description: 'Learn how to build meeting transcription into your apps. Tutorials, integration guides, and best practices for developers.',
     },
   };
 }
@@ -50,6 +55,19 @@ export default async function BlogIndex() {
               <p className="text-muted-foreground mt-4">
                 Latest insights and updates from the Vexa team
               </p>
+              <div className="flex items-center justify-center gap-4 mt-6 text-sm">
+                <Link href="/get-started" className="text-primary hover:underline">
+                  Get Started Guide
+                </Link>
+                <span className="text-muted-foreground">•</span>
+                <Link href="/pricing" className="text-primary hover:underline">
+                  View Pricing
+                </Link>
+                <span className="text-muted-foreground">•</span>
+                <Link href="https://github.com/Vexa-ai/vexa" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  GitHub Repository
+                </Link>
+              </div>
             </div>
           </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

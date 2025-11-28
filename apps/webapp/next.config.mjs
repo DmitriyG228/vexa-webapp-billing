@@ -60,6 +60,17 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  // TODO: Add 301 redirects for 404 errors found in Google Search Console
+  // Example format:
+  // redirects: async () => {
+  //   return [
+  //     {
+  //       source: '/old-path',
+  //       destination: '/new-path',
+  //       permanent: true, // 301 redirect
+  //     },
+  //   ]
+  // },
 }
 
 mergeConfig(nextConfig, userConfig)

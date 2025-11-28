@@ -1,8 +1,8 @@
 services:
   vexa-app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: apps/webapp/Dockerfile
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}

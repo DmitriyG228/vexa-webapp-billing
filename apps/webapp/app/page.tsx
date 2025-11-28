@@ -350,9 +350,9 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground">Meeting transcripts in n8n flow</p>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <Image src="/google-meet-logo.png" alt="Google Meet" width={28} height={28} className="object-contain" />
+                  <Image src="/google-meet-logo.png" alt="Google Meet video conferencing platform logo" width={28} height={28} className="object-contain" />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <Image src="/logodark.svg" alt="Vexa" width={28} height={28} className="object-contain" />
+                  <Image src="/logodark.svg" alt="Vexa meeting transcription API logo" width={28} height={28} className="object-contain" />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
                   <N8n.Color size={28} />
                 </div>
@@ -376,9 +376,9 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground">Claude is now your real-time meeting assistant</p>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <Image src="/google-meet-logo.png" alt="Google Meet" width={28} height={28} className="object-contain" />
+                  <Image src="/google-meet-logo.png" alt="Google Meet video conferencing platform logo" width={28} height={28} className="object-contain" />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <Image src="/logodark.svg" alt="Vexa" width={28} height={28} className="object-contain" />
+                  <Image src="/logodark.svg" alt="Vexa meeting transcription API logo" width={28} height={28} className="object-contain" />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
                   <MCP size={28} />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
@@ -406,9 +406,9 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground">Simply POST bot, then GET transcript</p>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <Image src="/google-meet-logo.png" alt="Google Meet" width={28} height={28} className="object-contain" />
+                  <Image src="/google-meet-logo.png" alt="Google Meet video conferencing platform logo" width={28} height={28} className="object-contain" />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <Image src="/logodark.svg" alt="Vexa" width={28} height={28} className="object-contain" />
+                  <Image src="/logodark.svg" alt="Vexa meeting transcription API logo" width={28} height={28} className="object-contain" />
                   <ArrowRight className="h-3 w-3 text-muted-foreground" />
                   <Zap className="h-7 w-7" />
                 </div>

@@ -214,7 +214,7 @@ export default async function Post({ params }: PostProps) {
             <div className="mb-8 overflow-hidden rounded-xl shadow-sm">
             <Image
               src={post.heroImage} 
-              alt={`${post.title} hero image`}
+              alt={`${post.title} - Vexa meeting transcription tutorial and guide`}
               width={1200} // Adjust width as needed
               height={630} // Adjust height for aspect ratio (e.g., 1.91:1 for Open Graph)
               className="w-full h-auto object-cover"

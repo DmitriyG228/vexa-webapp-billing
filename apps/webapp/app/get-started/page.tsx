@@ -460,8 +460,32 @@ export default function GetStartedPage() {
         <div className="text-center mb-8">
           <h1 className="text-[44px] leading-[52px] font-bold mb-4">Get Started with Vexa</h1>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-7 mb-6">
-            Follow these steps to get your first transcription in under 5 minutes.
+            Follow these steps to get your first transcription in under 5 minutes. Need help? Check out our <Link href="/blog" className="text-primary hover:underline">tutorials and guides</Link> or <Link href="/pricing" className="text-primary hover:underline">view pricing plans</Link>.
           </p>
+          <div className="flex items-center justify-center gap-3 mb-4 flex-wrap">
+            <Link 
+              href="https://github.com/Vexa-ai/vexa" 
+              target="_blank"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <StarIcon size={16} />
+              View on GitHub
+            </Link>
+            <span className="text-muted-foreground">•</span>
+            <Link 
+              href="/blog/google-meet-transcription-n8n-workflow" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              n8n Integration Guide
+            </Link>
+            <span className="text-muted-foreground">•</span>
+            <Link 
+              href="/blog/claude-desktop-vexa-mcp-google-meet-transcripts" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              MCP Setup Guide
+            </Link>
+          </div>
           <Button 
             variant="outline" 
             size="sm"
