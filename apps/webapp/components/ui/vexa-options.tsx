@@ -1,7 +1,6 @@
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Github } from '@lobehub/icons';
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 

@@ -152,6 +152,12 @@ export default async function RootLayout({
                     <Link href="/" className="text-sm font-caption transition-colors hover:text-primary">
                       Home
                     </Link>
+                    <Link href="/product/google-meet-transcription-api" className="text-sm font-caption transition-colors hover:text-primary">
+                      Products
+                    </Link>
+                    <Link href="/open-source" className="text-sm font-caption transition-colors hover:text-primary">
+                      Open Source
+                    </Link>
                     <Link href="/get-started" className="text-sm font-caption transition-colors hover:text-primary">
                       Get Started
                     </Link>
@@ -194,6 +200,12 @@ export default async function RootLayout({
                       <nav className="flex flex-col gap-4 mt-8">
                         <Link href="/" className="text-base font-caption transition-colors hover:text-primary">
                           Home
+                        </Link>
+                        <Link href="/product/google-meet-transcription-api" className="text-base font-caption transition-colors hover:text-primary">
+                          Products
+                        </Link>
+                        <Link href="/open-source" className="text-base font-caption transition-colors hover:text-primary">
+                          Open Source
                         </Link>
                         <Link href="/get-started" className="text-base font-caption transition-colors hover:text-primary">
                           Get Started

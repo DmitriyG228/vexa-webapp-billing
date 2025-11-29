@@ -9,9 +9,11 @@ import { MenuIcon, XIcon } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/product/google-meet-transcription-api", label: "Products" },
+  { href: "/open-source", label: "Open Source" },
   { href: "/get-started", label: "Get Started" },
   { href: "https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md", label: "API Docs", target: "_blank", rel: "noopener noreferrer" },
-  { href: "/public-beta", label: "Public Beta" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
 ];
 

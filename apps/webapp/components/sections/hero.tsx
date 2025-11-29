@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, Github } from "lucide-react";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { Mockup, MockupFrame } from "@/components/ui/mockup";
 import { Section } from "@/components/ui/section";
 import Image from "next/image";
 import TranscriptionMock from "@/components/ui/transcription-mock";
-import { Github } from '@lobehub/icons';
 import { SocialProof } from "@/components/ui/social-proof";
 
 interface HeroButtonProps {

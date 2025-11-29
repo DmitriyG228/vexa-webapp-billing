@@ -7,13 +7,13 @@ import {
   Clock,
   Code,
   Cloud,
+  Github,
 } from "lucide-react";
 import { ReactNode } from "react";
 import { Item, ItemDescription, ItemIcon, ItemTitle } from "@/components/ui/item";
 import { Section } from "@/components/ui/section";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { MCP, Github } from '@lobehub/icons';
 
 interface ItemProps {
   title: string;
@@ -86,7 +86,9 @@ export default function Features({
                 <span className="text-xs font-medium">Real Time</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <MCP className="h-5 w-5 text-primary" />
+                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-purple-200 bg-purple-50 text-[10px] font-semibold text-purple-700">
+                  MCP
+                </span>
                 <span className="text-xs font-medium">MCP Ready</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
