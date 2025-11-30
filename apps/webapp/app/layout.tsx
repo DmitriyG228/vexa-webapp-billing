@@ -12,6 +12,7 @@ import AuthProvider from "@/components/AuthProvider";
 import AuthButtons from "@/components/AuthButtons";
 import { CookiePrefsButton } from "@/components/cookie-prefs-button";
 import { LegalDropdown } from "@/components/legal-dropdown";
+import { ProductsDropdown } from "@/components/products-dropdown";
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getServerSession } from 'next-auth/next';
 import { Logo } from '@/components/ui/logo';
@@ -152,12 +153,7 @@ export default async function RootLayout({
                     <Link href="/" className="text-sm font-caption transition-colors hover:text-primary">
                       Home
                     </Link>
-                    <Link href="/product/google-meet-transcription-api" className="text-sm font-caption transition-colors hover:text-primary">
-                      Products
-                    </Link>
-                    <Link href="/open-source" className="text-sm font-caption transition-colors hover:text-primary">
-                      Open Source
-                    </Link>
+                    <ProductsDropdown />
                     <Link href="/get-started" className="text-sm font-caption transition-colors hover:text-primary">
                       Get Started
                     </Link>

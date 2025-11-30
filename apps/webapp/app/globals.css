@@ -299,3 +299,74 @@
 .prose-code-copy-buttons .copy-button:hover {
   opacity: 1;
 }
+
+/* Blog Content Typography Optimizations */
+.blog-content {
+  /* Optimize text color for readability - off-white instead of pure white */
+  color: hsl(var(--foreground) / 0.9);
+}
+
+.blog-content p {
+  line-height: 1.7 !important;
+  color: hsl(var(--foreground) / 0.85);
+}
+
+.blog-content h1,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4 {
+  color: hsl(var(--foreground));
+}
+
+.blog-content a {
+  color: hsl(var(--primary));
+}
+
+/* Drop Cap for first paragraph */
+.blog-content > p:first-of-type::first-letter {
+  float: left;
+  font-size: 4.5rem;
+  line-height: 1;
+  padding-right: 0.5rem;
+  padding-top: 0.1rem;
+  font-weight: 700;
+  color: hsl(var(--primary));
+}
+
+/* Rounded corners for images in blog content */
+.blog-content img {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Better code block styling */
+.blog-content pre {
+  border-radius: 8px;
+  background: hsl(var(--muted)) !important;
+}
+
+/* Better list styling */
+.blog-content ul,
+.blog-content ol {
+  line-height: 1.7;
+}
+
+.blog-content li {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: hsl(var(--foreground) / 0.85);
+}
+
+/* Better blockquote styling */
+.blog-content blockquote {
+  border-left-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 4px;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.blog-content blockquote p {
+  color: hsl(var(--foreground) / 0.8);
+  font-style: italic;
+}

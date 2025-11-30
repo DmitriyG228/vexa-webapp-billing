@@ -1,11 +1,15 @@
 import { getAllPostSlugs, getPostData, PostData } from '@/lib/posts';
 import { notFound } from 'next/navigation';
-import { formatDate, absoluteUrl } from '@/lib/utils'; // Import absoluteUrl
+import { formatDate, absoluteUrl } from '@/lib/utils';
 import { Metadata, ResolvingMetadata } from 'next';
-import Image from 'next/image'; // Import next/image
-import Link from 'next/link'; // Import Link
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+import Image from 'next/image';
+import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PageContainer, Section } from '@/components/ui/page-container';
+import { Button } from '@/components/ui/button';
+import { ReadingProgress } from '@/components/blog/reading-progress';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { SocialShare } from '@/components/blog/social-share';
 
 export const dynamic = 'force-dynamic';
 
@@ -177,6 +181,7 @@ export default async function Post({ params }: PostProps) {
 
   return (
     <>
+      <ReadingProgress />
       {/* JSON-LD Scripts */}
       <script
         type="application/ld+json"
@@ -187,179 +192,230 @@ export default async function Post({ params }: PostProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <PageContainer maxWidth="4xl">
+      <PageContainer maxWidth="7xl">
         <Section>
-          {/* Breadcrumb navigation */}
-          <nav aria-label="Breadcrumb" className="mb-6">
-            <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
+          {/* Breadcrumb navigation - Enhanced */}
+          <nav aria-label="Breadcrumb" className="mb-8">
+            <ol className="flex items-center space-x-2 text-sm">
               <li>
-                <Link href="/" className="hover:text-foreground transition-colors">
+                <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
                   Home
                 </Link>
               </li>
-              <li>/</li>
+              <li className="text-muted-foreground">/</li>
               <li>
-                <Link href="/blog" className="hover:text-foreground transition-colors">
+                <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
                   Blog
                 </Link>
               </li>
-              <li>/</li>
-              <li className="text-foreground">{post.title}</li>
+              <li className="text-muted-foreground">/</li>
+              <li className="text-foreground truncate max-w-md" title={post.title}>
+                {post.title}
+              </li>
             </ol>
           </nav>
           
-          <article>
-        {/* Hero Image */} 
-        {post.heroImage && (
-            <div className="mb-8 overflow-hidden rounded-xl shadow-sm">
-            <Image
-              src={post.heroImage} 
-              alt={`${post.title} - Vexa meeting transcription tutorial and guide`}
-              width={1200} // Adjust width as needed
-              height={630} // Adjust height for aspect ratio (e.g., 1.91:1 for Open Graph)
-              className="w-full h-auto object-cover"
-              priority // Load hero image eagerly
-            />
+          <div className="flex gap-12">
+            {/* Main Content */}
+            <div className="flex-1 min-w-0">
+              <article>
+                {/* Hero Background with Header */}
+                <div 
+                  className="relative mb-12 rounded-xl overflow-hidden shadow-lg"
+                  style={{
+                    backgroundImage: `url(/blog_background.png)`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    minHeight: '450px',
+                  }}
+                >
+                  {/* Vexa Logo */}
+                  <Image
+                    src="/logo light.svg"
+                    alt="Vexa logo"
+                    width={48}
+                    height={48}
+                    priority
+                    className="absolute top-6 left-6 z-20 w-10 h-auto opacity-90 drop-shadow-lg"
+                  />
+
+                  {/* Enhanced gradient overlay - stronger at bottom for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/50 to-black/80" />
+                  
+                  {/* Header content on top of background */}
+                  <div className="relative z-10 p-8 md:p-12 flex flex-col justify-end min-h-[450px]">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6 text-white drop-shadow-lg">
+                      {post.title}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                      {/* Author Avatar and Link */} 
+                      {post.authorLinkedIn ? (
+                        <Link 
+                          href={post.authorLinkedIn} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center space-x-2 hover:text-white transition-colors text-white/95"
+                        >
+                          <Avatar className="h-9 w-9 border-2 border-white/30">
+                            {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
+                            <AvatarFallback className="bg-white/20 text-white">{getInitials(post.author)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{post.author}</span>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center space-x-2 text-white/95">
+                          <Avatar className="h-9 w-9 border-2 border-white/30">
+                            {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
+                            <AvatarFallback className="bg-white/20 text-white">{getInitials(post.author)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{post.author}</span>
+                        </div>
+                      )}
+                      
+                      <span className="text-white/50">•</span>
+                      <span className="text-white/80">{formatDate(post.date)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Share Buttons */}
+                <div className="mb-8 pb-8 border-b">
+                  <SocialShare url={`/blog/${post.slug}`} title={post.title} description={post.summary} />
+                </div>
+
+                {/* Render the HTML content with optimized typography */}
+                <div
+                  className="prose prose-lg dark:prose-invert max-w-[720px] mx-auto prose-code-copy-buttons blog-content"
+                  dangerouslySetInnerHTML={{ __html: post.contentHtml! }}
+                  style={{
+                    lineHeight: '1.7',
+                  }}
+                />
+                
+                {/* CTA Section */}
+                <div className="mt-16 mb-8 p-8 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+                  <div className="max-w-[720px] mx-auto text-center">
+                    <h3 className="text-2xl font-bold mb-3">Don't want to host it yourself?</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Try Vexa Cloud for hassle-free meeting transcription with the same powerful API.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Button asChild size="lg">
+                        <Link href="/get-started">Get Started Free</Link>
+                      </Button>
+                      <Button asChild variant="outline" size="lg">
+                        <Link href="/pricing">View Pricing</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                {/* Copy-Button handler: decode base64 from data attribute and copy */}
+                <script
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                      (function(){
+                        function setButtonState(btn, svg){
+                          const original = btn.innerHTML;
+                          btn.innerHTML = svg;
+                          setTimeout(()=>{ btn.innerHTML = original; }, 2000);
+                        }
+                        document.addEventListener('click', function(e){
+                          const button = e.target.closest && e.target.closest('.copy-button');
+                          if(!button) return;
+                          try{
+                            const b64 = button.getAttribute('data-code-b64') || '';
+                            const code = atob(b64);
+                            if (navigator.clipboard && window.isSecureContext){
+                              navigator.clipboard.writeText(code).then(()=>{
+                                setButtonState(button, '<svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>');
+                              });
+                            } else {
+                              const ta = document.createElement('textarea');
+                              ta.value = code; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta);
+                              ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                              setButtonState(button, '<svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>');
+                            }
+                          }catch(err){
+                            setButtonState(button, '<svg class="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>');
+                            console.error('Copy failed', err);
+                          }
+                        });
+                      })();
+                    `
+                  }}
+                />
+                
+                {/* Copy button functionality script */}
+                <script
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                      // Global copy function
+                      window.copyCodeToClipboard = async function(button, code) {
+                        try {
+                          // Try modern clipboard API first
+                          if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(code);
+                          } else {
+                            // Fallback for older browsers
+                            const textarea = document.createElement('textarea');
+                            textarea.value = code;
+                            textarea.style.position = 'fixed';
+                            textarea.style.left = '-999999px';
+                            textarea.style.top = '-999999px';
+                            document.body.appendChild(textarea);
+                            textarea.focus();
+                            textarea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textarea);
+                          }
+                          
+                          // Update button to show success state
+                          const originalHTML = button.innerHTML;
+                          button.innerHTML = \`
+                            <svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                          \`;
+                          button.classList.add('text-green-400');
+                          button.classList.remove('text-zinc-300');
+                          
+                          // Reset after 2 seconds
+                          setTimeout(() => {
+                            button.innerHTML = originalHTML;
+                            button.classList.remove('text-green-400');
+                            button.classList.add('text-zinc-300');
+                          }, 2000);
+                          
+                        } catch (err) {
+                          console.error('Failed to copy code:', err);
+                          // Show error state briefly
+                          const originalHTML = button.innerHTML;
+                          button.innerHTML = \`
+                            <svg class="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                          \`;
+                          button.classList.add('text-red-400');
+                          button.classList.remove('text-zinc-300');
+                          
+                          setTimeout(() => {
+                            button.innerHTML = originalHTML;
+                            button.classList.remove('text-red-400');
+                            button.classList.add('text-zinc-300');
+                          }, 2000);
+                        }
+                      };
+                    `
+                  }}
+                />
+              </article>
+            </div>
+
+            {/* Table of Contents Sidebar */}
+            <aside className="hidden lg:block w-64 flex-shrink-0">
+              <TableOfContents content={post.contentHtml || ''} />
+            </aside>
           </div>
-        )}
-
-            <header className="mb-8">
-              <h1 className="text-2xl font-bold leading-tight mb-4">{post.title}</h1>
-          <div className="flex items-center space-x-4 text-muted-foreground text-sm">
-            {/* Author Avatar and Link */} 
-            {post.authorLinkedIn ? (
-              <Link href={post.authorLinkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-foreground transition-colors">
-                <Avatar className="h-8 w-8">
-                  {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
-                  <AvatarFallback>{getInitials(post.author)}</AvatarFallback>
-                </Avatar>
-                <span>{post.author}</span>
-              </Link>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
-                  <AvatarFallback>{getInitials(post.author)}</AvatarFallback>
-                </Avatar>
-                <span>{post.author}</span>
-              </div>
-            )}
-            
-            <span>|</span>
-            <span>Published on {formatDate(post.date)}</span>
-            <span>|</span>
-            <span className="text-xs text-muted-foreground">Refreshes every 5s</span>
-          </div>
-        </header>
-
-        {/* Render the HTML content */}
-        {/* Add prose styles for better readability (e.g., using @tailwindcss/typography) */}
-        <div
-          className="prose dark:prose-invert max-w-none prose-code-copy-buttons"
-          dangerouslySetInnerHTML={{ __html: post.contentHtml! }}
-        />
-        {/* Copy-Button handler: decode base64 from data attribute and copy */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(){
-                function setButtonState(btn, svg){
-                  const original = btn.innerHTML;
-                  btn.innerHTML = svg;
-                  setTimeout(()=>{ btn.innerHTML = original; }, 2000);
-                }
-                document.addEventListener('click', function(e){
-                  const button = e.target.closest && e.target.closest('.copy-button');
-                  if(!button) return;
-                  try{
-                    const b64 = button.getAttribute('data-code-b64') || '';
-                    const code = atob(b64);
-                    if (navigator.clipboard && window.isSecureContext){
-                      navigator.clipboard.writeText(code).then(()=>{
-                        setButtonState(button, '<svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>');
-                      });
-                    } else {
-                      const ta = document.createElement('textarea');
-                      ta.value = code; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta);
-                      ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-                      setButtonState(button, '<svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>');
-                    }
-                  }catch(err){
-                    setButtonState(button, '<svg class="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>');
-                    console.error('Copy failed', err);
-                  }
-                });
-              })();
-            `
-          }}
-        />
-        
-        {/* Copy button functionality script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Global copy function
-              window.copyCodeToClipboard = async function(button, code) {
-                try {
-                  // Try modern clipboard API first
-                  if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(code);
-                  } else {
-                    // Fallback for older browsers
-                    const textarea = document.createElement('textarea');
-                    textarea.value = code;
-                    textarea.style.position = 'fixed';
-                    textarea.style.left = '-999999px';
-                    textarea.style.top = '-999999px';
-                    document.body.appendChild(textarea);
-                    textarea.focus();
-                    textarea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                  }
-                  
-                  // Update button to show success state
-                  const originalHTML = button.innerHTML;
-                  button.innerHTML = \`
-                    <svg class="h-4 w-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  \`;
-                  button.classList.add('text-green-400');
-                  button.classList.remove('text-zinc-300');
-                  
-                  // Reset after 2 seconds
-                  setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                    button.classList.remove('text-green-400');
-                    button.classList.add('text-zinc-300');
-                  }, 2000);
-                  
-                } catch (err) {
-                  console.error('Failed to copy code:', err);
-                  // Show error state briefly
-                  const originalHTML = button.innerHTML;
-                  button.innerHTML = \`
-                    <svg class="h-4 w-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                  \`;
-                  button.classList.add('text-red-400');
-                  button.classList.remove('text-zinc-300');
-                  
-                  setTimeout(() => {
-                    button.innerHTML = originalHTML;
-                    button.classList.remove('text-red-400');
-                    button.classList.add('text-zinc-300');
-                  }, 2000);
-                }
-              };
-            `
-          }}
-        />
-
-            {/* Consider adding components for sharing, comments, related posts etc. */}
-          </article>
         </Section>
       </PageContainer>
     </>

@@ -9,12 +9,16 @@ import { MenuIcon, XIcon } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/product/google-meet-transcription-api", label: "Products" },
-  { href: "/open-source", label: "Open Source" },
   { href: "/get-started", label: "Get Started" },
   { href: "https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md", label: "API Docs", target: "_blank", rel: "noopener noreferrer" },
   { href: "/pricing", label: "Pricing" },
   { href: "/blog", label: "Blog" },
+];
+
+const productLinks = [
+  { href: "/product/google-meet-transcription-api", label: "Google Meet" },
+  { href: "/product/microsoft-teams-transcription-api", label: "Microsoft Teams" },
+  { href: "/open-source", label: "Open Source" },
 ];
 
 export function MobileNav() {
@@ -74,6 +78,22 @@ export function MobileNav() {
                   </Link>
                 </SheetClose>
               ))}
+              <div className="pt-2 mt-2 border-t">
+                <div className="px-3 py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  Products
+                </div>
+                {productLinks.map((link) => (
+                  <SheetClose asChild key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="block px-6 py-2 rounded-md text-base font-medium text-foreground hover:bg-secondary"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  </SheetClose>
+                ))}
+              </div>
             </nav>
           </div>
         </SheetContent>

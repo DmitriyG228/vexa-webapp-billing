@@ -14,3 +14,4 @@ export function DefaultPromoCards({ className = "" }: { className?: string }) {
   return <PromoCards cards={cards} className={className} />;
 }
 
+

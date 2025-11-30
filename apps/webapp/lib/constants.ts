@@ -12,3 +12,4 @@ export const FOUNDER_TITLE = 'CEO of Vexa';
 // export const FOUNDER_IMAGE_URL_LEGACY = 'https://media.licdn.com/dms/image/v2/C4D03AQFXWMxI1np6hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647969193758?e=1758153600&v=beta&t=_6mKrTdFYzTNI5Oc6WjkWhPbhRwmmqyfxDzZ0-9uvZs';
 
 
+

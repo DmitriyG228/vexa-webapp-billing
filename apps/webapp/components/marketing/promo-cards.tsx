@@ -25,37 +25,11 @@ interface PromoCardsProps {
 type BrandBadgeType = 'n8n' | 'mcp' | 'claude';
 type IconType = BrandBadgeType | 'zap';
 
-const BRAND_STYLES: Record<BrandBadgeType, { label: string; color: string }> = {
-  n8n: { label: "n8n", color: "#F05A48" },
-  mcp: { label: "MCP", color: "#7C3AED" },
-  claude: { label: "Claude", color: "#B45309" },
+const BRAND_ICONS: Record<BrandBadgeType, { src: string; alt: string }> = {
+  n8n: { src: '/n8n-logo.svg', alt: 'n8n workflow automation platform logo' },
+  mcp: { src: '/icons8-mcp-96.png', alt: 'MCP (Model Context Protocol) logo' },
+  claude: { src: '/icons8-claude-ai-96.png', alt: 'Claude AI assistant logo' },
 };
-
-function hexToRgba(hex: string, alpha: number) {
-  const sanitized = hex.replace('#', '');
-  const bigint = parseInt(sanitized, 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function BrandBadge({ type, size = "lg" }: { type: BrandBadgeType; size?: "lg" | "sm" }) {
-  const brand = BRAND_STYLES[type];
-  const sizeClasses = size === "lg" ? "h-[50px] w-[50px] text-sm" : "h-8 w-8 text-xs";
-  return (
-    <div
-      className={`flex items-center justify-center rounded-md border font-semibold uppercase tracking-tight ${sizeClasses}`}
-      style={{
-        color: brand.color,
-        borderColor: hexToRgba(brand.color, 0.35),
-        backgroundColor: hexToRgba(brand.color, 0.12),
-      }}
-    >
-      {brand.label}
-    </div>
-  );
-}
 
 /**
  * Helper function to render icon based on type
@@ -68,7 +42,18 @@ function renderIcon(type: IconType): ReactNode {
       </div>
     );
   }
-  return <BrandBadge type={type} size="lg" />;
+  const brand = BRAND_ICONS[type];
+  return (
+    <div className="flex h-[50px] w-[50px] items-center justify-center">
+      <Image 
+        src={brand.src} 
+        alt={brand.alt} 
+        width={50} 
+        height={50} 
+        className="object-contain" 
+      />
+    </div>
+  );
 }
 
 /**
@@ -77,9 +62,18 @@ function renderIcon(type: IconType): ReactNode {
 function renderFlowIcon(type?: IconType): ReactNode {
   if (!type) return null;
   if (type === 'zap') {
-    return <Zap className="h-5 w-5 text-primary" />;
+    return <Zap className="h-7 w-7 text-primary" />;
   }
-  return <BrandBadge type={type} size="sm" />;
+  const brand = BRAND_ICONS[type];
+  return (
+    <Image 
+      src={brand.src} 
+      alt={brand.alt} 
+      width={28} 
+      height={28} 
+      className="object-contain" 
+    />
+  );
 }
 
 /**
