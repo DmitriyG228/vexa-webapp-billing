@@ -288,16 +288,16 @@
   top: 0.5rem;
   right: 0.5rem;
   z-index: 10;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
+  opacity: 1 !important; /* Always visible */
+  transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out;
 }
 
 .prose-code-copy-buttons .code-block-wrapper:hover .copy-button {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .prose-code-copy-buttons .copy-button:hover {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 /* Blog Content Typography Optimizations */
@@ -318,19 +318,47 @@
   color: hsl(var(--foreground));
 }
 
+/* Improve heading hierarchy */
+.blog-content h2 {
+  font-size: 1.875rem !important; /* Section headers - slightly larger */
+  font-weight: 700 !important;
+  margin-top: 3rem !important; /* More space above section headers */
+  margin-bottom: 1.5rem !important; /* Clear separation from content below */
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.3 !important;
+}
+
+/* H3 (step headers) - smaller and different color to show hierarchy */
+.blog-content h3 {
+  font-size: 1.375rem !important; /* Smaller than H2 */
+  font-weight: 600 !important;
+  margin-top: 2rem !important;
+  margin-bottom: 0.75rem !important;
+  color: hsl(var(--foreground) / 0.9) !important; /* Slightly muted */
+  line-height: 1.4 !important;
+}
+
+.blog-content h4 {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+  color: hsl(var(--foreground) / 0.85) !important;
+}
+
 .blog-content a {
   color: hsl(var(--primary));
 }
 
-/* Drop Cap for first paragraph */
-.blog-content > p:first-of-type::first-letter {
-  float: left;
-  font-size: 4.5rem;
-  line-height: 1;
-  padding-right: 0.5rem;
-  padding-top: 0.1rem;
+/* Bold first phrase of first paragraph instead of drop cap */
+.blog-content > p:first-of-type {
+  font-size: 1.125rem;
+}
+
+.blog-content > p:first-of-type strong:first-child,
+.blog-content > p:first-of-type > strong:first-child {
   font-weight: 700;
-  color: hsl(var(--primary));
+  color: hsl(var(--foreground));
 }
 
 /* Rounded corners for images in blog content */
@@ -339,10 +367,98 @@
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-/* Better code block styling */
+/* Better code block styling - Dark code blocks even in light mode (modern approach) */
 .blog-content pre {
   border-radius: 8px;
+  background: #1a1a1a !important; /* Dark background for both light and dark mode */
+  border: 1px solid rgba(226, 232, 240, 0.3) !important; /* Subtle border for definition - visible in light mode */
+  padding: 1.25rem !important;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important; /* Subtle shadow for depth */
+}
+
+/* Ensure code text is light colored for contrast on dark background */
+.blog-content pre code {
+  color: #e4e4e7 !important; /* Light gray text for readability */
+  background-color: transparent !important;
+}
+
+/* Syntax highlighting tokens - ensure good contrast on dark background */
+.blog-content pre .token.comment,
+.blog-content pre .token.prolog,
+.blog-content pre .token.doctype,
+.blog-content pre .token.cdata {
+  color: #6b7280 !important; /* Gray for comments */
+}
+
+.blog-content pre .token.punctuation {
+  color: #d1d5db !important; /* Light gray for punctuation */
+}
+
+.blog-content pre .token.property,
+.blog-content pre .token.tag,
+.blog-content pre .token.boolean,
+.blog-content pre .token.number,
+.blog-content pre .token.constant,
+.blog-content pre .token.symbol,
+.blog-content pre .token.deleted {
+  color: #fbbf24 !important; /* Amber for properties */
+}
+
+.blog-content pre .token.selector,
+.blog-content pre .token.attr-name,
+.blog-content pre .token.string,
+.blog-content pre .token.char,
+.blog-content pre .token.builtin,
+.blog-content pre .token.inserted {
+  color: #34d399 !important; /* Emerald for strings */
+}
+
+.blog-content pre .token.operator,
+.blog-content pre .token.entity,
+.blog-content pre .token.url {
+  color: #67e8f9 !important; /* Cyan for operators */
+}
+
+.blog-content pre .token.atrule,
+.blog-content pre .token.attr-value,
+.blog-content pre .token.keyword {
+  color: #60a5fa !important; /* Sky blue for keywords */
+}
+
+.blog-content pre .token.function,
+.blog-content pre .token.class-name {
+  color: #a78bfa !important; /* Violet for functions */
+}
+
+.blog-content pre .token.regex,
+.blog-content pre .token.important,
+.blog-content pre .token.variable {
+  color: #fb7185 !important; /* Rose for regex */
+}
+
+/* Inline code (not in pre blocks) - keep light background */
+.blog-content code:not(pre code) {
   background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  padding: 0.2rem 0.4rem !important;
+  border-radius: 4px !important;
+  font-size: 0.875em !important;
+}
+
+/* Ensure copy button is always visible on dark code blocks */
+.blog-content .copy-button {
+  background: rgba(39, 39, 42, 0.9) !important; /* zinc-800 with higher opacity for visibility */
+  color: #d4d4d8 !important; /* zinc-300 */
+  border: 1px solid rgba(63, 63, 70, 0.6) !important; /* Subtle border */
+  opacity: 1 !important; /* Always visible */
+  backdrop-filter: blur(4px); /* Slight blur for better visibility */
+}
+
+.blog-content .copy-button:hover {
+  background: rgba(39, 39, 42, 1) !important; /* Fully opaque on hover */
+  color: #f4f4f5 !important; /* zinc-100 */
+  border-color: rgba(113, 113, 122, 0.8) !important; /* Slightly brighter border */
 }
 
 /* Better list styling */

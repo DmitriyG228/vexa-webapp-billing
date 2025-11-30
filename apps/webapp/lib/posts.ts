@@ -211,13 +211,43 @@ function addCopyButtonsToHtml(html: string): string {
   return html.replace(
     /(<pre[^>]*>)(<code[^>]*>)([\s\S]*?)(<\/code>)(<\/pre>)/g,
     (match, preOpen, codeOpen, codeContent, codeClose, preClose) => {
-      // Encode code safely into a data attribute
+      // Extract plain text from HTML content (strip all HTML tags and decode entities)
       try {
-        const b64 = Buffer.from(codeContent, 'utf-8').toString('base64');
+        // Create a temporary element to parse HTML and extract text content
+        // This handles nested tags, entities, and preserves whitespace properly
+        let plainText = codeContent
+          // First, replace <br> and </div> with newlines to preserve line breaks
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/div>/gi, '\n')
+          .replace(/<\/p>/gi, '\n')
+          // Remove all HTML tags
+          .replace(/<[^>]+>/g, '')
+          // Decode HTML entities (common ones first, then numeric)
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&#x27;/g, "'")
+          .replace(/&#x2F;/g, '/')
+          // Decode numeric entities
+          .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(parseInt(dec, 10)))
+          .replace(/&#x([a-f\d]+);/gi, (match, hex) => String.fromCharCode(parseInt(hex, 16)))
+          // Clean up multiple consecutive newlines (max 2)
+          .replace(/\n{3,}/g, '\n\n')
+          // Trim each line and remove trailing whitespace
+          .split('\n')
+          .map(line => line.trimEnd())
+          .join('\n')
+          .trim();
+        
+        // Encode clean plain text into base64
+        const b64 = Buffer.from(plainText, 'utf-8').toString('base64');
         return `
         <div class="code-block-wrapper" style="position: relative;">
           <button 
-            class="copy-button absolute top-2 right-2 h-8 w-8 rounded-md bg-zinc-800/50 hover:bg-zinc-800/70 text-zinc-300 hover:text-zinc-100 transition-colors flex items-center justify-center"
+            class="copy-button absolute top-2 right-2 h-8 w-8 rounded-md bg-zinc-800/80 hover:bg-zinc-800/95 text-zinc-300 hover:text-zinc-100 transition-colors flex items-center justify-center z-10"
             data-code-b64="${b64}"
             title="Copy code"
             aria-label="Copy code"

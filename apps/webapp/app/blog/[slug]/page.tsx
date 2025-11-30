@@ -9,7 +9,7 @@ import { PageContainer, Section } from '@/components/ui/page-container';
 import { Button } from '@/components/ui/button';
 import { ReadingProgress } from '@/components/blog/reading-progress';
 import { TableOfContents } from '@/components/blog/table-of-contents';
-import { SocialShare } from '@/components/blog/social-share';
+import { SocialShareSidebar } from '@/components/blog/social-share-sidebar';
 
 export const dynamic = 'force-dynamic';
 
@@ -194,32 +194,37 @@ export default async function Post({ params }: PostProps) {
 
       <PageContainer maxWidth="7xl">
         <Section>
-          {/* Breadcrumb navigation - Enhanced */}
-          <nav aria-label="Breadcrumb" className="mb-8">
-            <ol className="flex items-center space-x-2 text-sm">
-              <li>
-                <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li className="text-muted-foreground">/</li>
-              <li>
-                <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Blog
-                </Link>
-              </li>
-              <li className="text-muted-foreground">/</li>
-              <li className="text-foreground truncate max-w-md" title={post.title}>
-                {post.title}
-              </li>
-            </ol>
-          </nav>
-          
-          <div className="flex gap-12">
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
+          <div className="flex gap-8 lg:gap-12 justify-center">
+            {/* Social Share Sidebar - Left */}
+            <div className="hidden lg:block w-12 flex-shrink-0">
+              <SocialShareSidebar url={`/blog/${post.slug}`} title={post.title} description={post.summary} />
+            </div>
+
+            {/* Main Content Container - Aligned with Hero Image */}
+            <div className="w-full max-w-[720px] flex-shrink-0">
+              {/* Breadcrumb navigation - Aligned with content */}
+              <nav aria-label="Breadcrumb" className="mb-8">
+                <ol className="flex items-center space-x-2 text-sm">
+                  <li>
+                    <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Home
+                    </Link>
+                  </li>
+                  <li className="text-muted-foreground">/</li>
+                  <li>
+                    <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                      Blog
+                    </Link>
+                  </li>
+                  <li className="text-muted-foreground">/</li>
+                  <li className="text-foreground truncate max-w-md" title={post.title}>
+                    {post.title}
+                  </li>
+                </ol>
+              </nav>
+
               <article>
-                {/* Hero Background with Header */}
+                {/* Hero Background with Header - Matched to content width */}
                 <div 
                   className="relative mb-12 rounded-xl overflow-hidden shadow-lg"
                   style={{
@@ -229,16 +234,6 @@ export default async function Post({ params }: PostProps) {
                     minHeight: '450px',
                   }}
                 >
-                  {/* Vexa Logo */}
-                  <Image
-                    src="/logo light.svg"
-                    alt="Vexa logo"
-                    width={48}
-                    height={48}
-                    priority
-                    className="absolute top-6 left-6 z-20 w-10 h-auto opacity-90 drop-shadow-lg"
-                  />
-
                   {/* Enhanced gradient overlay - stronger at bottom for text readability */}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/50 to-black/80" />
                   
@@ -278,14 +273,9 @@ export default async function Post({ params }: PostProps) {
                   </div>
                 </div>
 
-                {/* Social Share Buttons */}
-                <div className="mb-8 pb-8 border-b">
-                  <SocialShare url={`/blog/${post.slug}`} title={post.title} description={post.summary} />
-                </div>
-
                 {/* Render the HTML content with optimized typography */}
                 <div
-                  className="prose prose-lg dark:prose-invert max-w-[720px] mx-auto prose-code-copy-buttons blog-content"
+                  className="prose prose-lg dark:prose-invert max-w-none prose-code-copy-buttons blog-content"
                   dangerouslySetInnerHTML={{ __html: post.contentHtml! }}
                   style={{
                     lineHeight: '1.7',
@@ -294,7 +284,7 @@ export default async function Post({ params }: PostProps) {
                 
                 {/* CTA Section */}
                 <div className="mt-16 mb-8 p-8 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                  <div className="max-w-[720px] mx-auto text-center">
+                  <div className="text-center">
                     <h3 className="text-2xl font-bold mb-3">Don't want to host it yourself?</h3>
                     <p className="text-muted-foreground mb-6">
                       Try Vexa Cloud for hassle-free meeting transcription with the same powerful API.
@@ -411,7 +401,7 @@ export default async function Post({ params }: PostProps) {
               </article>
             </div>
 
-            {/* Table of Contents Sidebar */}
+            {/* Table of Contents Sidebar - Right */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <TableOfContents content={post.contentHtml || ''} />
             </aside>
