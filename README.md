@@ -1,98 +1,170 @@
 # Vexa Webapp & Billing
 
-This repository contains the billing service and webapp for Vexa, separated from the core Vexa services to maintain clean architecture.
+Production-ready deployment of Vexa billing services on Google Cloud Run with Terraform infrastructure management.
 
-## Structure
+## 🚀 Quick Start
+
+```bash
+# One command to deploy everything:
+make deploy ENV=dev
+
+# Or step by step:
+make init ENV=dev          # Setup (one-time)
+make build ENV=dev         # Build Docker images
+make push ENV=dev          # Push to registry
+make deploy-infra ENV=dev  # Deploy to Cloud Run
+```
+
+## 📖 Documentation
+
+- **[QUICKSTART.md](./QUICKSTART.md)** - Get started in 5 minutes
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture
+- **[Makefile](./Makefile)** - Run `make help` to see all commands
+
+## 🏗️ Architecture
+
+```
+Makefile (Orchestration)
+    ├── Docker (Build images)
+    ├── Artifact Registry (Store images)
+    └── Terraform (Deploy infrastructure)
+          ├── Cloud Run (webapp + billing)
+          ├── Secret Manager (env vars)
+          ├── IAM (service accounts)
+          └── Artifact Registry (docker repo)
+```
+
+## 📋 Available Commands
+
+```bash
+make help          # Show all commands
+make init          # Initialize (one-time setup)
+make build         # Build Docker images
+make push          # Push to Artifact Registry
+make deploy        # Full deployment
+make deploy-infra  # Deploy Terraform only
+make plan          # Show what will be deployed
+make status        # Check deployment status
+make logs-webapp   # View webapp logs
+make logs-billing  # View billing logs
+make destroy       # Remove all infrastructure
+```
+
+## 🛠️ What Each Tool Does
+
+| Tool | Purpose | Commands |
+|------|---------|----------|
+| **Makefile** | Orchestration | `make deploy`, `make help` |
+| **Terraform** | Infrastructure as Code | Manages Cloud Run, IAM, Secrets |
+| **Docker** | Application packaging | Builds container images |
+| **Cloud Run** | Serverless hosting | Runs your containers |
+
+## 🔐 Environment Variables
+
+Configure in `.env.dev` or `.env.prod`:
+
+- `STRIPE_SECRET_KEY` - Stripe API key
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret
+- `ADMIN_API_URL` - Vexa Admin API URL
+- `ADMIN_API_TOKEN` - Admin API token
+- `NEXTAUTH_SECRET` - NextAuth secret
+- `GOOGLE_CLIENT_ID` - Google OAuth ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth secret
+
+Update secrets with: `./scripts/update-secrets.sh dev`
+
+## 🚢 Deployment Workflow
+
+### Development
+```bash
+# Make changes
+vim apps/webapp/...
+
+# Deploy
+make deploy ENV=dev
+
+# Check status
+make status ENV=dev
+```
+
+### Production
+```bash
+# Deploy to prod
+make deploy ENV=prod
+
+# Verify
+curl https://webapp-url.run.app/api/health
+```
+
+## 📦 Project Structure
 
 ```
 vexa-webapp-billing/
+├── Makefile              # Deployment orchestration
 ├── apps/
-│   ├── billing/          # Billing service (FastAPI)
-│   └── webapp/           # Web application (Next.js)
-├── docker-compose.yml          # Standalone billing compose
-├── .env.example          # Environment variables template
-└── README.md
+│   ├── webapp/           # Next.js application
+│   └── billing/          # FastAPI service
+├── terraform/            # Infrastructure as Code
+│   ├── main.tf          # Root configuration
+│   ├── modules/         # Reusable modules
+│   └── environments/    # Dev/Prod configs
+└── scripts/             # Helper scripts
 ```
 
-## Setup
+## 🎯 Current Deployment
 
-### 1. Environment Configuration
+**Development Environment:**
+- Webapp: https://dev-webapp-leav4o4omq-uc.a.run.app
+- Billing: https://dev-billing-leav4o4omq-uc.a.run.app
+- Project: spry-pipe-425611-c4
+- Region: us-central1
+
+## 🔄 CI/CD
+
+Future: Connect GitHub repository to enable automatic deployments on git push.
+
+## 📊 Monitoring
 
 ```bash
-cp .env.example .env
-# Edit .env with your actual values
+# View logs
+make logs-webapp ENV=dev
+make logs-billing ENV=dev
+
+# Check status
+make status ENV=dev
+
+# View in Cloud Console
+gcloud run services list --region=us-central1
 ```
 
-Required environment variables:
-- `STRIPE_SECRET_KEY`: Your Stripe secret key
-- `STRIPE_WEBHOOK_SECRET`: Stripe webhook endpoint secret
-- `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key
-- `ADMIN_API_TOKEN`: Token to access Vexa's Admin API
-- `BILLING_HOST_PORT`: Port for billing service (default: 19000)
-
-### 2. Running Independently
-
-This compose runs independently from Vexa:
+## 🆘 Troubleshooting
 
 ```bash
-# Start Vexa services (separate terminal)
-cd /path/to/vexa
-docker compose up -d
+# Build fails?
+make clean && make build ENV=dev
 
-# Start billing services (independent)
-cd /path/to/vexa-webapp-billing
-docker compose up -d --build
+# Deploy fails?
+make plan ENV=dev  # Review changes first
+
+# Services down?
+make status ENV=dev
+make logs-webapp ENV=dev
 ```
 
-### 3. Running Webapp Separately (Optional)
+See [DEPLOYMENT.md](./DEPLOYMENT.md#troubleshooting) for detailed troubleshooting.
 
-The webapp is included in this repo but not started by the compose file. To run it separately:
+## 🤝 Contributing
 
-```bash
-cd apps/webapp
-npm install
-npm run dev
-```
+1. Make changes in a feature branch
+2. Test with `make deploy ENV=dev`
+3. Create PR to `main`
 
-## Services
+## 📝 License
 
-### Billing Service
-- **Port**: 19000 (host) → 9000 (container)
-- **Purpose**: Handles Stripe integration, API key trials, portal sessions
-- **API Docs**: http://localhost:19000/docs
-- **Stripe Webhook**: Configured to receive webhooks on port 19000 via deg_gateway.dev.vexa.ai
+See [LICENSE.md](./LICENSE.md)
 
-### Webhook Configuration
-- **Production**: Stripe sends webhooks directly to deg_gateway.dev.vexa.ai:19000
-- **Events**: subscription.created, subscription.updated, subscription.deleted, invoice events
-- **No local forwarding needed** - direct endpoint configuration
+---
 
-## Architecture
-
-- **Independent Operation**: Billing runs separately from Vexa core services
-- **Clean Separation**: No shared Docker networks or dependencies
-- **Data Flow**: 
-  1. Stripe webhooks → deg_gateway.dev.vexa.ai:19000 → Billing Service
-  2. Billing Service updates user entitlements via Admin API (host.docker.internal:18057)
-  3. Webapp uses billing service for subscriptions and portal
-
-## Development
-
-### Testing Stripe Integration
-
-1. Run the billing stack as described above
-2. Use Stripe CLI for webhook testing (included in compose)
-3. Test scripts are available in `apps/webapp/` for various scenarios
-
-### Debugging
-
-- Billing service logs: `docker compose logs billing`
-- Check Admin API connectivity: `curl http://localhost:18057/docs`
-- Test webhook endpoint: `curl http://localhost:19000/docs`
-
-## Production Deployment
-
-1. Set up proper Stripe webhook endpoints pointing to your API Gateway
-2. Configure production environment variables
-3. Remove `stripe-cli` service from production compose
-4. Ensure proper network security between services
+**Status**: ✅ Deployed and Running  
+**Last Updated**: December 2025

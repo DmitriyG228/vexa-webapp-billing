@@ -13,6 +13,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Make BILLING_URL available on server-side
+  serverRuntimeConfig: {
+    billingUrl: process.env.BILLING_URL || 'http://localhost:19000',
+  },
+  // Make public environment variables available on client-side if needed
+  publicRuntimeConfig: {
+    // Add any client-side configs here if needed
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
