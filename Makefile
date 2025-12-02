@@ -1,5 +1,8 @@
 .PHONY: help init build push deploy deploy-infra destroy clean status
 
+# Ensure gcloud is in PATH
+export PATH := /usr/local/Caskroom/gcloud-cli/548.0.0/google-cloud-sdk/bin:$(PATH)
+
 # Configuration
 PROJECT_ID ?= spry-pipe-425611-c4
 REGION ?= us-central1
