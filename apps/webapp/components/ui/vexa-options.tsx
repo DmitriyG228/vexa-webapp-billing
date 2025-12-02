@@ -22,12 +22,14 @@ function OptionCard({ title, description, eyebrow, features, cta, highlighted = 
   return (
     <div className={cn(
       "relative rounded-2xl border bg-card p-8 shadow-sm transition-all hover:shadow-md flex flex-col",
-      highlighted && "border-primary shadow-lg ring-1 ring-primary/20"
+      highlighted 
+        ? "border-primary shadow-lg ring-1 ring-primary/20 bg-gradient-to-br from-primary/5 via-card to-card" 
+        : "border-border"
     )}>
       {highlighted && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <Badge className="bg-primary text-primary-foreground">
-            
+            Recommended for Startups
           </Badge>
         </div>
       )}
@@ -37,7 +39,10 @@ function OptionCard({ title, description, eyebrow, features, cta, highlighted = 
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {eyebrow}
           </p>
-          <h3 className="text-2xl font-bold">{title}</h3>
+          <h3 className={cn(
+            "text-2xl font-bold",
+            !highlighted && "font-mono" // Monospace for self-hosted card
+          )}>{title}</h3>
           <p className="text-muted-foreground leading-relaxed">
             {description}
           </p>

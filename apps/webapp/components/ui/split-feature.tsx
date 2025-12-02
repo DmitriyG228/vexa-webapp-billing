@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ArrowDownRight } from "lucide-react";
 
 export function Placeholder({ caption }: { caption?: string }) {
   return (
@@ -27,10 +27,25 @@ export function Placeholder({ caption }: { caption?: string }) {
 }
 
 export function CodePane({ code, caption }: { code: string; caption?: string }) {
+  // Simple syntax highlighting for curl commands
+  const highlightCode = (text: string) => {
+    return text
+      .replace(/(curl|POST|GET|PUT|DELETE|PATCH)\b/g, '<span style="color: #f472b6;">$1</span>') // Pink for HTTP methods
+      .replace(/(-X|-H|-d|--header|--data)\b/g, '<span style="color: #60a5fa;">$1</span>') // Blue for flags
+      .replace(/("https?:\/\/[^"]+")/g, '<span style="color: #34d399;">$1</span>') // Green for URLs
+      .replace(/("X-API-Key|Content-Type|application\/json")/g, '<span style="color: #a78bfa;">$1</span>') // Purple for headers
+      .replace(/(platform|native_meeting_id|passcode)/g, '<span style="color: #fbbf24;">$1</span>') // Amber for keys
+      .replace(/(google_meet|teams)/g, '<span style="color: #34d399;">$1</span>') // Green for values
+      .replace(/(\{|\}|\[|\])/g, '<span style="color: #d1d5db;">$1</span>'); // Gray for brackets
+  };
+
   return (
     <figure className="m-0 w-full relative overflow-hidden rounded-2xl ring-1 ring-border shadow-sm bg-[#0b0f14]">
-      <pre className="overflow-hidden p-4 text-[13px] leading-relaxed text-gray-100">
-        <code>{code}</code>
+      <pre className="overflow-hidden p-4 text-[13px] leading-relaxed" style={{
+        color: '#e4e4e7',
+        fontFamily: 'ui-monospace, SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace',
+      }}>
+        <code dangerouslySetInnerHTML={{ __html: highlightCode(code) }} />
       </pre>
       {caption && (
         <figcaption className="px-4 py-2 text-xs text-gray-400 border-t border-white/10">
@@ -77,14 +92,22 @@ export function SplitFeature({
             ].join(" ")}
           >
         {/* Text */}
-        <div className="flex flex-col justify-center min-w-0">
+        <div className="flex flex-col justify-center min-w-0 max-w-md">
           {eyebrow && (
             <p className="uppercase tracking-wider text-xs text-muted-foreground">{eyebrow}</p>
           )}
           <h2 className="mt-1 text-2xl sm:text-3xl font-semibold tracking-tight text-foreground text-balance">
             {title}
           </h2>
-          <p className="mt-3 max-w-prose leading-relaxed text-muted-foreground">{body}</p>
+          <p className="mt-3 leading-relaxed text-muted-foreground">{body}</p>
+          
+          {/* Arrow pointing to code */}
+          {visual && (
+            <div className="mt-6 flex items-center gap-2 text-primary opacity-60">
+              <span className="text-sm font-medium">POST bot</span>
+              <ArrowDownRight className="h-4 w-4" />
+            </div>
+          )}
 
           {/* chips */}
           {chips.length > 0 && (

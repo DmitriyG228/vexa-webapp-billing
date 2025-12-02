@@ -15,8 +15,8 @@ interface VideoFeatureProps {
   bullets?: VideoFeatureBullet[];
   primaryCta?: { href: string; label: string };
   secondaryCta?: { href: string; label: string };
-  videoId: string;
-  videoTitle: string;
+  videoId?: string;
+  videoTitle?: string;
   className?: string;
 }
 
@@ -35,19 +35,57 @@ export function VideoFeature({
   videoTitle,
   className = "",
 }: VideoFeatureProps) {
+  // Show MCP diagram if no videoId provided
+  const showDiagram = !videoId;
   return (
     <section className={`py-12 sm:py-16 ${className}`}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="rounded-2xl border bg-card/80 backdrop-blur-sm shadow-sm p-8 sm:p-12 overflow-hidden">
           <div className="grid items-stretch gap-8 sm:gap-12 min-h-[400px] lg:grid-cols-2">
-            {/* Video - Full left side */}
+            {/* Video or Diagram - Full left side */}
             <div className="relative flex flex-col justify-center h-full min-w-0 lg:order-1">
               <div className="pointer-events-none absolute inset-x-0 sm:-inset-x-8 -top-10 h-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-3xl opacity-60 sm:opacity-70" />
               <div className="relative rounded-2xl w-full">
-                <YouTubeEmbed 
-                  videoId={videoId} 
-                  title={videoTitle} 
-                />
+                {showDiagram ? (
+                  <div className="w-full aspect-video rounded-2xl border bg-card/50 backdrop-blur-sm p-8 flex items-center justify-center">
+                    {/* MCP Diagram */}
+                    <div className="w-full max-w-2xl space-y-6">
+                      <div className="flex items-center justify-between gap-4">
+                        {/* Claude/ChatGPT */}
+                        <div className="flex flex-col items-center gap-2 px-6 py-4 rounded-xl border bg-card">
+                          <div className="text-2xl font-bold text-foreground">Claude</div>
+                          <div className="text-xs text-muted-foreground">AI Assistant</div>
+                        </div>
+                        
+                        {/* Arrow */}
+                        <ArrowRight className="h-8 w-8 text-primary flex-shrink-0" />
+                        
+                        {/* MCP Server */}
+                        <div className="flex flex-col items-center gap-2 px-6 py-4 rounded-xl border bg-primary/10 border-primary/20">
+                          <div className="text-2xl font-bold text-primary">MCP Server</div>
+                          <div className="text-xs text-muted-foreground">Model Context Protocol</div>
+                        </div>
+                        
+                        {/* Arrow */}
+                        <ArrowRight className="h-8 w-8 text-primary flex-shrink-0" />
+                        
+                        {/* Vexa Transcripts */}
+                        <div className="flex flex-col items-center gap-2 px-6 py-4 rounded-xl border bg-card">
+                          <div className="text-2xl font-bold text-foreground">Vexa</div>
+                          <div className="text-xs text-muted-foreground">Transcripts</div>
+                        </div>
+                      </div>
+                      <div className="text-center text-sm text-muted-foreground">
+                        Real-time meeting transcripts flow through MCP to your AI assistant
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <YouTubeEmbed 
+                    videoId={videoId!} 
+                    title={videoTitle || title} 
+                  />
+                )}
               </div>
             </div>
 

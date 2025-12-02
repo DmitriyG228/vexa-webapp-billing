@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Github } from "lucide-react";
+import { ArrowRight, Github, Star } from "lucide-react";
 import { SplitFeature, CodePane } from "@/components/ui/split-feature"
 import { trackEvent } from '@/lib/analytics'
 import { useEffect, useState } from "react";
@@ -184,17 +184,41 @@ export default function LandingPage() {
         primaryCta={{ href: "https://github.com/Vexa-ai/vexa/blob/main/DEPLOYMENT.md", label: "Start Self-Host Guide" }}
         secondaryCta={{ href: "https://github.com/Vexa-ai/vexa", label: "View on GitHub" }}
         visual={
-          <div className="flex flex-col items-center justify-center space-y-6 p-8">
-            {/* GitHub Logo */}
-            <div className="flex items-center justify-center w-32 h-32 rounded-2xl bg-card border border-border shadow-sm">
-              <Github size={64} className="text-foreground" />
-            </div>
-            
-            {/* Apache 2.0 License Badge */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border">
-              <span className="text-sm font-medium text-foreground">Apache 2.0</span>
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-xs text-muted-foreground">Open Source</span>
+          <div className="w-full rounded-xl border bg-gradient-to-br from-muted/30 to-card p-8" style={{
+            backgroundImage: `radial-gradient(circle, hsl(var(--foreground)/0.03) 1px, transparent 1px)`,
+            backgroundSize: '16px 16px',
+          }}>
+            <div className="flex flex-col items-center space-y-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-xl font-semibold text-foreground">Open Source & Community Driven</h3>
+                <div className="flex items-center justify-center gap-6">
+                  <div className="flex items-center gap-3">
+                    <Github size={48} className="text-foreground" />
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 fill-current text-foreground" />
+                        <span className="text-2xl font-bold text-foreground">1.5k</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">Stars</span>
+                    </div>
+                  </div>
+                  <div className="h-12 w-px bg-border"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-2xl font-bold text-foreground">50+</span>
+                    <span className="text-xs text-muted-foreground">Forks</span>
+                  </div>
+                  <div className="h-12 w-px bg-border"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-2xl font-bold text-foreground">20+</span>
+                    <span className="text-xs text-muted-foreground">Contributors</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border">
+                <span className="text-sm font-medium text-foreground">Apache 2.0</span>
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-xs text-muted-foreground">Open Source</span>
+              </div>
             </div>
           </div>
         }

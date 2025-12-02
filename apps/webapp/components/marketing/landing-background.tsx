@@ -11,7 +11,13 @@ interface LandingBackgroundProps {
  */
 export function LandingBackground({ children, className = "" }: LandingBackgroundProps) {
   return (
-    <div className={`relative min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-background dark:from-slate-900 dark:via-slate-950 dark:to-background ${className}`}>
+    <div 
+      className={`relative min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-background dark:from-slate-900 dark:via-slate-950 dark:to-background ${className}`}
+      style={{
+        backgroundImage: `radial-gradient(circle, hsl(var(--foreground)/0.05) 1px, transparent 1px)`,
+        backgroundSize: '20px 20px',
+      }}
+    >
       {/* Launch-UI inspired background layers with subtle motion */}
       <div className="fixed inset-0 -z-30 pointer-events-none overflow-hidden">
         {/* Radial glow effects - much more visible */}

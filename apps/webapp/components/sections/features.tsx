@@ -67,50 +67,49 @@ export default function Features({
               </h3>
             </div>
             
-            {/* Logos */}
-            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <Image src="/microsoft-teams-logo.png" alt="Microsoft Teams" width={20} height={20} className="h-5 w-5 object-contain" />
-                <span className="text-xs font-medium">Teams</span>
+            {/* Input Logos with Pipeline Visualization */}
+            <div className="relative w-full">
+              {/* Input Logos */}
+              <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 mb-8">
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
+                  <Image src="/microsoft-teams-logo.png" alt="Microsoft Teams" width={20} height={20} className="h-5 w-5 object-contain" />
+                  <span className="text-xs font-medium">Teams</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
+                  <Image src="/google-meet-logo.png" alt="Google Meet" width={20} height={20} className="h-5 w-5 object-contain" />
+                  <span className="text-xs font-medium">Meet</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
+                  <Image src="/n8n-logo.svg" alt="N8N" width={20} height={20} className="h-5 w-5 object-contain" />
+                  <span className="text-xs font-medium">N8N</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <Image src="/google-meet-logo.png" alt="Google Meet" width={20} height={20} className="h-5 w-5 object-contain" />
-                <span className="text-xs font-medium">Meet</span>
+              
+              {/* Pipeline Flow Lines */}
+              <div className="relative flex justify-center items-center mb-8">
+                <div className="absolute left-1/2 -translate-x-1/2 w-1 h-12 bg-gradient-to-b from-primary/40 via-primary/30 to-transparent opacity-50"></div>
+                <div className="relative z-10 px-4 py-2 bg-card border border-primary/20 rounded-lg">
+                  <span className="text-xs font-medium text-primary">Vexa API</span>
+                </div>
+                <div className="absolute left-1/2 -translate-x-1/2 top-full w-1 h-12 bg-gradient-to-b from-transparent via-primary/30 to-primary/40 opacity-50"></div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <Image src="/n8n-logo.svg" alt="N8N" width={20} height={20} className="h-5 w-5 object-contain" />
-                <span className="text-xs font-medium">N8N</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <Zap className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Real Time</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-purple-200 bg-purple-50 text-[10px] font-semibold text-purple-700">
-                  MCP
-                </span>
-                <span className="text-xs font-medium">MCP Ready</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/50">
-                <Github className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Open Source</span>
-              </div>
+              
+              {/* Output Cards */}
+              {items !== false && items.length > 0 && (
+                <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {items.map((item, index) => (
+                    <div key={index} className="rounded-xl border bg-card/50 backdrop-blur-sm p-6 shadow-sm hover:shadow-md transition-all">
+                      <h3 className="text-lg font-semibold mb-3 text-foreground">
+                        {item.title}
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            
-            {items !== false && items.length > 0 && (
-              <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((item, index) => (
-                  <div key={index} className="rounded-xl border bg-card/50 backdrop-blur-sm p-6 shadow-sm hover:shadow-md transition-all">
-                    <h3 className="text-lg font-semibold mb-3 text-foreground">
-                      {item.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
