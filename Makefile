@@ -1,7 +1,9 @@
-.PHONY: help init build push deploy deploy-infra destroy clean status
+.PHONY: help init build push deploy deploy-infra deploy-dev deploy-prod destroy clean status dev auth
 
-# Ensure gcloud is in PATH
-export PATH := /usr/local/Caskroom/gcloud-cli/548.0.0/google-cloud-sdk/bin:$(PATH)
+# Add gcloud to PATH - checks multiple common installation locations
+GCLOUD_SDK_PATHS := /usr/local/Caskroom/gcloud-cli/*/google-cloud-sdk/bin /opt/homebrew/Caskroom/google-cloud-sdk/*/google-cloud-sdk/bin $(HOME)/google-cloud-sdk/bin
+GCLOUD_PATH := $(shell for path in $(GCLOUD_SDK_PATHS); do [ -f "$$path/gcloud" ] && echo $$path && break; done)
+export PATH := $(GCLOUD_PATH):$(PATH)
 
 # Configuration
 PROJECT_ID ?= spry-pipe-425611-c4
@@ -20,14 +22,20 @@ help: ## Show this help message
 	@echo 'Usage:'
 	@echo '  make <target> [ENV=dev|prod]'
 	@echo ''
+	@echo '$(YELLOW)Quick Start:$(RESET)'
+	@echo '  1. Run "make auth" once to authenticate with GCloud (browser-based)'
+	@echo '  2. Run "make dev" for local development'
+	@echo '  3. Run "make deploy-dev" to deploy to staging'
+	@echo '  4. Run "make deploy-prod" to deploy to production'
+	@echo ''
 	@echo 'Targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(RESET) %s\n", $$1, $$2}'
 
 init: ## Initialize: setup GCP APIs, Terraform backend, and secrets
 	@echo "$(GREEN)Initializing infrastructure...$(RESET)"
-	@./scripts/terraform-init.sh
+	@./deployment/scripts/terraform-init.sh
 	@echo "$(GREEN)Updating secrets for $(ENV)...$(RESET)"
-	@./scripts/update-secrets.sh $(ENV)
+	@./deployment/scripts/update-secrets.sh $(ENV)
 	@echo "$(GREEN)Initialization complete!$(RESET)"
 
 build-billing: ## Build billing Docker image
@@ -68,17 +76,20 @@ push: push-billing push-webapp ## Push all images to registry
 
 deploy-infra: ## Deploy infrastructure with Terraform (Cloud Run services, IAM, etc.)
 	@echo "$(GREEN)Deploying infrastructure with Terraform...$(RESET)"
-	@cd terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve
+	@cd deployment/terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve
+	@echo "$(GREEN)Forcing Cloud Run to use latest images...$(RESET)"
+	@gcloud run services update $(ENV)-webapp --region=$(REGION) --image=$(REGISTRY)/webapp:latest --quiet 2>/dev/null || echo "  Note: Service already using latest image"
+	@gcloud run services update $(ENV)-billing --region=$(REGION) --image=$(REGISTRY)/billing:latest --quiet 2>/dev/null || echo "  Note: Service already using latest image"
 	@echo "$(GREEN)✓ Infrastructure deployed$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)Service URLs:$(RESET)"
-	@cd terraform && terraform output -json | jq -r '.webapp_url.value, .billing_url.value'
+	@cd deployment/terraform && terraform output -json | jq -r '.webapp_url.value, .billing_url.value'
 
 deploy: build push deploy-infra ## Full deployment: build images, push, deploy infrastructure
 
 plan: ## Show Terraform plan (what will be deployed)
 	@echo "$(GREEN)Running Terraform plan...$(RESET)"
-	@cd terraform && terraform plan -var-file="environments/$(ENV)/terraform.tfvars"
+	@cd deployment/terraform && terraform plan -var-file="environments/$(ENV)/terraform.tfvars"
 
 status: ## Show deployment status
 	@echo "$(GREEN)Deployment Status$(RESET)"
@@ -95,7 +106,7 @@ status: ## Show deployment status
 destroy: ## Destroy all infrastructure (WARNING: destructive!)
 	@echo "$(YELLOW)WARNING: This will destroy all infrastructure for $(ENV)!$(RESET)"
 	@read -p "Are you sure? Type '$(ENV)' to confirm: " confirm && [ "$$confirm" = "$(ENV)" ]
-	@cd terraform && terraform destroy -var-file="environments/$(ENV)/terraform.tfvars"
+	@cd deployment/terraform && terraform destroy -var-file="environments/$(ENV)/terraform.tfvars"
 
 clean: ## Clean local Docker images
 	@echo "$(GREEN)Cleaning local Docker images...$(RESET)"
@@ -109,18 +120,64 @@ logs-billing: ## Tail billing logs
 	@gcloud run services logs read $(ENV)-billing --region=$(REGION) --limit=100
 
 setup-oauth: ## Show OAuth configuration instructions
-	@./scripts/setup-oauth.sh $(ENV)
+	@./deployment/scripts/setup-oauth.sh $(ENV)
 
 update-secrets: ## Update secrets from .env file
 	@echo "$(GREEN)Updating secrets for $(ENV)...$(NC)"
-	@./scripts/update-secrets.sh $(ENV)
+	@./deployment/scripts/update-secrets.sh $(ENV)
 	@echo "$(GREEN)Redeploying services to pick up new secrets...$(NC)"
-	@cd terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve -refresh-only
+	@cd deployment/terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve -refresh-only
 	@echo "$(GREEN)✓ Secrets updated and services refreshed$(NC)"
 
-# Quick shortcuts
-dev: ENV=dev
-prod: ENV=prod
+# Development and Authentication
+dev: ## Run webapp locally with dev environment variables
+	@echo "$(GREEN)Starting webapp in development mode...$(RESET)"
+	@echo "$(YELLOW)Loading environment from .env.dev$(RESET)"
+	@if [ ! -f .env.dev ]; then \
+		echo "$(YELLOW)Warning: .env.dev not found$(RESET)"; \
+	fi
+	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run dev
+
+auth: ## Authenticate with GCloud (one-time setup, browser-based)
+	@echo "$(GREEN)Authenticating with GCloud...$(RESET)"
+	@echo "$(YELLOW)This will open your browser for authentication$(RESET)"
+	@if ! command -v gcloud >/dev/null 2>&1; then \
+		echo "$(YELLOW)Error: gcloud CLI not found!$(RESET)"; \
+		echo "$(YELLOW)Install with: brew install --cask google-cloud-sdk$(RESET)"; \
+		echo "$(YELLOW)Then restart your terminal and run: gcloud init$(RESET)"; \
+		exit 1; \
+	fi
+	@gcloud auth login
+	@echo "$(GREEN)Setting up application default credentials...$(RESET)"
+	@gcloud auth application-default login
+	@echo "$(GREEN)✓ Authentication complete!$(RESET)"
+	@echo "$(YELLOW)You're now authenticated across all shells$(RESET)"
+
+# Environment-specific deployment
+deploy-dev: ## Deploy to dev/staging environment with automatic secret updates
+	@echo "$(GREEN)Deploying to DEV environment...$(RESET)"
+	@if [ ! -f .env.dev ]; then \
+		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Updating secrets from .env.dev...$(RESET)"
+	@./deployment/scripts/update-secrets.sh dev
+	@echo "$(GREEN)Building and deploying...$(RESET)"
+	@$(MAKE) ENV=dev build push deploy-infra
+
+deploy-prod: ## Deploy to production environment with automatic secret updates
+	@echo "$(GREEN)Deploying to PROD environment...$(RESET)"
+	@if [ ! -f .env.prod ]; then \
+		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env.prod from .env.prod.example$(RESET)"; \
+		echo "$(YELLOW)  cp .env.prod.example .env.prod$(RESET)"; \
+		echo "$(YELLOW)  # Then edit .env.prod with production values$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Updating secrets from .env.prod...$(RESET)"
+	@./deployment/scripts/update-secrets.sh prod
+	@echo "$(GREEN)Building and deploying...$(RESET)"
+	@$(MAKE) ENV=prod build push deploy-infra
 
 .DEFAULT_GOAL := help
 

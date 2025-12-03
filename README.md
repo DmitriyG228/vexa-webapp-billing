@@ -1,170 +1,259 @@
 # Vexa Webapp & Billing
 
-Production-ready deployment of Vexa billing services on Google Cloud Run with Terraform infrastructure management.
+Production billing and webapp services on Google Cloud Run with Terraform infrastructure.
 
-## 🚀 Quick Start
-
-```bash
-# One command to deploy everything:
-make deploy ENV=dev
-
-# Or step by step:
-make init ENV=dev          # Setup (one-time)
-make build ENV=dev         # Build Docker images
-make push ENV=dev          # Push to registry
-make deploy-infra ENV=dev  # Deploy to Cloud Run
-```
-
-## 📖 Documentation
-
-- **[QUICKSTART.md](./QUICKSTART.md)** - Get started in 5 minutes
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture
-- **[Makefile](./Makefile)** - Run `make help` to see all commands
-
-## 🏗️ Architecture
-
-```
-Makefile (Orchestration)
-    ├── Docker (Build images)
-    ├── Artifact Registry (Store images)
-    └── Terraform (Deploy infrastructure)
-          ├── Cloud Run (webapp + billing)
-          ├── Secret Manager (env vars)
-          ├── IAM (service accounts)
-          └── Artifact Registry (docker repo)
-```
-
-## 📋 Available Commands
+## Quick Start
 
 ```bash
-make help          # Show all commands
-make init          # Initialize (one-time setup)
-make build         # Build Docker images
-make push          # Push to Artifact Registry
-make deploy        # Full deployment
-make deploy-infra  # Deploy Terraform only
-make plan          # Show what will be deployed
-make status        # Check deployment status
-make logs-webapp   # View webapp logs
-make logs-billing  # View billing logs
-make destroy       # Remove all infrastructure
+# 1. Authenticate once (browser-based, no password)
+make auth
+
+# 2. Run locally for development
+make dev
+
+# 3. Deploy to staging
+make deploy-dev
+
+# 4. Deploy to production
+make deploy-prod
 ```
 
-## 🛠️ What Each Tool Does
+## Services
 
-| Tool | Purpose | Commands |
-|------|---------|----------|
-| **Makefile** | Orchestration | `make deploy`, `make help` |
-| **Terraform** | Infrastructure as Code | Manages Cloud Run, IAM, Secrets |
-| **Docker** | Application packaging | Builds container images |
-| **Cloud Run** | Serverless hosting | Runs your containers |
+**Staging (dev)**:
+- Webapp: https://dev-webapp-733104961366.us-central1.run.app
+- Billing: https://dev-billing-733104961366.us-central1.run.app
 
-## 🔐 Environment Variables
+**Production (prod)**: Deploy with `make deploy ENV=prod`
 
-Configure in `.env.dev` or `.env.prod`:
+## Setup (One-Time)
 
-- `STRIPE_SECRET_KEY` - Stripe API key
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret
-- `ADMIN_API_URL` - Vexa Admin API URL
-- `ADMIN_API_TOKEN` - Admin API token
-- `NEXTAUTH_SECRET` - NextAuth secret
-- `GOOGLE_CLIENT_ID` - Google OAuth ID
-- `GOOGLE_CLIENT_SECRET` - Google OAuth secret
+### Prerequisites
+- Docker Desktop
+- **gcloud CLI**: `brew install --cask google-cloud-sdk` (then restart terminal)
+- Terraform >= 1.0
+- Node.js & npm (for local development)
 
-Update secrets with: `./scripts/update-secrets.sh dev`
+### Initial Setup
 
-## 🚢 Deployment Workflow
+```bash
+# 1. Authenticate with GCloud (opens browser, persists across all shells)
+make auth
+
+# 2. Configure environment
+cp .env.example .env.dev
+vim .env.dev  # Add your values
+
+# 3. Run locally or deploy
+make dev              # Local development with hot reload
+make deploy-dev       # Deploy to staging with automatic secret sync
+```
+
+## Configuration
+
+**Staging**: Edit `.env.dev` (already exists)
+**Production**: Create `.env.prod` from template:
+```bash
+cp .env.prod.example .env.prod
+vim .env.prod  # Add production values
+```
+
+Environment variables (in `.env.dev` or `.env.prod`):
+
+```bash
+# Core Services
+ADMIN_API_URL=https://api-dev.vexa.ai
+ADMIN_API_TOKEN=your_token
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...        # Use sk_live_... for prod
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# OAuth
+GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-...
+NEXTAUTH_SECRET=random_32_chars      # Generate with: openssl rand -base64 32
+NEXTAUTH_URL=https://your-webapp-url.run.app
+
+# Blog (optional)
+GITHUB_TOKEN=ghp_...
+GITHUB_REPO_PATH=dev                 # or blank for prod
+GITHUB_WEBHOOK_SECRET=
+```
+
+**Note**: Secrets are automatically synced to GCP Secret Manager when running `make deploy-dev` or `make deploy-prod`.
+
+## Integration URLs
+
+### Stripe Webhook
+```
+https://dev-billing-733104961366.us-central1.run.app/v1/stripe/webhook
+```
+Add at: https://dashboard.stripe.com/webhooks
+
+### OAuth Redirect URI
+```
+https://dev-webapp-733104961366.us-central1.run.app/api/auth/callback/google
+```
+Add to your OAuth 2.0 Client
+
+### Blog Webhook (optional)
+```
+https://dev-webapp-733104961366.us-central1.run.app/api/github-webhook
+```
+Add in `Vexa-ai/blog_articles` repo settings
+
+## Commands
 
 ### Development
 ```bash
-# Make changes
-vim apps/webapp/...
-
-# Deploy
-make deploy ENV=dev
-
-# Check status
-make status ENV=dev
+make dev            # Run webapp locally (port 3002, hot reload)
 ```
 
-### Production
+### Authentication
 ```bash
-# Deploy to prod
-make deploy ENV=prod
-
-# Verify
-curl https://webapp-url.run.app/api/health
+make auth           # One-time GCloud authentication (browser-based)
 ```
 
-## 📦 Project Structure
+### Deployment
+```bash
+make deploy-dev     # Deploy to staging (auto-updates secrets from .env.dev)
+make deploy-prod    # Deploy to production (auto-updates secrets from .env.prod)
+```
+
+### Monitoring
+```bash
+make help           # Show all commands
+make status         # Check deployment status
+make logs-webapp    # View webapp logs
+make logs-billing   # View billing logs
+```
+
+### Manual Operations
+```bash
+make update-secrets # Manually update secrets (use ENV=dev or ENV=prod)
+make build          # Build Docker images only
+make push           # Push images to registry
+```
+
+## Environments
+
+| Environment | Command | Purpose |
+|------------|---------|---------|
+| **Local** | `make dev` | Fast development with hot reload |
+| **Staging** | `make deploy-dev` | Testing & QA (auto-updates secrets) |
+| **Production** | `make deploy-prod` | Live traffic (requires .env.prod) |
+
+## Architecture
+
+```
+Makefile
+  ├─► Docker         Build images
+  ├─► Push           Store in Artifact Registry  
+  └─► Terraform      Deploy to Cloud Run
+        ├─ Services (webapp + billing)
+        ├─ Secrets
+        └─ IAM
+```
+
+## Project Structure
 
 ```
 vexa-webapp-billing/
-├── Makefile              # Deployment orchestration
 ├── apps/
-│   ├── webapp/           # Next.js application
-│   └── billing/          # FastAPI service
-├── terraform/            # Infrastructure as Code
-│   ├── main.tf          # Root configuration
-│   ├── modules/         # Reusable modules
-│   └── environments/    # Dev/Prod configs
-└── scripts/             # Helper scripts
+│   ├── webapp/         Next.js application
+│   └── billing/        FastAPI service
+├── deployment/         All infrastructure
+│   ├── terraform/      Infrastructure as Code
+│   └── scripts/        Automation scripts
+├── Makefile            Deployment commands
+├── .env.dev            Staging config
+└── .env.prod.example   Production template
 ```
 
-## 🎯 Current Deployment
+## Daily Workflow
 
-**Development Environment:**
-- Webapp: https://dev-webapp-leav4o4omq-uc.a.run.app
-- Billing: https://dev-billing-leav4o4omq-uc.a.run.app
-- Project: spry-pipe-425611-c4
-- Region: us-central1
+### Local Development
+```bash
+vim apps/webapp/...
+make dev              # Test locally with hot reload
+```
 
-## 🔄 CI/CD
+### Deploy Changes
+```bash
+vim apps/webapp/...
+make deploy-dev       # Automatically updates secrets and deploys
+```
 
-Future: Connect GitHub repository to enable automatic deployments on git push.
+### Update Config
+```bash
+vim .env.dev
+make deploy-dev       # Deploys with updated secrets
+```
 
-## 📊 Monitoring
+### View Logs
+```bash
+make logs-webapp      # Staging logs (add ENV=prod for production)
+make logs-billing
+```
+
+## Infrastructure
+
+Managed by Terraform in `deployment/terraform/`:
+- Cloud Run services (auto-scaling)
+- Secret Manager (encrypted secrets)
+- Artifact Registry (Docker images)
+- IAM service accounts
+- API enablements
+
+All infrastructure is version-controlled and reproducible.
+
+## Troubleshooting
 
 ```bash
-# View logs
-make logs-webapp ENV=dev
-make logs-billing ENV=dev
+# Authentication issues
+make auth             # Re-authenticate with browser
 
 # Check status
-make status ENV=dev
+make status           # Add ENV=prod for production
 
-# View in Cloud Console
-gcloud run services list --region=us-central1
+# View logs
+make logs-webapp      # Add ENV=prod for production
+
+# Rebuild and redeploy
+make clean
+make deploy-dev       # or make deploy-prod
+
+# Check Terraform plan before deploying
+make plan ENV=dev     # or ENV=prod
+
+# Local development not loading env vars
+# Ensure .env.dev exists and is readable
+cat .env.dev
 ```
 
-## 🆘 Troubleshooting
+## Cost
 
-```bash
-# Build fails?
-make clean && make build ENV=dev
+Dev/Staging (minimal traffic): ~$7-14/month
+- Cloud Run: $5-10/month
+- Artifact Registry: $2-3/month
+- Secret Manager: <$1/month
 
-# Deploy fails?
-make plan ENV=dev  # Review changes first
+Production scales with usage.
 
-# Services down?
-make status ENV=dev
-make logs-webapp ENV=dev
-```
+## Security
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md#troubleshooting) for detailed troubleshooting.
+- All secrets in Secret Manager
+- HTTPS-only endpoints
+- IAM-based access control
+- Secrets never in code/images
 
-## 🤝 Contributing
+## Support
 
-1. Make changes in a feature branch
-2. Test with `make deploy ENV=dev`
-3. Create PR to `main`
-
-## 📝 License
-
-See [LICENSE.md](./LICENSE.md)
+Run `make help` to see all available commands.
 
 ---
 
-**Status**: ✅ Deployed and Running  
-**Last Updated**: December 2025
+**Status**: ✅ Deployed  
+**Project**: spry-pipe-425611-c4  
+**Region**: us-central1

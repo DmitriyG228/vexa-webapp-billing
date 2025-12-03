@@ -111,6 +111,28 @@
     }
   }
   
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-50%) translateY(1rem);
+    }
+  }
+  
   @keyframes float {
     0%, 100% {
       transform: translateY(0px) rotate(0deg);
@@ -473,6 +495,48 @@
   color: hsl(var(--foreground) / 0.85);
 }
 
+/* SVG checkmark bullets for deployment verification lists */
+/* Target the specific section by finding ul that comes after "Deployment Verification" heading */
+.blog-content h2 + p + ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.blog-content h2 + p + ul li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0;
+}
+
+.blog-content h2 + p + ul li::before {
+  content: '';
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='%2316a34a' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.blog-content h2 + p + ul li {
+  font-weight: 500;
+  color: hsl(var(--foreground) / 0.85);
+}
+
+.blog-content h2 + p + ul li code {
+  font-size: 0.875em;
+  background: hsl(var(--muted));
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
+
 /* Better blockquote styling */
 .blog-content blockquote {
   border-left-color: hsl(var(--primary) / 0.5);
@@ -485,4 +549,394 @@
 .blog-content blockquote p {
   color: hsl(var(--foreground) / 0.8);
   font-style: italic;
+}
+
+/* Modern SaaS Table styling for markdown tables */
+.blog-content table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 2rem 0;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  background: hsl(var(--card));
+}
+
+/* Wrapper div for table scrolling on mobile - server-rendered */
+.blog-content .table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 2rem 0;
+  border-radius: 0.5rem;
+}
+
+.blog-content .table-scroll-wrapper table {
+  margin: 0;
+}
+
+/* Table header styling - Ghost style (ultra minimal) */
+.blog-content table thead {
+  background: transparent;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.blog-content table th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: hsl(var(--foreground) / 0.25);
+  white-space: nowrap;
+}
+
+/* Table body cells - Perfect vertical alignment */
+.blog-content table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground) / 0.85);
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+/* First column (Test Case) - medium weight, primary color */
+.blog-content table td:first-child {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  line-height: 1.5;
+}
+
+/* Second column (Status) - will contain badges from server */
+.blog-content table td:nth-child(2) {
+  min-width: 100px;
+  line-height: 1.5;
+}
+
+/* Status badges - proper spacing and alignment with Heroicons */
+.blog-content table td span[class*="bg-green-50"],
+.blog-content table td span[class*="bg-blue-50"],
+.blog-content table td span[class*="bg-red-50"],
+.blog-content table td span[class*="bg-orange-50"] {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* SVG icon sizing and alignment */
+.blog-content table td span svg {
+  flex-shrink: 0;
+}
+
+/* Third column (Details) - monospace font for technical details */
+.blog-content table td:nth-child(3),
+.blog-content table .table-details-cell {
+  font-family: ui-monospace, 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground) / 0.7);
+  line-height: 1.5;
+}
+
+/* Row hover effect - smooth transition */
+.blog-content table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.blog-content table tbody tr:hover {
+  background: hsl(var(--muted) / 0.15);
+}
+
+/* Remove border from last row */
+.blog-content table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Dark mode adjustments */
+.dark .blog-content table {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.dark .blog-content table thead {
+  background: transparent;
+  border-bottom-color: hsl(var(--border) / 0.3);
+}
+
+.dark .blog-content table th {
+  color: hsl(var(--foreground) / 0.2);
+}
+
+/* Dark mode checkmark bullets */
+.dark .blog-content h2 + p + ul li::before {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='%2322c55e' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.dark .blog-content h2 + p + ul li {
+  color: hsl(var(--foreground) / 0.9);
+}
+
+.dark .blog-content h2 + p + ul li code {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground) / 0.9);
+}
+
+/* Dark mode mobile list */
+@media (max-width: 768px) {
+  .dark .blog-content .table-scroll-wrapper {
+    background: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .blog-content table tbody tr {
+    background: hsl(var(--card));
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  .dark .blog-content table tbody tr:active {
+    background: hsl(var(--muted) / 0.2);
+  }
+  
+  /* Contextual backgrounds for dark mode */
+  .dark .blog-content table tbody tr:has(td:nth-child(2) span.bg-blue-50) {
+    background: rgba(59, 130, 246, 0.08);
+  }
+  
+  .dark .blog-content table tbody tr:has(td:nth-child(2) span.bg-red-50) {
+    background: rgba(239, 68, 68, 0.12);
+  }
+  
+  /* Details text color adjustments for dark mode */
+  .dark .blog-content table tbody tr:has(td:nth-child(2) span.bg-blue-50) td:nth-child(3),
+  .dark .blog-content table tbody tr:has(td:nth-child(2) span.bg-blue-50) .table-details-cell {
+    color: #93c5fd;
+  }
+  
+  .dark .blog-content table tbody tr:has(td:nth-child(2) span.bg-red-50) td:nth-child(3),
+  .dark .blog-content table tbody tr:has(td:nth-child(2) span.bg-red-50) .table-details-cell {
+    color: #fca5a5;
+  }
+}
+
+/* Status badge color refinements for dark mode - Heroicons style */
+.dark .blog-content table td span.bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  color: #86efac !important;
+  ring-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+.dark .blog-content table td span.bg-green-50 svg {
+  color: #4ade80 !important;
+}
+
+.dark .blog-content table td span.bg-blue-50 {
+  background-color: rgba(37, 99, 235, 0.1) !important;
+  color: #93c5fd !important;
+  ring-color: rgba(37, 99, 235, 0.2) !important;
+}
+
+.dark .blog-content table td span.bg-blue-50 svg {
+  color: #60a5fa !important;
+}
+
+.dark .blog-content table td span.bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #fca5a5 !important;
+  ring-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.dark .blog-content table td span.bg-red-50 svg {
+  color: #f87171 !important;
+}
+
+.dark .blog-content table td span.bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.1) !important;
+  color: #fdba74 !important;
+  ring-color: rgba(249, 115, 22, 0.2) !important;
+}
+
+.dark .blog-content table td span.bg-orange-50 svg {
+  color: #fb923c !important;
+}
+
+/* Mobile responsive - High-density continuous list (iOS Settings / GitHub Mobile style) */
+@media (max-width: 768px) {
+  /* Single container for entire list */
+  .blog-content .table-scroll-wrapper {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Transform table structure */
+  .blog-content .table-scroll-wrapper table {
+    display: block;
+    width: 100%;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+  
+  /* Hide table header on mobile */
+  .blog-content table thead {
+    display: none;
+  }
+  
+  .blog-content table tbody {
+    display: block;
+  }
+  
+  /* Transform each row into a list item with left-aligned status icon */
+  .blog-content table tbody tr {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    transition: background-color 0.15s ease;
+  }
+  
+  /* Remove border from last item */
+  .blog-content table tbody tr:last-child {
+    border-bottom: none;
+  }
+  
+  /* Contextual background for Pending status */
+  .blog-content table tbody tr:has(td:nth-child(2) span.bg-blue-50) {
+    background: rgba(59, 130, 246, 0.04);
+  }
+  
+  /* Contextual background for Fail status */
+  .blog-content table tbody tr:has(td:nth-child(2) span.bg-red-50) {
+    background: rgba(239, 68, 68, 0.08);
+  }
+  
+  /* Hover state for Pass/Warning (non-Pending, non-Fail) */
+  @media (hover: hover) {
+    .blog-content table tbody tr:not(:has(td:nth-child(2) span.bg-blue-50)):not(:has(td:nth-child(2) span.bg-red-50)):hover {
+      background: hsl(var(--muted) / 0.1);
+    }
+  }
+  
+  /* Subtle touch feedback */
+  .blog-content table tbody tr:active {
+    background: hsl(var(--muted) / 0.15);
+  }
+  
+  /* First cell - Status Icon (left side, fixed width) */
+  .blog-content table td:first-child {
+    display: none; /* Hide the test name from this cell */
+  }
+  
+  /* Second cell - Status Icon on left */
+  .blog-content table td:nth-child(2) {
+    flex: 0 0 auto;
+    padding: 0;
+    margin-top: 0.125rem;
+    border: none;
+    order: -1; /* Move to the left */
+  }
+  
+  /* Transform status badges into just icons on mobile */
+  .blog-content table td:nth-child(2) span {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    ring: none !important;
+    border: none !important;
+  }
+  
+  /* Hide the text, show only the SVG icon */
+  .blog-content table td:nth-child(2) span {
+    font-size: 0 !important;
+    gap: 0 !important;
+  }
+  
+  /* Show and size the SVG icons */
+  .blog-content table td:nth-child(2) span svg {
+    display: block !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    flex-shrink: 0;
+  }
+  
+  /* Pass - green checkmark */
+  .blog-content table td:nth-child(2) span.bg-green-50 svg {
+    color: #16a34a;
+  }
+  
+  /* Pending - blue spinner */
+  .blog-content table td:nth-child(2) span.bg-blue-50 svg {
+    color: #2563eb;
+  }
+  
+  /* Fail - red X */
+  .blog-content table td:nth-child(2) span.bg-red-50 svg {
+    color: #dc2626;
+  }
+  
+  /* Warning - orange triangle */
+  .blog-content table td:nth-child(2) span.bg-orange-50 svg {
+    color: #ea580c;
+  }
+  
+  /* Third cell - Content area (title + details stacked) */
+  .blog-content table td:nth-child(3),
+  .blog-content table .table-details-cell {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: none;
+  }
+  
+  /* Add the title before the details */
+  .blog-content table td:nth-child(3)::before,
+  .blog-content table .table-details-cell::before {
+    content: attr(data-test-name);
+    display: block;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  
+  /* Details styling */
+  .blog-content table td:nth-child(3),
+  .blog-content table .table-details-cell {
+    font-family: ui-monospace, 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
+    font-size: 0.75rem;
+    color: hsl(var(--foreground) / 0.6);
+    line-height: 1.5;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Pending row - blue tinted details text */
+  .blog-content table tbody tr:has(td:nth-child(2) span.bg-blue-50) td:nth-child(3),
+  .blog-content table tbody tr:has(td:nth-child(2) span.bg-blue-50) .table-details-cell {
+    color: rgba(37, 99, 235, 0.8);
+  }
+  
+  /* Fail row - red details text */
+  .blog-content table tbody tr:has(td:nth-child(2) span.bg-red-50) td:nth-child(3),
+  .blog-content table tbody tr:has(td:nth-child(2) span.bg-red-50) .table-details-cell {
+    color: #dc2626;
+  }
 }

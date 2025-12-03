@@ -398,6 +398,7 @@ export default async function Post({ params }: PostProps) {
                     `
                   }}
                 />
+                
               </article>
             </div>
 

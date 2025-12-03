@@ -25,16 +25,16 @@ apps/webapp/.env.*
 !apps/webapp/.env.example
 
 # Terraform
-terraform/.terraform/
-terraform/.terraform.lock.hcl
-terraform/*.tfstate
-terraform/*.tfstate.*
-terraform/terraform.tfvars
+deployment/terraform/.terraform/
+deployment/terraform/.terraform.lock.hcl
+deployment/terraform/*.tfstate
+deployment/terraform/*.tfstate.*
+deployment/terraform/terraform.tfvars
 *.tfvars.json
-terraform/crash.log
-terraform/crash.*.log
-terraform/override.tf
-terraform/override.tf.json
+deployment/terraform/crash.log
+deployment/terraform/crash.*.log
+deployment/terraform/override.tf
+deployment/terraform/override.tf.json
 *_override.tf
 *_override.tf.json
 .terraformrc

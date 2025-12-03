@@ -1,0 +1,7 @@
+# Deployment Infrastructure
+
+All deployment-related files are in this folder:
+- terraform/ - Infrastructure as Code
+- scripts/ - Deployment automation
+- docs/ - Deployment documentation
+
