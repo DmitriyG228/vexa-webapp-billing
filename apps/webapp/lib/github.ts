@@ -136,4 +136,17 @@ export class GitHubContentService {
       return [];
     }
   }
+
+  async getNotifications(): Promise<string | null> {
+    try {
+      // Try to fetch notification.txt from the basePath directory
+      const notificationPath = this.basePath ? `${this.basePath}/notification.txt` : 'notification.txt';
+      const content = await this.getFileContent(notificationPath);
+      return content;
+    } catch (error) {
+      // If file doesn't exist, return null (no notifications to show)
+      console.log('No notification.txt found or error fetching:', error);
+      return null;
+    }
+  }
 }

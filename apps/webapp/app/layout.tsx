@@ -18,6 +18,7 @@ import { getServerSession } from 'next-auth/next';
 import { Logo } from '@/components/ui/logo';
 import { GitHubStarLink } from '@/components/GitHubStarLink';
 import { SignupTracker } from '@/components/SignupTracker';
+import { LoginLink } from '@/components/LoginLink';
 import './globals.css'
 
 const inter = Inter({ 
@@ -142,114 +143,129 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <div className="flex flex-col min-h-screen">
-              <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Link href="/">
-                      <Logo size="md" showVersion={true} version="v0.6" />
+              <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+                  {/* Left: Logo + Version Badge */}
+                  <div className="flex items-center gap-3">
+                    <Link href="/" className="flex items-center gap-2">
+                      <Image
+                        src="/logodark.svg"
+                        alt="Vexa Logo"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 drop-shadow-sm"
+                      />
+                      <span className="text-lg font-bold tracking-tight">Vexa</span>
+                    </Link>
+                    
+                    <Link 
+                      href="https://github.com/Vexa-ai/vexa/releases/tag/v0.6" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hidden sm:flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                    >
+                      v0.6
+                      <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
                   </div>
-                  <nav className="hidden md:flex items-center gap-6">
-                    <Link href="/" className="text-sm font-caption transition-colors hover:text-primary">
-                      Home
-                    </Link>
+
+                  {/* Center: Navigation */}
+                  <nav className="hidden md:flex items-center gap-8">
                     <ProductsDropdown />
-                    <Link href="/get-started" className="text-sm font-caption transition-colors hover:text-primary">
+                    <Link href="/get-started" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                       Get Started
                     </Link>
                     <Link
                       href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-caption transition-colors hover:text-primary"
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
                       API Docs
                     </Link>
-                    <Link href="/pricing" className="text-sm font-caption transition-colors hover:text-primary">
+                    <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                       Pricing
                     </Link>
-                    <Link href="/blog" className="text-sm font-caption transition-colors hover:text-primary">
+                    <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                       Blog
                     </Link>
                     {session && (
-                      <Link href="/dashboard/api-keys" className="text-sm font-caption transition-colors hover:text-primary">
-                        API Keys
-                      </Link>
-                    )}
-                    {session && (
-                      <Link href="/dashboard" className="text-sm font-caption transition-colors hover:text-primary">
+                      <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                         Dashboard
                       </Link>
                     )}
                   </nav>
                   
-                  {/* Mobile Menu */}
-                  <Sheet>
-                    <SheetTrigger asChild className="md:hidden">
-                      <Button variant="ghost" size="icon">
-                        <Menu className="h-6 w-6" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right">
-                      <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                      <nav className="flex flex-col gap-4 mt-8">
-                        <Link href="/" className="text-base font-caption transition-colors hover:text-primary">
-                          Home
-                        </Link>
-                        <Link href="/product/google-meet-transcription-api" className="text-base font-caption transition-colors hover:text-primary">
-                          Products
-                        </Link>
-                        <Link href="/open-source" className="text-base font-caption transition-colors hover:text-primary">
-                          Open Source
-                        </Link>
-                        <Link href="/get-started" className="text-base font-caption transition-colors hover:text-primary">
-                          Get Started
-                        </Link>
-                        <Link
-                          href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-base font-caption transition-colors hover:text-primary"
-                        >
-                          API Docs
-                        </Link>
-                        <Link href="/pricing" className="text-base font-caption transition-colors hover:text-primary">
-                          Pricing
-                        </Link>
-                        <Link href="/blog" className="text-base font-caption transition-colors hover:text-primary">
-                          Blog
-                        </Link>
-                        {session && (
-                          <Link href="/dashboard/api-keys" className="text-base font-caption transition-colors hover:text-primary">
-                            API Keys
-                          </Link>
-                        )}
-                        {session && (
-                          <Link href="/dashboard" className="text-base font-caption transition-colors hover:text-primary">
-                            Dashboard
-                          </Link>
-                        )}
-                      </nav>
-                    </SheetContent>
-                  </Sheet>
-                  
-                  {/* Desktop Actions */}
-                  <div className="hidden md:flex items-center gap-2">
-                    <GitHubStarLink className="flex items-center justify-center transition-colors">
-                      <svg 
-                        width="24" 
-                        height="24" 
-                        viewBox="0 0 24 24" 
-                        fill="currentColor" 
-                        className="text-foreground hover:text-primary transition-colors"
-                      >
-                        <path fillRule="evenodd" clipRule="evenodd" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385c.6.105.825-.255.825-.57c0-.285-.015-1.23-.015-2.235c-3.015.555-3.795-.735-4.035-1.41c-.135-.345-.72-1.41-1.23-1.695c-.42-.225-1.02-.78-.015-.795c.945-.015 1.62.87 1.845 1.23c1.08 1.815 2.805 1.305 3.495.99c.105-.78.42-1.305.765-1.605c-2.67-.3-5.46-1.335-5.46-5.925c0-1.305.465-2.385 1.23-3.225c-.12-.3-.54-1.53.12-3.18c0 0 1.005-.315 3.3 1.23c.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23c.66 1.65.24 2.88.12 3.18c.765.84 1.23 1.905 1.23 3.225c0 4.605-2.805 5.625-5.475 5.925c.435.375.81 1.095.81 2.22c0 1.605-.015 2.895-.015 3.3c0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                  {/* Right: GitHub + Theme Toggle + Auth */}
+                  <div className="flex items-center gap-4">
+                    <GitHubStarLink className="hidden sm:flex text-muted-foreground hover:text-foreground transition-colors">
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
                       </svg>
                       <span className="sr-only">GitHub</span>
                     </GitHubStarLink>
+
                     <ModeToggle />
+
+                    <div className="hidden sm:block h-4 w-px bg-border"></div>
+
                     <AuthButtons />
+
+                    {/* Mobile Menu Trigger */}
+                    <Sheet>
+                      <SheetTrigger asChild className="md:hidden">
+                        <Button variant="ghost" size="icon">
+                          <Menu className="h-6 w-6" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="right">
+                        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                        <nav className="flex flex-col gap-4 mt-8">
+                          <Link href="/" className="text-base font-caption transition-colors hover:text-primary">
+                            Home
+                          </Link>
+                          <Link href="/product/google-meet-transcription-api" className="text-base font-caption transition-colors hover:text-primary">
+                            Google Meet
+                          </Link>
+                          <Link href="/product/microsoft-teams-transcription-api" className="text-base font-caption transition-colors hover:text-primary">
+                            Microsoft Teams
+                          </Link>
+                          <Link href="/open-source" className="text-base font-caption transition-colors hover:text-primary">
+                            Open Source
+                          </Link>
+                          <Link
+                            href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-base font-caption transition-colors hover:text-primary"
+                          >
+                            API Docs
+                          </Link>
+                          <Link href="/pricing" className="text-base font-caption transition-colors hover:text-primary">
+                            Pricing
+                          </Link>
+                          <Link href="/blog" className="text-base font-caption transition-colors hover:text-primary">
+                            Blog
+                          </Link>
+                          {session && (
+                            <>
+                              <Link href="/dashboard/api-keys" className="text-base font-caption transition-colors hover:text-primary">
+                                API Keys
+                              </Link>
+                              <Link href="/dashboard" className="text-base font-caption transition-colors hover:text-primary">
+                                Dashboard
+                              </Link>
+                            </>
+                          )}
+                          <div className="pt-4 border-t">
+                            <AuthButtons />
+                          </div>
+                        </nav>
+                      </SheetContent>
+                    </Sheet>
                   </div>
                 </div>
               </header>

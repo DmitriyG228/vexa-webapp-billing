@@ -191,26 +191,21 @@ export default function LandingPage() {
             <div className="flex flex-col items-center space-y-6">
               <div className="text-center space-y-4">
                 <h3 className="text-xl font-semibold text-foreground">Open Source & Community Driven</h3>
-                <div className="flex items-center justify-center gap-6">
-                  <div className="flex items-center gap-3">
-                    <Github size={48} className="text-foreground" />
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 fill-current text-foreground" />
-                        <span className="text-2xl font-bold text-foreground">1.5k</span>
+                <div className="flex items-center justify-center gap-8">
+                  <Github className="h-12 w-12 text-foreground" />
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-5 w-5 fill-current text-foreground" />
+                      <div className="flex flex-col items-start">
+                        <span className="text-2xl font-bold text-foreground leading-none">1.5k</span>
+                        <span className="text-xs text-muted-foreground">Stars</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">Stars</span>
                     </div>
-                  </div>
-                  <div className="h-12 w-px bg-border"></div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-foreground">50+</span>
-                    <span className="text-xs text-muted-foreground">Forks</span>
-                  </div>
-                  <div className="h-12 w-px bg-border"></div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-foreground">20+</span>
-                    <span className="text-xs text-muted-foreground">Contributors</span>
+                    <div className="h-12 w-px bg-border"></div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl font-bold text-foreground leading-none">150+</span>
+                      <span className="text-xs text-muted-foreground">Forks</span>
+                    </div>
                   </div>
                 </div>
               </div>

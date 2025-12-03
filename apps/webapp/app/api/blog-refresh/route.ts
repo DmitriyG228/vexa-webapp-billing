@@ -9,12 +9,18 @@ export async function POST(request: NextRequest) {
     // Revalidate the blog pages
     revalidatePath('/blog');
     revalidatePath('/blog/[slug]');
+    
+    // Revalidate the dashboard page (for notifications)
+    revalidatePath('/dashboard');
+    
+    // Revalidate the notifications API endpoint
+    revalidatePath('/api/notifications');
 
-    console.log('Blog content revalidated successfully');
+    console.log('Blog content and notifications revalidated successfully');
 
     return NextResponse.json({
       success: true,
-      message: 'Blog content refreshed successfully',
+      message: 'Blog content and notifications refreshed successfully',
       timestamp: new Date().toISOString()
     });
 

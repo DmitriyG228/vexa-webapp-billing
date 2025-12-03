@@ -27,6 +27,8 @@ import {
 import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2, Shield, Mail, BarChart3 } from "lucide-react"
 import { PageContainer, Section } from "@/components/ui/page-container"
 import { Metric } from "@/components/ui/metric"
+import { NotificationBanner, NotificationItem } from "@/components/ui/notification-banner"
+import { NotificationRefreshButton } from "@/components/dashboard/notification-refresh-button"
 
 interface UserData {
   id: number
@@ -51,6 +53,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
 
 
 
@@ -91,6 +94,24 @@ export default function DashboardPage() {
 
     fetchUserData()
   }, [sessionStatus, session])
+
+  // Fetch system notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('/api/notifications')
+        if (response.ok) {
+          const data = await response.json()
+          setNotifications(data.notifications || [])
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err)
+        // Silently fail - don't show errors to users
+      }
+    }
+
+    fetchNotifications()
+  }, [])
 
 
 
@@ -294,12 +315,18 @@ export default function DashboardPage() {
     <PageContainer>
       <Section>
         <Toaster />
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {userData?.name || userData?.email || 'User'}
-          </p>
+        <div className="relative">
+          <NotificationRefreshButton />
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back, {userData?.name || userData?.email || 'User'}
+            </p>
+          </div>
         </div>
+
+        {/* System Notifications */}
+        <NotificationBanner notifications={notifications} />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Current Bot Limit */}

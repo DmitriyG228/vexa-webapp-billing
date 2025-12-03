@@ -1,21 +1,20 @@
 'use client';
 
 /**
- * Admin-only blog refresh button
+ * Admin-only notification refresh button
  *
  * - Only visible to authenticated users (admins)
- * - Manually refreshes blog content and notifications from GitHub
- * - Positioned in top-right corner with subtle styling
- * - No automatic refresh to avoid bothering regular users
+ * - Manually refreshes notifications from GitHub
+ * - Positioned inline with notifications
  */
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Settings } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
-export function BlogRefreshButton() {
+export function NotificationRefreshButton() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
@@ -29,7 +28,7 @@ export function BlogRefreshButton() {
     setIsRefreshing(true);
 
     try {
-      // Call the API to revalidate blog content
+      // Call the API to revalidate blog content (which includes notifications)
       const response = await fetch('/api/blog-refresh', {
         method: 'POST',
         headers: {
@@ -38,17 +37,17 @@ export function BlogRefreshButton() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to refresh blog content');
+        throw new Error('Failed to refresh notifications');
       }
 
       const data = await response.json();
-      console.log('Blog refresh successful:', data);
+      console.log('Notifications refresh successful:', data);
 
       // Refresh the current page to show fresh content
       router.refresh();
 
     } catch (error) {
-      console.error('Error refreshing blog:', error);
+      console.error('Error refreshing notifications:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -62,11 +61,11 @@ export function BlogRefreshButton() {
         variant="outline"
         size="sm"
         className="flex items-center gap-2 bg-white/90 backdrop-blur-sm border-gray-200 shadow-sm hover:bg-white hover:shadow-md opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity duration-200"
-        title="Refresh blog content and notifications (Admin only)"
+        title="Refresh notifications from GitHub (Admin only)"
       >
         <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-        <Settings className="h-3 w-3 opacity-50" />
       </Button>
     </div>
   );
 }
+

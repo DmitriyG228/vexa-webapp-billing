@@ -13,9 +13,9 @@ import {
 export function ProductsDropdown() {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-caption transition-colors hover:text-primary">
+      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
         Products
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-4 w-4 transition-transform group-hover:text-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuItem asChild>
