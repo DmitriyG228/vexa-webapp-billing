@@ -31,17 +31,24 @@ export function NotificationBanner({ notifications }: NotificationBannerProps) {
           ? 'default'
           : 'default'
 
+        // Dark mode friendly colors
         const bgColor = notification.type === 'error'
-          ? 'bg-red-50 border-red-200'
+          ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50'
           : notification.type === 'warning'
-          ? 'bg-yellow-50 border-yellow-200'
-          : 'bg-blue-50 border-blue-200'
+          ? 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800/50'
+          : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50'
 
         const textColor = notification.type === 'error'
-          ? 'text-red-800'
+          ? 'text-red-800 dark:text-red-200'
           : notification.type === 'warning'
-          ? 'text-yellow-800'
-          : 'text-blue-800'
+          ? 'text-yellow-800 dark:text-yellow-200'
+          : 'text-blue-800 dark:text-blue-200'
+
+        const iconColor = notification.type === 'error'
+          ? 'text-red-600 dark:text-red-400'
+          : notification.type === 'warning'
+          ? 'text-yellow-600 dark:text-yellow-400'
+          : 'text-blue-600 dark:text-blue-400'
 
         return (
           <Alert 
@@ -49,7 +56,7 @@ export function NotificationBanner({ notifications }: NotificationBannerProps) {
             variant={variant}
             className={`${bgColor} ${textColor}`}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className={`h-4 w-4 ${iconColor}`} />
             <AlertDescription>
               <span className="font-semibold">[{notification.date}]</span>{' '}
               {notification.message}
