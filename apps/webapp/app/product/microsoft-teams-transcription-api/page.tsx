@@ -125,15 +125,24 @@ export default function MicrosoftTeamsTranscriptionPage() {
           }
           primaryCta={{ href: "/get-started#quickstart", label: "Try Microsoft Teams Transcription" }}
           visual={
-            <CodePane
-              caption="Example: Start Microsoft Teams bot"
-              code={`curl -X POST https://api.cloud.vexa.ai/bots \\
+            <div className="space-y-4">
+              <CodePane
+                caption="1) Create bot"
+                code={`curl -X POST https://api.cloud.vexa.ai/bots \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
     "platform": "teams",
-    "native_meeting_id": "19:meeting_xxxxxxxxxxxxx@thread.v2"
+    "native_meeting_id": "9387167464734",
+    "passcode": "qxJanYOcdjN4d6UlGa"
   }'`}
-            />
+              />
+              <CodePane
+                caption="2) Get transcript"
+                code={`curl -X GET \\
+  https://api.cloud.vexa.ai/transcripts/teams/9387167464734 \\
+  -H "X-API-Key: YOUR_API_KEY"`}
+              />
+            </div>
           }
         />
 

@@ -39,10 +39,9 @@ function OptionCard({ title, description, eyebrow, features, cta, highlighted = 
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             {eyebrow}
           </p>
-          <h3 className={cn(
-            "text-2xl font-bold",
-            !highlighted && "font-mono" // Monospace for self-hosted card
-          )}>{title}</h3>
+          <h3 className="text-2xl font-bold">
+            {title}
+          </h3>
           <p className="text-muted-foreground leading-relaxed">
             {description}
           </p>
@@ -117,7 +116,7 @@ export function VexaOptions() {
               features={[
                 "Self Hosted and Managed",
                 "Open Source (Apache 2.0)",
-                "Complience and regulations",
+                "Compliance and regulations",
                 "Full Data Sovereignty",
               ]}
               cta={{

@@ -124,15 +124,23 @@ export default function GoogleMeetTranscriptionPage() {
         }
         primaryCta={{ href: "/get-started#quickstart", label: "Try Google Meet Transcription" }}
         visual={
-          <CodePane
-            caption="Example: Start Google Meet bot"
-            code={`curl -X POST https://api.cloud.vexa.ai/bots \\
+          <div className="space-y-4">
+            <CodePane
+              caption="1) Create bot"
+              code={`curl -X POST https://api.cloud.vexa.ai/bots \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
     "platform": "google_meet",
     "native_meeting_id": "abc-defg-hij"
   }'`}
-          />
+            />
+            <CodePane
+              caption="2) Get transcript"
+              code={`curl -X GET \\
+  https://api.cloud.vexa.ai/transcripts/google_meet/abc-defg-hij \\
+  -H "X-API-Key: YOUR_API_KEY"`}
+            />
+          </div>
         }
       />
 
