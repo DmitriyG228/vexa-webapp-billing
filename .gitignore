@@ -16,7 +16,6 @@ pnpm-debug.log*
 .env
 .env.*
 !*.env.example
-!.env.dev
 .env.prod
 
 # Also ignore envs under apps/webapp
