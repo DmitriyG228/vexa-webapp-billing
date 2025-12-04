@@ -204,10 +204,21 @@ export async function getPostData(slug: string): Promise<PostData> {
 
 function transformAssetReferences(html: string): string {
   // Transform markdown image references like ![alt](/assets/image.png) 
-  // to use our authenticated asset API endpoint
+  // to use our authenticated asset API endpoint AND add lazy loading
   return html.replace(
     /<img([^>]*?)src="\/assets\/([^"]*?)"([^>]*?)>/g,
-    '<img$1src="/api/assets/$2"$3>'
+    (match, before, assetPath, after) => {
+      // Add loading="lazy" and decoding="async" for better performance
+      // Only load images as they come into viewport
+      const hasLoading = match.includes('loading=');
+      const hasDecoding = match.includes('decoding=');
+      
+      let attrs = before + after;
+      if (!hasLoading) attrs += ' loading="lazy"';
+      if (!hasDecoding) attrs += ' decoding="async"';
+      
+      return `<img${attrs}src="/api/assets/${assetPath}">`;
+    }
   );
 }
 

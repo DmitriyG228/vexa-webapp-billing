@@ -1,4 +1,4 @@
-.PHONY: help init build push deploy deploy-infra deploy-dev deploy-prod destroy clean status dev auth setup-domain setup-domain-dev setup-domain-prod
+.PHONY: help init build push deploy deploy-infra deploy-dev deploy-prod destroy clean status dev auth setup-domain setup-domain-dev setup-domain-prod perf build-dev update-vars-dev update-vars-prod deploy-dev-fast deploy-prod-fast
 
 # Add gcloud to PATH - checks multiple common installation locations
 GCLOUD_SDK_PATHS := /usr/local/Caskroom/gcloud-cli/*/google-cloud-sdk/bin /opt/homebrew/Caskroom/google-cloud-sdk/*/google-cloud-sdk/bin $(HOME)/google-cloud-sdk/bin
@@ -179,6 +179,40 @@ dev: ## Run webapp locally with dev environment variables
 	fi
 	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run dev
 
+build-dev: ## Build and start production version locally for testing
+	@echo "$(GREEN)Building production version locally...$(RESET)"
+	@if [ ! -f .env.dev ]; then \
+		echo "$(YELLOW)Warning: .env.dev not found$(RESET)"; \
+	fi
+	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run build
+	@echo "$(GREEN)✓ Production build complete$(RESET)"
+	@echo "$(GREEN)Starting production server on http://localhost:3000$(RESET)"
+	@echo "$(YELLOW)Run 'make perf' in another terminal to test performance$(RESET)"
+	@echo "$(YELLOW)Press Ctrl+C to stop the server$(RESET)"
+	@echo ""
+	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run start
+
+perf: ## Run performance test on local production build (requires start-local running)
+	@echo "$(GREEN)Running Lighthouse performance check...$(RESET)"
+	@echo "$(YELLOW)Testing http://localhost:3000 - make sure production build is running (make start-local)$(RESET)"
+	@if ! command -v lighthouse >/dev/null 2>&1; then \
+		echo "$(YELLOW)Installing Lighthouse CLI...$(RESET)"; \
+		npm install -g lighthouse; \
+	fi
+	@lighthouse http://localhost:3000 \
+		--only-categories=performance \
+		--form-factor=mobile \
+		--screenEmulation.mobile=true \
+		--throttling.cpuSlowdownMultiplier=4 \
+		--quiet \
+		--output=json \
+		--output-path=/tmp/lighthouse-perf.json
+	@echo ""
+	@echo "$(GREEN)Performance Results (Mobile):$(RESET)"
+	@node -e "const fs=require('fs'); const report=JSON.parse(fs.readFileSync('/tmp/lighthouse-perf.json')); const score=Math.round(report.categories.performance.score*100); const audits=report.audits; console.log('  Score: ' + score + '/100'); console.log('  FCP: ' + audits['first-contentful-paint'].displayValue); console.log('  LCP: ' + audits['largest-contentful-paint'].displayValue); console.log('  TBT: ' + audits['total-blocking-time'].displayValue); console.log('  CLS: ' + audits['cumulative-layout-shift'].displayValue);"
+	@echo ""
+	@echo "$(YELLOW)Tip: Use Chrome DevTools (F12 → Lighthouse tab) for detailed report$(RESET)"
+
 auth: ## Authenticate with GCloud (one-time setup, browser-based)
 	@echo "$(GREEN)Authenticating with GCloud...$(RESET)"
 	@echo "$(YELLOW)This will open your browser for authentication$(RESET)"
@@ -195,6 +229,42 @@ auth: ## Authenticate with GCloud (one-time setup, browser-based)
 	@echo "$(YELLOW)You're now authenticated across all shells$(RESET)"
 
 # Environment-specific deployment
+update-vars-dev: ## Update secrets/variables for dev environment only (no deploy)
+	@echo "$(GREEN)Updating secrets for DEV environment...$(RESET)"
+	@if [ ! -f .env.dev ]; then \
+		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
+		exit 1; \
+	fi
+	@./deployment/scripts/update-secrets.sh dev
+	@echo "$(GREEN)✓ Dev secrets updated$(RESET)"
+
+update-vars-prod: ## Update secrets/variables for prod environment only (no deploy)
+	@echo "$(GREEN)Updating secrets for PROD environment...$(RESET)"
+	@if [ ! -f .env.prod ]; then \
+		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
+		exit 1; \
+	fi
+	@./deployment/scripts/update-secrets.sh prod
+	@echo "$(GREEN)✓ Prod secrets updated$(RESET)"
+
+deploy-dev-fast: ## Deploy to dev WITHOUT updating secrets (faster)
+	@echo "$(GREEN)Fast deploying to DEV environment (skipping secrets update)...$(RESET)"
+	@if [ ! -f .env.dev ]; then \
+		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)⚠️  Skipping secrets update - run 'make update-vars-dev' if needed$(RESET)"
+	@$(MAKE) ENV=dev build push deploy-infra
+
+deploy-prod-fast: ## Deploy to prod WITHOUT updating secrets (faster)
+	@echo "$(GREEN)Fast deploying to PROD environment (skipping secrets update)...$(RESET)"
+	@if [ ! -f .env.prod ]; then \
+		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)⚠️  Skipping secrets update - run 'make update-vars-prod' if needed$(RESET)"
+	@$(MAKE) ENV=prod build push deploy-infra
+
 deploy-dev: ## Deploy to dev/staging environment with automatic secret updates
 	@echo "$(GREEN)Deploying to DEV environment...$(RESET)"
 	@if [ ! -f .env.dev ]; then \

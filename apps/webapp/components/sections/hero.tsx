@@ -74,15 +74,31 @@ export default function Hero({
             {description}
           </p>
           
-          {/* Platform logos (non-interactive) */}
+          {/* Platform logos (non-interactive) - Priority loaded for LCP with fetchPriority */}
           <div className="flex items-center justify-center gap-3 sm:gap-4">
             <div className="flex items-center gap-2">
-              <Image src="/microsoft-teams-logo.png" alt="Microsoft Teams" width={24} height={24} className="h-6 w-6 object-contain" />
+              <Image 
+                src="/microsoft-teams-logo.png" 
+                alt="Microsoft Teams" 
+                width={24} 
+                height={24} 
+                className="h-6 w-6 object-contain" 
+                priority
+                fetchPriority="high"
+              />
               <span className="text-sm font-semibold text-foreground">Microsoft Teams</span>
             </div>
             <span className="text-muted-foreground">+</span>
             <div className="flex items-center gap-2">
-              <Image src="/google-meet-logo.png" alt="Google Meet" width={24} height={24} className="h-6 w-6 object-contain" />
+              <Image 
+                src="/google-meet-logo.png" 
+                alt="Google Meet" 
+                width={24} 
+                height={24} 
+                className="h-6 w-6 object-contain" 
+                priority
+                fetchPriority="high"
+              />
               <span className="text-sm font-semibold text-foreground">Google Meet</span>
             </div>
           </div>

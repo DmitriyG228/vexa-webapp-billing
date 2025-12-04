@@ -23,7 +23,10 @@ import './globals.css'
 
 const inter = Inter({ 
   subsets: ['latin'],
-  variable: '--font-inter'
+  variable: '--font-inter',
+  display: 'swap', // Optimize font loading performance
+  preload: true,
+  adjustFontFallback: true,
 })
 
 export const metadata: Metadata = {
@@ -85,15 +88,21 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         
+        {/* Preload critical assets with high priority */}
+        <link rel="preload" href="/logodark.svg" as="image" type="image/svg+xml" fetchPriority="high" />
+        <link rel="preload" href="/microsoft-teams-logo.png" as="image" fetchPriority="high" />
+        <link rel="preload" href="/google-meet-logo.png" as="image" fetchPriority="high" />
+        <link rel="preload" href="/blog_background.png" as="image" fetchPriority="high" />
+        
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://analytics.umami.is" />
-        <link rel="preconnect" href="https://raw.githubusercontent.com" />
         
-        {/* DNS Prefetch for faster connections */}
+        {/* DNS Prefetch for faster connections - lower priority */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://analytics.umami.is" />
         <link rel="dns-prefetch" href="https://api.github.com" />
+        <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
         <script dangerouslySetInnerHTML={{
           __html: `
             document.addEventListener('DOMContentLoaded', function() {
@@ -108,18 +117,23 @@ export default async function RootLayout({
           `
         }} />
         
-        {/* Google Analytics - Inline script for better detection */}
+        {/* Google Analytics - Defer for better performance */}
         {GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-MEASUREMENT_ID' && (
           <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
-            <script dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_MEASUREMENT_ID}');
-              `
-            }} />
+            <script async defer src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
+            <script
+              defer
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${GA_MEASUREMENT_ID}', {
+                    cookie_flags: 'SameSite=None;Secure'
+                  });
+                `
+              }}
+            />
           </>
         )}
 

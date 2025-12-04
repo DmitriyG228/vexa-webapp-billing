@@ -228,12 +228,19 @@ export default async function Post({ params }: PostProps) {
                 <div 
                   className="relative mb-12 rounded-xl overflow-hidden shadow-lg"
                   style={{
-                    backgroundImage: `url(/blog_background.png)`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
                     minHeight: '450px',
                   }}
                 >
+                  {/* Optimized background image using Next.js Image */}
+                  <Image
+                    src="/blog_background.png"
+                    alt=""
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="(max-width: 720px) 100vw, 720px"
+                    quality={85}
+                  />
                   {/* Enhanced gradient overlay - stronger at bottom for text readability */}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/50 to-black/80" />
                   

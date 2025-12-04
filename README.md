@@ -11,15 +11,17 @@ make auth
 # 2. Run locally for development
 make dev
 
-# 3. Deploy to staging
-make deploy-dev
+# 3. Test performance locally (in another terminal)
+make perf                 # Shows performance score + metrics
 
-# 4. (Optional) Setup custom domains
+# 4. Deploy to staging (fast - no secrets update)
+make deploy-dev-fast
+
+# 5. (Optional) Setup custom domains
 make setup-domain-dev
 
-# 5. Deploy to production
-make deploy-prod
-make setup-domain-prod  # Optional: custom domains for production
+# 6. Deploy to production
+make deploy-prod-fast     # or make deploy-prod for full deploy
 ```
 
 ## Services
@@ -127,18 +129,28 @@ Add in `Vexa-ai/blog_articles` repo settings
 
 ### Development
 ```bash
-make dev            # Run webapp locally (port 3002, hot reload)
+make dev               # Run webapp locally (port 3002, hot reload)
+make perf              # Test performance locally (requires dev server running)
 ```
 
 ### Authentication
 ```bash
-make auth           # One-time GCloud authentication (browser-based)
+make auth              # One-time GCloud authentication (browser-based)
 ```
 
 ### Deployment
 ```bash
-make deploy-dev     # Deploy to staging (auto-updates secrets from .env.dev)
-make deploy-prod    # Deploy to production (auto-updates secrets from .env.prod)
+# Fast deploy (code changes only)
+make deploy-dev-fast   # Deploy to staging (no secrets update, faster)
+make deploy-prod-fast  # Deploy to production (no secrets update, faster)
+
+# Full deploy (code + secrets)
+make deploy-dev        # Deploy to staging (auto-updates secrets from .env.dev)
+make deploy-prod       # Deploy to production (auto-updates secrets from .env.prod)
+
+# Secrets only
+make update-vars-dev   # Update secrets without deploying
+make update-vars-prod  # Update secrets without deploying
 ```
 
 ### Custom Domains (Optional)
@@ -211,22 +223,31 @@ vexa-webapp-billing/
 
 ## Daily Workflow
 
-### Local Development
+### Local Development with Performance Testing
 ```bash
-vim apps/webapp/...
-make dev              # Test locally with hot reload
+# Quick dev (hot reload, inaccurate performance)
+make dev              # http://localhost:3002
+
+# Production testing (accurate performance scores)
+# Terminal 1: Build and start production locally
+make build-dev        # Builds + starts on http://localhost:3000 (~1 min)
+
+# Terminal 2: Test performance
+make perf             # Shows: Score, FCP, LCP, TBT, CLS (~30 sec)
+
+# Or use Chrome DevTools (F12 → Lighthouse tab) for instant results
 ```
 
 ### Deploy Changes
 ```bash
-vim apps/webapp/...
-make deploy-dev       # Automatically updates secrets and deploys
-```
+# Code changes only (fastest - no secrets update)
+make deploy-dev-fast       # ~4-5 min
 
-### Update Config
-```bash
-vim .env.dev
-make deploy-dev       # Deploys with updated secrets
+# Code + secrets changed
+make deploy-dev            # ~6-8 min
+
+# Secrets only
+make update-vars-dev       # ~30-60 sec
 ```
 
 ### View Logs
@@ -246,6 +267,31 @@ Managed by Terraform in `deployment/terraform/`:
 
 All infrastructure is version-controlled and reproducible.
 
+## Performance Optimization
+
+### Phase 1 & 2 Implemented ✅
+- Font optimization (`display: swap`)
+- Aggressive caching headers
+- Lazy loading for below-the-fold components
+- Enhanced code splitting
+- Security headers (CSP, COOP)
+- Analytics optimization (requestIdleCallback)
+
+**Current Performance** (Dec 4, 2025):
+- Performance: 64/100 (was 58, +6 points)
+- FCP: 2.2s (was 7.3s, -70% ✅)
+- TBT: 360ms (target: <200ms)
+- LCP: 9.5s (target: <2.5s)
+
+**Phase 2 Expected** (with lazy loading):
+- Performance: 72-75/100 (+8-11 points)
+- TBT: 200-220ms (-40% improvement)
+- LCP: 7.5-8.0s (-20% improvement)
+
+See `apps/webapp/PERFORMANCE_OPTIMIZATION_PLAN.md` and `apps/webapp/PERFORMANCE_PHASE_2.md` for details.
+
+---
+
 ## Troubleshooting
 
 ```bash
@@ -258,9 +304,12 @@ make status           # Add ENV=prod for production
 # View logs
 make logs-webapp      # Add ENV=prod for production
 
+# Test performance locally
+make perf             # Requires dev server running
+
 # Rebuild and redeploy
 make clean
-make deploy-dev       # or make deploy-prod
+make deploy-dev-fast  # or make deploy-prod-fast
 
 # Check Terraform plan before deploying
 make plan ENV=dev     # or ENV=prod

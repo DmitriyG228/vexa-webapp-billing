@@ -50,19 +50,51 @@ trackEvent('event_name', { param1: 'value1', param2: 'value2' });
 
 ## Development
 
-Install dependencies:
-
+### Local Development
+From root directory:
 ```bash
-yarn install
+make dev              # Starts on http://localhost:3002
 ```
 
-Run the development server:
-
+Or from this directory:
 ```bash
-yarn dev
+npm install           # Install dependencies
+npm run dev           # Start dev server
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Performance Testing
+Test performance locally (requires dev server running):
+```bash
+# From root directory
+make perf             # Shows: Score, FCP, LCP, TBT, CLS (~30 sec)
+
+# Or use Chrome DevTools (instant)
+# Open http://localhost:3002
+# Press F12 → Lighthouse tab → Analyze
+```
+
+### Deployment
+```bash
+# From root directory
+make deploy-dev-fast  # Fast deploy (no secrets update, ~4-5 min)
+make deploy-dev       # Full deploy (with secrets, ~6-8 min)
+```
+
+### Performance Optimizations (Phase 1 & 2 Implemented)
+- ✅ Font optimization (`display: swap`)
+- ✅ Aggressive caching (1 year for static assets)
+- ✅ Lazy loading for below-the-fold components
+- ✅ Enhanced code splitting
+- ✅ Security headers (CSP, COOP)
+- ✅ Analytics optimization (requestIdleCallback)
+- ✅ Priority images in hero
+
+**Current Performance**: 64/100 (was 58, +6 points)
+- FCP: 2.2s (was 7.3s, -70% ✅)
+- TBT: 360ms (target: <200ms)
+- LCP: 9.5s (target: <2.5s)
+
+See `PERFORMANCE_OPTIMIZATION_PLAN.md` and `PERFORMANCE_PHASE_2.md` for details.
 
 ## Environment Variables
 

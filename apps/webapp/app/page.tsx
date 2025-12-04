@@ -1,15 +1,16 @@
 'use client';
 
 import { ArrowRight, Github, Star } from "lucide-react";
-import { SplitFeature, CodePane } from "@/components/ui/split-feature"
+import { CodePane } from "@/components/ui/split-feature"
+import { SplitFeature } from "@/components/ui/split-feature"
 import { trackEvent } from '@/lib/analytics'
 import { useEffect, useState } from "react";
 import Hero from "@/components/sections/hero";
-import Features from "@/components/sections/features";
-import { VexaOptions } from "@/components/ui/vexa-options";
-import { LandingBackground, PromoCards, VideoFeature } from "@/components/marketing";
+import { LandingBackground } from "@/components/marketing";
 import { mcpVideoFeature } from "@/lib/marketing/content";
 import { getDefaultPromoCards } from "@/lib/marketing/get-promo-cards";
+// Lazy load below-the-fold components to reduce initial bundle size and TBT
+import { Features, VexaOptions, PromoCards, VideoFeature } from "@/app/components/LazyComponents";
 
 export default function LandingPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<'google_meet' | 'teams'>('google_meet');
@@ -31,10 +32,20 @@ export default function LandingPage() {
     trackEvent('discord_join_click', { location: 'home_cta' });
   };
 
-  // Track page view manually on component mount instead of using PageViewTracker component
+  // Track page view using requestIdleCallback to avoid blocking main thread (reduces TBT)
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Use requestIdleCallback for non-critical analytics to reduce TBT
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          trackEvent('page_view', { page: 'home' });
+        }, { timeout: 2000 });
+      } else {
+        // Fallback for browsers without requestIdleCallback
+        setTimeout(() => {
       trackEvent('page_view', { page: 'home' });
+        }, 100);
+      }
     }
   }, []);
 
