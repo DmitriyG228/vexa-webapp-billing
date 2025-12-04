@@ -92,7 +92,6 @@ export default async function RootLayout({
         <link rel="preload" href="/logodark.svg" as="image" type="image/svg+xml" fetchPriority="high" />
         <link rel="preload" href="/microsoft-teams-logo.png" as="image" fetchPriority="high" />
         <link rel="preload" href="/google-meet-logo.png" as="image" fetchPriority="high" />
-        <link rel="preload" href="/blog_background.png" as="image" fetchPriority="high" />
         
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

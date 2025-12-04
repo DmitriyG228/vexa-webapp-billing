@@ -226,21 +226,31 @@ export default async function Post({ params }: PostProps) {
               <article>
                 {/* Hero Background with Header - Matched to content width */}
                 <div 
-                  className="relative mb-12 rounded-xl overflow-hidden shadow-lg"
+                  className="relative mb-12 rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-slate-800 via-slate-900 to-black"
                   style={{
                     minHeight: '450px',
                   }}
                 >
-                  {/* Optimized background image using Next.js Image */}
-                  <Image
-                    src="/blog_background.png"
-                    alt=""
-                    fill
-                    priority
-                    className="object-cover"
-                    sizes="(max-width: 720px) 100vw, 720px"
-                    quality={85}
-                  />
+                  {/* Responsive background image - WebP for better performance */}
+                  <picture>
+                    <source 
+                      media="(max-width: 768px)" 
+                      srcSet="/blog_background-mobile.webp"
+                      type="image/webp"
+                    />
+                    <source 
+                      media="(min-width: 769px)" 
+                      srcSet="/blog_background.webp"
+                      type="image/webp"
+                    />
+                    <img 
+                      src="/blog_background.png"
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="eager"
+                      fetchpriority="high"
+                    />
+                  </picture>
                   {/* Enhanced gradient overlay - stronger at bottom for text readability */}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/50 to-black/80" />
                   
