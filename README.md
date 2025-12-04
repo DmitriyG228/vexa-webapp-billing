@@ -14,17 +14,29 @@ make dev
 # 3. Deploy to staging
 make deploy-dev
 
-# 4. Deploy to production
+# 4. (Optional) Setup custom domains
+make setup-domain-dev
+
+# 5. Deploy to production
 make deploy-prod
+make setup-domain-prod  # Optional: custom domains for production
 ```
 
 ## Services
 
 **Staging (dev)**:
-- Webapp: https://dev-webapp-733104961366.us-central1.run.app
-- Billing: https://dev-billing-733104961366.us-central1.run.app
+- Direct URLs: 
+  - Webapp: https://dev-webapp-leav4o4omq-uc.a.run.app
+  - Billing: https://dev-billing-leav4o4omq-uc.a.run.app
+- Custom domains (after `make setup-domain-dev`):
+  - Webapp: https://webapp-dev.vexa.ai
+  - Billing: https://billing-dev.vexa.ai
 
-**Production (prod)**: Deploy with `make deploy ENV=prod`
+**Production (prod)**:
+- Deploy with `make deploy-prod`
+- Custom domains (after `make setup-domain-prod`):
+  - Webapp: https://webapp-prod.vexa.ai
+  - Billing: https://billing-prod.vexa.ai
 
 ## Setup (One-Time)
 
@@ -73,7 +85,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 GOOGLE_CLIENT_ID=...apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-...
 NEXTAUTH_SECRET=random_32_chars      # Generate with: openssl rand -base64 32
-NEXTAUTH_URL=https://your-webapp-url.run.app
+NEXTAUTH_URL=https://webapp_dev.vexa.ai  # or https://webapp_prod.vexa.ai
+
+# Portal
+PORTAL_RETURN_URL=https://webapp_dev.vexa.ai  # or https://webapp_prod.vexa.ai
+
+# Cloudflare (optional, for custom domains)
+CLOUDFLARE_TOKEN=your_cloudflare_token_here
 
 # Blog (optional)
 GITHUB_TOKEN=ghp_...
@@ -85,21 +103,23 @@ GITHUB_WEBHOOK_SECRET=
 
 ## Integration URLs
 
+Use your Cloud Run URLs (shown after deployment):
+
 ### Stripe Webhook
 ```
-https://dev-billing-733104961366.us-central1.run.app/v1/stripe/webhook
+https://dev-billing-xxxxx-uc.a.run.app/v1/stripe/webhook
 ```
 Add at: https://dashboard.stripe.com/webhooks
 
 ### OAuth Redirect URI
 ```
-https://dev-webapp-733104961366.us-central1.run.app/api/auth/callback/google
+https://dev-webapp-xxxxx-uc.a.run.app/api/auth/callback/google
 ```
-Add to your OAuth 2.0 Client
+Add to your OAuth 2.0 Client at: https://console.cloud.google.com/apis/credentials
 
 ### Blog Webhook (optional)
 ```
-https://dev-webapp-733104961366.us-central1.run.app/api/github-webhook
+https://dev-webapp-xxxxx-uc.a.run.app/api/github-webhook
 ```
 Add in `Vexa-ai/blog_articles` repo settings
 
@@ -120,6 +140,24 @@ make auth           # One-time GCloud authentication (browser-based)
 make deploy-dev     # Deploy to staging (auto-updates secrets from .env.dev)
 make deploy-prod    # Deploy to production (auto-updates secrets from .env.prod)
 ```
+
+### Custom Domains (Optional)
+```bash
+# Setup custom domains for dev environment
+make setup-domain-dev   # Creates: webapp-dev.vexa.ai, billing-dev.vexa.ai
+
+# Setup custom domains for prod environment
+make setup-domain-prod  # Creates: webapp-prod.vexa.ai, billing-prod.vexa.ai
+```
+
+**What this does:**
+1. Creates Cloud Run domain mappings (tells Cloud Run to accept custom domains)
+2. Updates Cloudflare DNS automatically with CNAME records
+3. Waits for Google to provision SSL certificates (~15-30 min)
+
+**Requirements:**
+- Add `CLOUDFLARE_TOKEN` to your `.env.dev` or `.env.prod` file
+- Or manually add the CNAME records shown by the script if token not set
 
 ### Monitoring
 ```bash
@@ -231,6 +269,11 @@ make plan ENV=dev     # or ENV=prod
 # Ensure .env.dev exists and is readable
 cat .env.dev
 ```
+
+**Common Issues:**
+- **Service not responding**: Check `make status` and `make logs-webapp`
+- **Secret changes not applied**: Run `make update-secrets ENV=dev` after editing `.env.dev`
+- **Build failed**: Check Docker is running and you have enough disk space
 
 ## Cost
 

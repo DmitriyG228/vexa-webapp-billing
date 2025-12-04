@@ -1,4 +1,4 @@
-.PHONY: help init build push deploy deploy-infra deploy-dev deploy-prod destroy clean status dev auth
+.PHONY: help init build push deploy deploy-infra deploy-dev deploy-prod destroy clean status dev auth setup-domain setup-domain-dev setup-domain-prod
 
 # Add gcloud to PATH - checks multiple common installation locations
 GCLOUD_SDK_PATHS := /usr/local/Caskroom/gcloud-cli/*/google-cloud-sdk/bin /opt/homebrew/Caskroom/google-cloud-sdk/*/google-cloud-sdk/bin $(HOME)/google-cloud-sdk/bin
@@ -128,6 +128,47 @@ update-secrets: ## Update secrets from .env file
 	@echo "$(GREEN)Redeploying services to pick up new secrets...$(NC)"
 	@cd deployment/terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve -refresh-only
 	@echo "$(GREEN)✓ Secrets updated and services refreshed$(NC)"
+
+setup-domain: ## Setup custom domain for Cloud Run services (requires CLOUDFLARE_TOKEN)
+	@echo "$(GREEN)Setting up custom domains for $(ENV) environment...$(RESET)"
+	@echo "$(YELLOW)This will:$(RESET)"
+	@echo "  1. Create Cloud Run domain mappings"
+	@echo "  2. Update Cloudflare DNS with CNAME records"
+	@echo "  3. Wait for Google to provision SSL certificates"
+	@echo ""
+	@read -p "Domain for webapp (e.g., webapp-dev.vexa.ai): " WEBAPP_DOMAIN && \
+	read -p "Domain for billing (e.g., billing-dev.vexa.ai): " BILLING_DOMAIN && \
+	./deployment/scripts/setup-custom-domain.sh $(ENV)-webapp $$WEBAPP_DOMAIN $(REGION) && \
+	./deployment/scripts/setup-custom-domain.sh $(ENV)-billing $$BILLING_DOMAIN $(REGION)
+
+setup-domain-dev: ## Setup custom domains for dev (webapp-dev.vexa.ai, billing-dev.vexa.ai)
+	@echo "$(GREEN)Setting up custom domains for DEV environment...$(RESET)"
+	@if [ ! -f .env.dev ]; then \
+		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Loading environment from .env.dev...$(RESET)"
+	@export $$(grep -v '^#' .env.dev | xargs) && \
+	echo "$(YELLOW)Setting up webapp-dev.vexa.ai...$(RESET)" && \
+	./deployment/scripts/setup-custom-domain.sh dev-webapp webapp-dev.vexa.ai $(REGION) && \
+	echo "" && \
+	echo "$(YELLOW)Setting up billing-dev.vexa.ai...$(RESET)" && \
+	./deployment/scripts/setup-custom-domain.sh dev-billing billing-dev.vexa.ai $(REGION)
+
+setup-domain-prod: ## Setup custom domains for prod (webapp-prod.vexa.ai, billing-prod.vexa.ai)
+	@echo "$(GREEN)Setting up custom domains for PROD environment...$(RESET)"
+	@if [ ! -f .env.prod ]; then \
+		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env.prod from .env.prod.example$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Loading environment from .env.prod...$(RESET)"
+	@export $$(grep -v '^#' .env.prod | xargs) && \
+	echo "$(YELLOW)Setting up webapp-prod.vexa.ai...$(RESET)" && \
+	./deployment/scripts/setup-custom-domain.sh prod-webapp webapp-prod.vexa.ai $(REGION) && \
+	echo "" && \
+	echo "$(YELLOW)Setting up billing-prod.vexa.ai...$(RESET)" && \
+	./deployment/scripts/setup-custom-domain.sh prod-billing billing-prod.vexa.ai $(REGION)
 
 # Development and Authentication
 dev: ## Run webapp locally with dev environment variables
