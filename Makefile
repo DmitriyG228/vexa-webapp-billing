@@ -1,4 +1,4 @@
-.PHONY: help init build push deploy deploy-infra deploy-dev deploy-prod destroy clean status dev auth setup-domain setup-domain-dev setup-domain-prod perf build-dev update-vars-dev update-vars-prod deploy-dev-fast deploy-prod-fast
+.PHONY: help init build push deploy deploy-infra destroy clean status dev auth setup-domain perf build-dev update-secrets
 
 # Add gcloud to PATH - checks multiple common installation locations
 GCLOUD_SDK_PATHS := /usr/local/Caskroom/gcloud-cli/*/google-cloud-sdk/bin /opt/homebrew/Caskroom/google-cloud-sdk/*/google-cloud-sdk/bin $(HOME)/google-cloud-sdk/bin
@@ -8,7 +8,10 @@ export PATH := $(GCLOUD_PATH):$(PATH)
 # Configuration
 PROJECT_ID ?= spry-pipe-425611-c4
 REGION ?= us-central1
-ENV ?= dev
+
+# Read ENV from .env file (defaults to dev if not found)
+ENV := $(shell grep -E '^ENV=' .env 2>/dev/null | cut -d'=' -f2 | tr -d '\n' | tr -d '\r' || echo dev)
+
 REGISTRY = $(REGION)-docker.pkg.dev/$(PROJECT_ID)/$(ENV)-vexa-billing
 
 # Colors for output
@@ -20,13 +23,17 @@ help: ## Show this help message
 	@echo '$(GREEN)Vexa Billing Deployment$(RESET)'
 	@echo ''
 	@echo 'Usage:'
-	@echo '  make <target> [ENV=dev|prod]'
+	@echo '  make <target>'
+	@echo ''
+	@echo '$(YELLOW)Configuration:$(RESET)'
+	@echo '  Set ENV=dev or ENV=prod in .env file to determine environment'
+	@echo '  Current environment: $(YELLOW)$(ENV)$(RESET)'
 	@echo ''
 	@echo '$(YELLOW)Quick Start:$(RESET)'
 	@echo '  1. Run "make auth" once to authenticate with GCloud (browser-based)'
-	@echo '  2. Run "make dev" for local development'
-	@echo '  3. Run "make deploy-dev" to deploy to staging'
-	@echo '  4. Run "make deploy-prod" to deploy to production'
+	@echo '  2. Set ENV=dev or ENV=prod in .env file'
+	@echo '  3. Run "make dev" for local development'
+	@echo '  4. Run "make deploy" to deploy to the environment specified in .env'
 	@echo ''
 	@echo 'Targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(RESET) %s\n", $$1, $$2}'
@@ -35,7 +42,7 @@ init: ## Initialize: setup GCP APIs, Terraform backend, and secrets
 	@echo "$(GREEN)Initializing infrastructure...$(RESET)"
 	@./deployment/scripts/terraform-init.sh
 	@echo "$(GREEN)Updating secrets for $(ENV)...$(RESET)"
-	@./deployment/scripts/update-secrets.sh $(ENV)
+	@./deployment/scripts/update-secrets.sh
 	@echo "$(GREEN)Initialization complete!$(RESET)"
 
 build-billing: ## Build billing Docker image
@@ -85,7 +92,17 @@ deploy-infra: ## Deploy infrastructure with Terraform (Cloud Run services, IAM, 
 	@echo "$(YELLOW)Service URLs:$(RESET)"
 	@cd deployment/terraform && terraform output -json | jq -r '.webapp_url.value, .billing_url.value'
 
-deploy: build push deploy-infra ## Full deployment: build images, push, deploy infrastructure
+deploy: ## Full deployment: update secrets, build images, push, deploy infrastructure
+	@echo "$(GREEN)Deploying to $(ENV) environment...$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Error: .env not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env from .env.example and set ENV=dev or ENV=prod$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Updating secrets from .env...$(RESET)"
+	@./deployment/scripts/update-secrets.sh
+	@echo "$(GREEN)Building and deploying...$(RESET)"
+	@$(MAKE) build push deploy-infra
 
 plan: ## Show Terraform plan (what will be deployed)
 	@echo "$(GREEN)Running Terraform plan...$(RESET)"
@@ -120,77 +137,67 @@ logs-billing: ## Tail billing logs
 	@gcloud run services logs read $(ENV)-billing --region=$(REGION) --limit=100
 
 setup-oauth: ## Show OAuth configuration instructions
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Error: .env not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env from .env.example and set ENV=dev or ENV=prod$(RESET)"; \
+		exit 1; \
+	fi
 	@./deployment/scripts/setup-oauth.sh $(ENV)
 
 update-secrets: ## Update secrets from .env file
-	@echo "$(GREEN)Updating secrets for $(ENV)...$(NC)"
-	@./deployment/scripts/update-secrets.sh $(ENV)
-	@echo "$(GREEN)Redeploying services to pick up new secrets...$(NC)"
+	@echo "$(GREEN)Updating secrets for $(ENV)...$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Error: .env not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env from .env.example and set ENV=dev or ENV=prod$(RESET)"; \
+		exit 1; \
+	fi
+	@./deployment/scripts/update-secrets.sh
+	@echo "$(GREEN)Redeploying services to pick up new secrets...$(RESET)"
 	@cd deployment/terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve -refresh-only
-	@echo "$(GREEN)✓ Secrets updated and services refreshed$(NC)"
+	@echo "$(GREEN)✓ Secrets updated and services refreshed$(RESET)"
 
 setup-domain: ## Setup custom domain for Cloud Run services (requires CLOUDFLARE_TOKEN)
 	@echo "$(GREEN)Setting up custom domains for $(ENV) environment...$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Error: .env not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env from .env.example and set ENV=dev or ENV=prod$(RESET)"; \
+		exit 1; \
+	fi
 	@echo "$(YELLOW)This will:$(RESET)"
 	@echo "  1. Create Cloud Run domain mappings"
 	@echo "  2. Update Cloudflare DNS with CNAME records"
 	@echo "  3. Wait for Google to provision SSL certificates"
 	@echo ""
-	@read -p "Domain for webapp (e.g., webapp-dev.vexa.ai): " WEBAPP_DOMAIN && \
-	read -p "Domain for billing (e.g., billing-dev.vexa.ai): " BILLING_DOMAIN && \
+	@read -p "Domain for webapp (e.g., webapp-$(ENV).vexa.ai): " WEBAPP_DOMAIN && \
+	read -p "Domain for billing (e.g., billing-$(ENV).vexa.ai): " BILLING_DOMAIN && \
 	./deployment/scripts/setup-custom-domain.sh $(ENV)-webapp $$WEBAPP_DOMAIN $(REGION) && \
 	./deployment/scripts/setup-custom-domain.sh $(ENV)-billing $$BILLING_DOMAIN $(REGION)
 
-setup-domain-dev: ## Setup custom domains for dev (webapp-dev.vexa.ai, billing-dev.vexa.ai)
-	@echo "$(GREEN)Setting up custom domains for DEV environment...$(RESET)"
-	@if [ ! -f .env.dev ]; then \
-		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Loading environment from .env.dev...$(RESET)"
-	@export $$(grep -v '^#' .env.dev | xargs) && \
-	echo "$(YELLOW)Setting up webapp-dev.vexa.ai...$(RESET)" && \
-	./deployment/scripts/setup-custom-domain.sh dev-webapp webapp-dev.vexa.ai $(REGION) && \
-	echo "" && \
-	echo "$(YELLOW)Setting up billing-dev.vexa.ai...$(RESET)" && \
-	./deployment/scripts/setup-custom-domain.sh dev-billing billing-dev.vexa.ai $(REGION)
-
-setup-domain-prod: ## Setup custom domains for prod (webapp-prod.vexa.ai, billing-prod.vexa.ai)
-	@echo "$(GREEN)Setting up custom domains for PROD environment...$(RESET)"
-	@if [ ! -f .env.prod ]; then \
-		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
-		echo "$(YELLOW)Please create .env.prod from .env.prod.example$(RESET)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Loading environment from .env.prod...$(RESET)"
-	@export $$(grep -v '^#' .env.prod | xargs) && \
-	echo "$(YELLOW)Setting up webapp-prod.vexa.ai...$(RESET)" && \
-	./deployment/scripts/setup-custom-domain.sh prod-webapp webapp-prod.vexa.ai $(REGION) && \
-	echo "" && \
-	echo "$(YELLOW)Setting up billing-prod.vexa.ai...$(RESET)" && \
-	./deployment/scripts/setup-custom-domain.sh prod-billing billing-prod.vexa.ai $(REGION)
-
 # Development and Authentication
-dev: ## Run webapp locally with dev environment variables
+dev: ## Run webapp locally with environment variables from .env
 	@echo "$(GREEN)Starting webapp in development mode...$(RESET)"
-	@echo "$(YELLOW)Loading environment from .env.dev$(RESET)"
-	@if [ ! -f .env.dev ]; then \
-		echo "$(YELLOW)Warning: .env.dev not found$(RESET)"; \
+	@echo "$(YELLOW)Loading environment from .env$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Warning: .env not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env from .env.example$(RESET)"; \
+		exit 1; \
 	fi
-	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run dev
+	@cd apps/webapp && export $$(grep -v '^#' ../../.env | xargs) && npm run dev
 
 build-dev: ## Build and start production version locally for testing
 	@echo "$(GREEN)Building production version locally...$(RESET)"
-	@if [ ! -f .env.dev ]; then \
-		echo "$(YELLOW)Warning: .env.dev not found$(RESET)"; \
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Warning: .env not found$(RESET)"; \
+		echo "$(YELLOW)Please create .env from .env.example$(RESET)"; \
+		exit 1; \
 	fi
-	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run build
+	@cd apps/webapp && export $$(grep -v '^#' ../../.env | xargs) && npm run build
 	@echo "$(GREEN)✓ Production build complete$(RESET)"
 	@echo "$(GREEN)Starting production server on http://localhost:3000$(RESET)"
 	@echo "$(YELLOW)Run 'make perf' in another terminal to test performance$(RESET)"
 	@echo "$(YELLOW)Press Ctrl+C to stop the server$(RESET)"
 	@echo ""
-	@cd apps/webapp && export $$(grep -v '^#' ../../.env.dev | xargs) && npm run start
+	@cd apps/webapp && export $$(grep -v '^#' ../../.env | xargs) && npm run start
 
 perf: ## Run performance test on local production build (requires start-local running)
 	@echo "$(GREEN)Running Lighthouse performance check...$(RESET)"
@@ -228,67 +235,6 @@ auth: ## Authenticate with GCloud (one-time setup, browser-based)
 	@echo "$(GREEN)✓ Authentication complete!$(RESET)"
 	@echo "$(YELLOW)You're now authenticated across all shells$(RESET)"
 
-# Environment-specific deployment
-update-vars-dev: ## Update secrets/variables for dev environment only (no deploy)
-	@echo "$(GREEN)Updating secrets for DEV environment...$(RESET)"
-	@if [ ! -f .env.dev ]; then \
-		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
-		exit 1; \
-	fi
-	@./deployment/scripts/update-secrets.sh dev
-	@echo "$(GREEN)✓ Dev secrets updated$(RESET)"
-
-update-vars-prod: ## Update secrets/variables for prod environment only (no deploy)
-	@echo "$(GREEN)Updating secrets for PROD environment...$(RESET)"
-	@if [ ! -f .env.prod ]; then \
-		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
-		exit 1; \
-	fi
-	@./deployment/scripts/update-secrets.sh prod
-	@echo "$(GREEN)✓ Prod secrets updated$(RESET)"
-
-deploy-dev-fast: ## Deploy to dev WITHOUT updating secrets (faster)
-	@echo "$(GREEN)Fast deploying to DEV environment (skipping secrets update)...$(RESET)"
-	@if [ ! -f .env.dev ]; then \
-		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)⚠️  Skipping secrets update - run 'make update-vars-dev' if needed$(RESET)"
-	@$(MAKE) ENV=dev build push deploy-infra
-
-deploy-prod-fast: ## Deploy to prod WITHOUT updating secrets (faster)
-	@echo "$(GREEN)Fast deploying to PROD environment (skipping secrets update)...$(RESET)"
-	@if [ ! -f .env.prod ]; then \
-		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)⚠️  Skipping secrets update - run 'make update-vars-prod' if needed$(RESET)"
-	@$(MAKE) ENV=prod build push deploy-infra
-
-deploy-dev: ## Deploy to dev/staging environment with automatic secret updates
-	@echo "$(GREEN)Deploying to DEV environment...$(RESET)"
-	@if [ ! -f .env.dev ]; then \
-		echo "$(YELLOW)Error: .env.dev not found$(RESET)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Updating secrets from .env.dev...$(RESET)"
-	@./deployment/scripts/update-secrets.sh dev
-	@echo "$(GREEN)Building and deploying...$(RESET)"
-	@$(MAKE) ENV=dev build push deploy-infra
-
-deploy-prod: ## Deploy to production environment with automatic secret updates
-	@echo "$(GREEN)Deploying to PROD environment...$(RESET)"
-	@if [ ! -f .env.prod ]; then \
-		echo "$(YELLOW)Error: .env.prod not found$(RESET)"; \
-		echo "$(YELLOW)Please create .env.prod from .env.prod.example$(RESET)"; \
-		echo "$(YELLOW)  cp .env.prod.example .env.prod$(RESET)"; \
-		echo "$(YELLOW)  # Then edit .env.prod with production values$(RESET)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Updating secrets from .env.prod...$(RESET)"
-	@./deployment/scripts/update-secrets.sh prod
-	@echo "$(GREEN)Building and deploying...$(RESET)"
-	@$(MAKE) ENV=prod build push deploy-infra
 
 .DEFAULT_GOAL := help
 

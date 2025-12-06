@@ -204,14 +204,9 @@ export default async function RootLayout({
                     <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                       Blog
                     </Link>
-                    {session && (
-                      <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                        Dashboard
-                      </Link>
-                    )}
                   </nav>
                   
-                  {/* Right: GitHub + Theme Toggle + Auth */}
+                  {/* Right: GitHub + Theme Toggle + Dashboard + Auth */}
                   <div className="flex items-center gap-4">
                     <GitHubStarLink className="hidden sm:flex text-muted-foreground hover:text-foreground transition-colors">
                       <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -221,6 +216,22 @@ export default async function RootLayout({
                     </GitHubStarLink>
 
                     <ModeToggle />
+
+                    {session && (
+                      <>
+                        <div className="hidden sm:block h-4 w-px bg-border"></div>
+                        <Button 
+                          asChild 
+                          variant="outline" 
+                          size="sm" 
+                          className="border border-foreground/30 hover:border-foreground/50 dark:border-white/30 dark:hover:border-white/50 bg-transparent hover:bg-accent/50"
+                        >
+                          <Link href="/dashboard">
+                            Dashboard
+                          </Link>
+                        </Button>
+                      </>
+                    )}
 
                     <div className="hidden sm:block h-4 w-px bg-border"></div>
 

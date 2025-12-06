@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { AlertCircle, Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Shield, Trash2, LinkedinIcon, PhoneIcon, SendIcon, CalendarIcon, MessageSquareIcon } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -19,7 +19,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   AlertDialog,
@@ -230,7 +229,6 @@ export default function ApiKeysPage() {
         throw new Error(errorResult.detail || errorResult.error || 'Failed to create API key');
       }
 
-      // Parse the response to check for trial creation
       const result = await response.json();
 
       // Track API key generation event
@@ -250,19 +248,11 @@ export default function ApiKeysPage() {
 
       setNewKeyDialogOpen(false); // Close the dialog
 
-      // Show appropriate success message based on trial creation
-      if (result.trialCreated) {
-        toast({
-          title: "🎉 API Key + 1-Hour FREE Trial Created!",
-          description: `Your API key will work for exactly 1 hour with 1 bot access. ${result.importantNote || 'Add payment method to continue after trial expires.'}`,
-          duration: 8000, // Show longer for important trial info
-        });
-      } else {
-        toast({
-          title: "API key created",
-          description: result.message || "Your new API key has been successfully created.",
-        });
-      }
+      // Show success message
+      toast({
+        title: "API key created",
+        description: result.message || "Your new API key has been successfully created.",
+      });
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -580,19 +570,6 @@ export default function ApiKeysPage() {
                             </Button>
                           </div>
                         </CardContent>
-                        
-                        {/* Show trial warning if this is a newly created key with trial */}
-                        {key.created_at && new Date(key.created_at).getTime() > Date.now() - 5 * 60 * 1000 && (
-                          <div className="mx-6 mb-4 p-3 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-md">
-                            <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
-                              <AlertCircle className="h-4 w-4" />
-                              <span className="font-medium text-sm">1-Hour Trial Active</span>
-                            </div>
-                            <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
-                              This API key will work for 1 hour with access to 1 bot. Add a payment method to continue using it after the trial expires.
-                            </p>
-                          </div>
-                        )}
                         
                         <CardFooter className="flex justify-between">
                            <div className="text-xs text-muted-foreground">Created: {formatDate(key.created_at)}</div>

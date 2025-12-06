@@ -9,19 +9,29 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Parse arguments
-ENVIRONMENT="${1:-dev}"
+# Read ENV from .env file (or use parameter if provided for backward compatibility)
+if [ -n "$1" ]; then
+    ENVIRONMENT="$1"
+else
+    ENV_FILE=".env"
+    if [ ! -f "$ENV_FILE" ]; then
+        echo -e "${RED}Error: .env file not found${NC}"
+        echo "Please create .env from .env.example and set ENV=dev or ENV=prod"
+        exit 1
+    fi
+    ENVIRONMENT=$(grep -E '^ENV=' "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 | tr -d '\n' | tr -d '\r' || echo "dev")
+fi
 
 if [ "$ENVIRONMENT" != "dev" ] && [ "$ENVIRONMENT" != "prod" ]; then
     echo -e "${RED}Error: Invalid environment '${ENVIRONMENT}'${NC}"
-    echo "Usage: $0 [dev|prod]"
+    echo "ENV must be set to 'dev' or 'prod' in .env file"
     exit 1
 fi
 
-ENV_FILE=".env.${ENVIRONMENT}"
+ENV_FILE=".env"
 
 if [ ! -f "$ENV_FILE" ]; then
-    echo -e "${RED}Error: Environment file not found: ${ENV_FILE}${NC}"
+    echo -e "${RED}Error: .env file not found${NC}"
     echo "Please create it based on .env.example"
     exit 1
 fi
@@ -103,5 +113,5 @@ echo ""
 echo -e "${GREEN}=== Secrets Updated Successfully ===${NC}"
 echo ""
 echo "Note: If services are already running, you may need to redeploy them to pick up new secret versions:"
-echo "  make deploy-infra ENV=${ENVIRONMENT}"
+echo "  make deploy-infra"
 
