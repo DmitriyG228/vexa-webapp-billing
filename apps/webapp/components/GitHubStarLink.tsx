@@ -10,7 +10,8 @@ interface GitHubStarLinkProps {
 
 export function GitHubStarLink({ className, children }: GitHubStarLinkProps) {
   const handleClick = () => {
-    // Track GitHub star click event
+    // Track GitHub star click event with enhanced logging
+    console.log('🖱️  [CLICK] GitHub star link clicked');
     trackEvent('github_star_click', {
       event_category: 'engagement',
       event_label: 'github_star',

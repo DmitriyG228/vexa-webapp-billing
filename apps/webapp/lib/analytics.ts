@@ -3,6 +3,34 @@
  */
 
 /**
+ * Helper function to format timestamp for logs
+ */
+function getLogTimestamp(): string {
+  return new Date().toLocaleTimeString('en-US', { 
+    hour12: false, 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    fractionalSecondDigits: 3
+  });
+}
+
+/**
+ * Enhanced console log for GA events with better visibility
+ */
+function logGAEvent(eventName: string, eventParams?: Record<string, string | number | boolean>, method?: string): void {
+  const timestamp = getLogTimestamp();
+  const methodLabel = method ? ` [${method}]` : '';
+  const paramsStr = eventParams ? `\n   Params: ${JSON.stringify(eventParams, null, 2)}` : '';
+  
+  console.log(
+    `%c📊 GA Event${methodLabel} [${timestamp}]`,
+    'color: #4285f4; font-weight: bold; font-size: 12px;',
+    `\n   Event: ${eventName}${paramsStr}`
+  );
+}
+
+/**
  * Track a custom event in Google Analytics
  * @param eventName The name of the event to track
  * @param eventParams Optional parameters for the event
@@ -16,12 +44,12 @@ export function trackEvent(
     if (typeof window !== 'undefined') {
       // If gtag is directly available
       if (window.gtag) {
-        console.log(`📊 Tracking event: ${eventName}`, eventParams);
+        logGAEvent(eventName, eventParams, 'gtag');
         window.gtag('event', eventName, eventParams);
       } 
       // If dataLayer is available, use it (alternative approach)
       else if (window.dataLayer) {
-        console.log(`📊 Tracking event via dataLayer: ${eventName}`, eventParams);
+        logGAEvent(eventName, eventParams, 'dataLayer');
         window.dataLayer.push({
           event: eventName,
           ...eventParams
@@ -29,14 +57,59 @@ export function trackEvent(
       } 
       // No tracking available
       else {
-        console.warn(`📊 GA not loaded. Would track: ${eventName}`, eventParams);
+        console.warn(
+          `%c📊 GA not loaded [${getLogTimestamp()}]`,
+          'color: #ea4335; font-weight: bold;',
+          `\n   Would track: ${eventName}`,
+          eventParams ? `\n   Params: ${JSON.stringify(eventParams, null, 2)}` : ''
+        );
       }
     } else {
-      console.log(`📊 Server-side - Would track: ${eventName}`, eventParams);
+      console.log(
+        `%c📊 Server-side [${getLogTimestamp()}]`,
+        'color: #9aa0a6; font-weight: bold;',
+        `\n   Would track: ${eventName}`,
+        eventParams ? `\n   Params: ${JSON.stringify(eventParams, null, 2)}` : ''
+      );
     }
   } catch (error) {
-    console.error('Error tracking GA event:', error);
+    console.error(
+      `%c❌ GA Error [${getLogTimestamp()}]`,
+      'color: #ea4335; font-weight: bold;',
+      `\n   Event: ${eventName}`,
+      `\n   Error:`,
+      error
+    );
   }
+}
+
+/**
+ * Track a click event with enhanced logging
+ * This is a convenience wrapper around trackEvent specifically for click tracking
+ * @param clickTarget The target of the click (e.g., 'signup_button', 'discord_link')
+ * @param location Optional location context (e.g., 'home_cta', 'pricing_page')
+ * @param additionalParams Optional additional parameters
+ */
+export function trackClick(
+  clickTarget: string,
+  location?: string,
+  additionalParams?: Record<string, string | number | boolean>
+): void {
+  const clickParams: Record<string, string | number | boolean> = {
+    event_category: 'click',
+    event_label: clickTarget,
+    ...(location && { location }),
+    ...additionalParams
+  };
+  
+  const timestamp = getLogTimestamp();
+  console.log(
+    `%c🖱️  Click Tracked [${timestamp}]`,
+    'color: #34a853; font-weight: bold; font-size: 12px;',
+    `\n   Target: ${clickTarget}${location ? `\n   Location: ${location}` : ''}${additionalParams ? `\n   Additional: ${JSON.stringify(additionalParams, null, 2)}` : ''}`
+  );
+  
+  trackEvent('click', clickParams);
 }
 
 /**
@@ -54,7 +127,12 @@ export function trackPageView(path: string, title?: string): void {
     }
     
     if (typeof window !== 'undefined' && window.gtag) {
-      console.log(`📊 Tracking page view: ${path}`);
+      const timestamp = getLogTimestamp();
+      console.log(
+        `%c📊 GA Page View [${timestamp}]`,
+        'color: #4285f4; font-weight: bold; font-size: 12px;',
+        `\n   Path: ${path}${title ? `\n   Title: ${title}` : ''}`
+      );
       window.gtag('config', measurementId, {
         page_path: path,
         page_title: title
@@ -73,7 +151,12 @@ export function trackPageView(path: string, title?: string): void {
 
 // Goal: User confirms they see transcripts (green "Yes" button)
 export function trackTranscriptConfirmation(): void {
-  console.log('🎯 Goal: User confirms they see transcripts');
+  const timestamp = getLogTimestamp();
+  console.log(
+    `%c🎯 Goal Completion [${timestamp}]`,
+    'color: #fbbc04; font-weight: bold; font-size: 12px;',
+    '\n   Goal: User confirms they see transcripts'
+  );
 
   // Google Analytics goal tracking
   trackEvent('goal_completion', {
@@ -93,7 +176,12 @@ export function trackTranscriptConfirmation(): void {
 
 // Goal: User reports they don't see transcripts (red "No" button)
 export function trackTranscriptNotVisible(): void {
-  console.log('🎯 Goal: User reports they don\'t see transcripts');
+  const timestamp = getLogTimestamp();
+  console.log(
+    `%c🎯 Goal Completion [${timestamp}]`,
+    'color: #fbbc04; font-weight: bold; font-size: 12px;',
+    '\n   Goal: User reports they don\'t see transcripts'
+  );
 
   // Google Analytics goal tracking
   trackEvent('goal_completion', {
@@ -113,7 +201,12 @@ export function trackTranscriptNotVisible(): void {
 
 // Goal: API key creation
 export function trackApiKeyCreation(): void {
-  console.log('🎯 Goal: API key creation');
+  const timestamp = getLogTimestamp();
+  console.log(
+    `%c🎯 Goal Completion [${timestamp}]`,
+    'color: #fbbc04; font-weight: bold; font-size: 12px;',
+    '\n   Goal: API key creation'
+  );
 
   // Google Analytics goal tracking
   trackEvent('goal_completion', {

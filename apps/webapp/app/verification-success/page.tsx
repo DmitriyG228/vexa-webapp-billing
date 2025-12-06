@@ -12,6 +12,7 @@ export default function VerificationSuccessPage() {
   }, []);
 
   const handleDiscordClick = () => {
+    console.log('🖱️  [CLICK] Discord join link clicked on verification success page');
     trackEvent('discord_join_click', { location: 'verification_success' });
   };
 

@@ -76,7 +76,8 @@ export function GetStartedButton({
 
   const handleButtonClick = () => {
     if (isEnterprise) {
-      // Track enterprise inquiry event
+      // Track enterprise inquiry event with enhanced logging
+      console.log('🖱️  [CLICK] Enterprise inquiry button clicked');
       trackEvent('enterprise_inquiry', {
         event_category: 'conversion',
         event_label: 'enterprise_contact',

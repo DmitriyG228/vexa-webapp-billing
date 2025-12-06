@@ -1,4 +1,4 @@
-.PHONY: help init build push deploy deploy-infra destroy clean status dev auth setup-domain perf build-dev update-secrets
+.PHONY: help init build push deploy deploy-infra destroy clean clear-cache status dev auth setup-domain perf build-dev update-secrets
 
 # Add gcloud to PATH - checks multiple common installation locations
 GCLOUD_SDK_PATHS := /usr/local/Caskroom/gcloud-cli/*/google-cloud-sdk/bin /opt/homebrew/Caskroom/google-cloud-sdk/*/google-cloud-sdk/bin $(HOME)/google-cloud-sdk/bin
@@ -129,6 +129,14 @@ clean: ## Clean local Docker images
 	@echo "$(GREEN)Cleaning local Docker images...$(RESET)"
 	@docker images | grep $(REGISTRY) | awk '{print $$3}' | xargs docker rmi -f || true
 	@echo "$(GREEN)✓ Cleaned$(RESET)"
+
+clear-cache: ## Clear Next.js cache and restart dev server
+	@echo "$(GREEN)Clearing Next.js cache...$(RESET)"
+	@rm -rf apps/webapp/.next
+	@rm -rf apps/webapp/node_modules/.cache
+	@rm -f apps/webapp/tsconfig.tsbuildinfo
+	@echo "$(GREEN)✓ Cache cleared$(RESET)"
+	@echo "$(YELLOW)Run 'make dev' to start fresh$(RESET)"
 
 logs-webapp: ## Tail webapp logs
 	@gcloud run services logs read $(ENV)-webapp --region=$(REGION) --limit=100

@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { trackEvent } from "@/lib/analytics"
+import { NotificationBanner, NotificationItem } from "@/components/ui/notification-banner"
 
 // Define the structure for an API key (adjust based on actual API response)
 interface ApiKey {
@@ -73,6 +74,7 @@ export default function ApiKeysPage() {
   const [copiedKey, setCopiedKey] = useState<number | "new" | null>(null) // Use token ID or "new"
   const [isLoading, setIsLoading] = useState(true) // Start loading true to fetch keys
   const [error, setError] = useState<string | null>(null) // Error state
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]) // System notifications
 
   // *** Define fetchApiKeys function here to be callable from other functions ***
   const fetchApiKeys = async () => {
@@ -140,6 +142,24 @@ export default function ApiKeysPage() {
   useEffect(() => {
     fetchApiKeys();
   }, [sessionStatus, session]); // Re-run effect when session status or session data changes
+
+  // Fetch system notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('/api/notifications')
+        if (response.ok) {
+          const data = await response.json()
+          setNotifications(data.notifications || [])
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err)
+        // Silently fail - don't show errors to users
+      }
+    }
+
+    fetchNotifications()
+  }, [])
 
   // Format date to relative time (e.g., "2 hours ago")
   const formatRelativeTime = (dateString: string | null | undefined) => {
@@ -231,7 +251,8 @@ export default function ApiKeysPage() {
 
       const result = await response.json();
 
-      // Track API key generation event
+      // Track API key generation event with enhanced logging
+      console.log('🖱️  [CLICK] Create API key button clicked');
       trackEvent('api_key_generated', {
         event_category: 'conversion',
         event_label: 'api_key',
@@ -352,10 +373,12 @@ export default function ApiKeysPage() {
     // It focuses only on the API key management section.
     <PageContainer maxWidth="4xl">
       <Section>
+      {/* System Notifications */}
+      <NotificationBanner notifications={notifications} />
+
       {/* Header Section */} 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">API Keys</h1>
           <p className="mt-2 text-muted-foreground">Create and manage your API keys.</p>
               </div>
         {/* --- Create Key Dialog Trigger --- */}
@@ -435,19 +458,6 @@ export default function ApiKeysPage() {
               */}
             </div>
 
-            {/* Trial Information Banner */}
-            <div className="mb-6 p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-background border border-primary/20 rounded-xl">
-              <div className="text-center space-y-3">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Start 1-hour trial by issuing a new API key
-                </h2>
-                <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                  Each time you create a new API key, you'll automatically get a fresh 1-hour trial with 1 bot access.
-                  This works anytime - you can get a new trial whenever you need one by simply creating another API key.
-                </p>
-              </div>
-            </div>
-
       {/* Display error message if any */} 
       {error && (
         <div className="p-4 bg-destructive/10 text-destructive rounded-md text-sm">
@@ -500,7 +510,7 @@ export default function ApiKeysPage() {
                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                           <div className="space-y-1">
                             <CardTitle>
-                              {key.name || `API Key ${key.id}`}
+                              Your API key
                             </CardTitle>
                             <CardDescription>
                               {key.prefix || "sk_"}...{key.token.slice(-4)}
@@ -573,7 +583,6 @@ export default function ApiKeysPage() {
                         
                         <CardFooter className="flex justify-between">
                            <div className="text-xs text-muted-foreground">Created: {formatDate(key.created_at)}</div>
-                           <div className="text-xs text-muted-foreground">Last used: {formatRelativeTime(key.lastUsed)}</div>
                         </CardFooter>
                       </Card>
                     ))
