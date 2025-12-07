@@ -98,8 +98,19 @@ vars: ## Update all variables: secrets from .env + validate terraform.tfvars + i
 build: ## Build and push Docker images
 	@echo "$(GREEN)Building and pushing images for $(ENV)...$(RESET)"
 	@echo "$(YELLOW)Registry: $(REGISTRY)$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Error: .env not found$(RESET)"; \
+		exit 1; \
+	fi
 	@docker build -f apps/billing/Dockerfile -t $(REGISTRY)/billing:latest -t $(REGISTRY)/billing:$(shell git rev-parse --short HEAD) .
-	@docker build -f apps/webapp/Dockerfile -t $(REGISTRY)/webapp:latest -t $(REGISTRY)/webapp:$(shell git rev-parse --short HEAD) .
+	@GA_ID=$$(grep -E '^NEXT_PUBLIC_GA_MEASUREMENT_ID=' .env 2>/dev/null | cut -d'=' -f2 | tr -d '\n' | tr -d '\r' || echo '') && \
+	UMAMI_ID=$$(grep -E '^NEXT_PUBLIC_UMAMI_WEBSITE_ID=' .env 2>/dev/null | cut -d'=' -f2 | tr -d '\n' | tr -d '\r' || echo '') && \
+	docker build \
+		-f apps/webapp/Dockerfile \
+		--build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID="$$GA_ID" \
+		--build-arg NEXT_PUBLIC_UMAMI_WEBSITE_ID="$$UMAMI_ID" \
+		-t $(REGISTRY)/webapp:latest \
+		-t $(REGISTRY)/webapp:$(shell git rev-parse --short HEAD) .
 	@gcloud auth configure-docker $(REGION)-docker.pkg.dev --quiet
 	@docker push $(REGISTRY)/billing:latest
 	@docker push $(REGISTRY)/webapp:latest
