@@ -69,17 +69,40 @@ done
 
 echo -e "${GREEN}All required APIs enabled${NC}"
 
+# Read ENV from .env file (defaults to dev if not found)
+# Script should be run from project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ENV_FILE="${PROJECT_ROOT}/.env"
+
+if [ -f "$ENV_FILE" ]; then
+    ENV=$(grep -E '^ENV=' "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 | tr -d '\n' | tr -d '\r' || echo "dev")
+else
+    ENV="dev"
+fi
+
+# Validate ENV is either dev or prod
+if [ "$ENV" != "dev" ] && [ "$ENV" != "prod" ]; then
+    echo -e "${YELLOW}Warning: ENV must be either 'dev' or 'prod', got '${ENV}'. Defaulting to 'dev'.${NC}"
+    ENV="dev"
+fi
+
+echo -e "${GREEN}Using environment: ${ENV}${NC}"
+echo -e "${GREEN}State file will be: terraform/state/${ENV}/terraform.tfstate${NC}"
+
 # Initialize Terraform
 echo -e "${YELLOW}Initializing Terraform...${NC}"
 cd deployment/terraform
-terraform init -backend-config="bucket=${BUCKET_NAME}"
+terraform init -reconfigure \
+    -backend-config="bucket=${BUCKET_NAME}" \
+    -backend-config="prefix=terraform/state/${ENV}"
 
 echo -e "${GREEN}=== Initialization Complete ===${NC}"
 echo ""
 echo "Next steps:"
-echo "1. Configure secrets: ./deployment/scripts/update-secrets.sh dev"
-echo "2. Review and update deployment/terraform/environments/dev/terraform.tfvars with your project settings"
-echo "3. Deploy infrastructure: make deploy ENV=dev"
+echo "1. Configure secrets: make provision-secrets (or make update-secrets)"
+echo "2. Review and update deployment/terraform/environments/${ENV}/terraform.tfvars with your project settings"
+echo "3. Deploy infrastructure: make deploy (uses ENV=${ENV} from .env file)"
 
 
 
