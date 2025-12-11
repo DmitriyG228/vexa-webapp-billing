@@ -10,7 +10,7 @@ GCLOUD_PATH := $(shell for path in $(GCLOUD_SDK_PATHS); do [ -f "$$path/gcloud" 
 export PATH := $(GCLOUD_PATH):$(PATH)
 
 # Configuration
-PROJECT_ID ?= spry-pipe-425611-c4
+PROJECT_ID ?= vexa-prod-20251211
 REGION ?= us-central1
 
 # Read ENV from .env file (defaults to dev if not found)
@@ -68,9 +68,9 @@ vars: ## Update all variables: secrets from .env + validate terraform.tfvars + i
 	@./deployment/scripts/update-secrets.sh
 	@if [ -f deployment/terraform/environments/$(ENV)/terraform.tfvars ]; then \
 		echo "$(YELLOW)Checking for stale locks...$(RESET)"; \
-		gsutil rm gs://vexa-billing-terraform-state/terraform/state/$(ENV)/default.tflock 2>/dev/null || true; \
+		gsutil rm gs://vexa-prod-billing-terraform-state/terraform/state/$(ENV)/default.tflock 2>/dev/null || true; \
 		echo "$(YELLOW)Initializing Terraform...$(RESET)"; \
-		cd deployment/terraform && terraform init -reconfigure -backend-config="prefix=terraform/state/$(ENV)" -backend-config="bucket=vexa-billing-terraform-state" >/dev/null 2>&1 && \
+		cd deployment/terraform && terraform init -reconfigure -backend-config="prefix=terraform/state/$(ENV)" -backend-config="bucket=vexa-prod-billing-terraform-state" >/dev/null 2>&1 && \
 		echo "$(YELLOW)Importing existing resources if needed...$(RESET)" && \
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.artifact_registry.google_artifact_registry_repository.docker_repo projects/$(PROJECT_ID)/locations/$(REGION)/repositories/$(ENV)-vexa-billing 2>/dev/null && echo "  ✓ Artifact Registry repository" || echo "  ⚠ Artifact Registry (may not exist or already imported)" && \
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.stripe_secret_key projects/$(PROJECT_ID)/secrets/$(ENV)-stripe-secret-key 2>/dev/null && echo "  ✓ stripe-secret-key" || echo "  ⚠ stripe-secret-key" && \
@@ -120,8 +120,8 @@ deploy: ## Deploy to Cloud Run
 	@echo "$(GREEN)Deploying to $(ENV)...$(RESET)"
 	@echo "$(YELLOW)State file: terraform/state/$(ENV)/terraform.tfstate$(RESET)"
 	@echo "$(YELLOW)Checking for stale locks...$(RESET)"
-	@gsutil rm gs://vexa-billing-terraform-state/terraform/state/$(ENV)/default.tflock 2>/dev/null || true
-	@cd deployment/terraform && terraform init -reconfigure -backend-config="prefix=terraform/state/$(ENV)" -backend-config="bucket=vexa-billing-terraform-state"
+	@gsutil rm gs://vexa-prod-billing-terraform-state/terraform/state/$(ENV)/default.tflock 2>/dev/null || true
+	@cd deployment/terraform && terraform init -reconfigure -backend-config="prefix=terraform/state/$(ENV)" -backend-config="bucket=vexa-prod-billing-terraform-state"
 	@cd deployment/terraform && terraform workspace select default 2>/dev/null || true
 	@echo "$(YELLOW)Importing existing resources if needed...$(RESET)"
 	@cd deployment/terraform && ( \
@@ -149,7 +149,7 @@ unlock: ## Force unlock Terraform state (use if you get state lock errors)
 	@echo "$(YELLOW)Force unlocking Terraform state for $(ENV)...$(RESET)"
 	@echo "$(YELLOW)Warning: Only use this if you're sure no other Terraform operations are running$(RESET)"
 	@echo "$(YELLOW)Removing lock file from GCS...$(RESET)"
-	@gsutil rm gs://vexa-billing-terraform-state/terraform/state/$(ENV)/default.tflock 2>/dev/null && echo "$(GREEN)✓ Lock file removed$(RESET)" || echo "$(YELLOW)Lock file not found or already removed$(RESET)"
+	@gsutil rm gs://vexa-prod-billing-terraform-state/terraform/state/$(ENV)/default.tflock 2>/dev/null && echo "$(GREEN)✓ Lock file removed$(RESET)" || echo "$(YELLOW)Lock file not found or already removed$(RESET)"
 
 dns: ## Setup Cloudflare DNS → GCP Cloud Run for custom domain
 	@echo "$(GREEN)Setting up DNS for $(ENV) environment...$(RESET)"

@@ -4,7 +4,7 @@ environment = "prod"
 region      = "us-central1"
 
 # GCP project ID
-project_id = "spry-pipe-425611-c4"
+project_id = "vexa-prod-20251211"
 
 # Repository configuration
 repository_name = "Vexa-ai/vexa-webapp-billing"

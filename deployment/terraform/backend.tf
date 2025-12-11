@@ -5,7 +5,7 @@
 
 terraform {
   backend "gcs" {
-    bucket = "vexa-billing-terraform-state"
+    bucket = "vexa-prod-billing-terraform-state"
     # prefix is set via -backend-config="prefix=terraform/state/{environment}" during init
   }
 }

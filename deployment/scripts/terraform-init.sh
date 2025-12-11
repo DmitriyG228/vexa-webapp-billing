@@ -36,7 +36,7 @@ fi
 echo -e "${GREEN}Using GCP Project: ${PROJECT_ID}${NC}"
 
 # Create GCS bucket for Terraform state if it doesn't exist
-BUCKET_NAME="vexa-billing-terraform-state"
+BUCKET_NAME="vexa-prod-billing-terraform-state"
 REGION="us-central1"
 
 echo -e "${YELLOW}Checking if state bucket exists...${NC}"
