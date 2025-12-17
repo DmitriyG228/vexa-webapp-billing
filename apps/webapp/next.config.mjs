@@ -7,20 +7,12 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Make BILLING_URL available on server-side
-  serverRuntimeConfig: {
-    billingUrl: process.env.BILLING_URL || 'http://localhost:19000',
-  },
-  // Make public environment variables available on client-side if needed
-  publicRuntimeConfig: {
-    // Add any client-side configs here if needed
-  },
+  // Use webpack explicitly to avoid Turbopack conflicts
+  webpack: true,
+  turbopack: {},
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

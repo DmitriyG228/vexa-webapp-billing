@@ -191,7 +191,7 @@ dev: ## Run webapp locally
 		echo "$(YELLOW)Error: .env not found$(RESET)"; \
 		exit 1; \
 	fi
-	@cd apps/webapp && export $$(grep -v '^#' ../../.env | xargs) && npm run dev
+	@bash -c 'export NVM_DIR="$$HOME/.nvm" && [ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh" && cd apps/webapp && nvm use 20 && export $$(grep -v "^#" ../../.env | xargs) && npm run dev'
 
 auth: ## Authenticate with GCloud
 	@gcloud auth login
