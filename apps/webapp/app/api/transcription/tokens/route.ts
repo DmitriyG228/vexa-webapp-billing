@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
-import { listUserTokens, createUserToken } from '@/lib/transcription-client';
+import { listUserTokens, createUserToken, getOrCreateApiToken } from '@/lib/transcription-client';
 
 /**
  * GET /api/transcription/tokens
  * List all API tokens for the authenticated user
+ * Auto-creates the user if they don't exist (for new users)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +19,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // First, ensure the user exists by calling getOrCreateApiToken
+    // This will auto-create the user and a default token if they don't exist
+    // This is necessary because listUserTokens doesn't auto-create users
+    try {
+      await getOrCreateApiToken({
+        email: session.user.email,
+        name: session.user.name || null,
+      });
+    } catch (createError) {
+      // If user creation fails with a non-404 error, re-throw it
+      // (e.g., 403 Forbidden, 500 Server Error)
+      const createErrorMessage = createError instanceof Error ? createError.message : String(createError);
+      if (!createErrorMessage.includes('404') && !createErrorMessage.includes('not found')) {
+        throw createError;
+      }
+      // For 404 errors, the user might not exist yet, but we'll try to list tokens anyway
+      // If listUserTokens also fails with 404, we'll handle it in the outer catch block
+    }
+
+    // Now list all tokens for the user
+    // If the user still doesn't exist (edge case), this will throw a 404
     const response = await listUserTokens({
       email: session.user.email,
     });

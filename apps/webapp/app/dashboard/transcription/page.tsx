@@ -22,7 +22,6 @@ import {
   Save, 
   MoreHorizontal,
   RefreshCw,
-  Sparkles,
   Clock,
   Calendar,
   HelpCircle,
@@ -33,6 +32,12 @@ import { Button } from "@/components/ui/button"
 import { PageContainer, Section } from "@/components/ui/page-container"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -168,14 +173,23 @@ export default function TranscriptionPage() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.detail || 'Failed to fetch tokens');
+        const errorMessage = errorData.error || errorData.detail || errorData.message || 'Failed to fetch tokens';
+        
+        // For "User not found" errors, provide a more helpful message
+        // This typically happens for new users before their account is fully set up
+        if (errorMessage.includes('not found') || errorMessage.includes('User not found')) {
+          throw new Error('Setting up your account... Please try again in a moment.');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       setTokensData(data);
     } catch (err) {
       console.error('Error fetching tokens:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -765,19 +779,21 @@ export default function TranscriptionPage() {
                   
                   {/* Purchase Section - Inline */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <div className="relative w-24">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none z-10">$</span>
-                      <Input
+                    <InputGroup className="w-24 h-8">
+                      <InputGroupAddon>
+                        <InputGroupText>$</InputGroupText>
+                      </InputGroupAddon>
+                      <InputGroupInput
                         id="purchase-amount"
                         type="number"
                         min="5"
                         step="0.01"
                         value={purchaseAmount}
                         onChange={(e) => setPurchaseAmount(e.target.value)}
-                        className="pl-7 pr-2 h-8 text-sm"
                         placeholder="5"
+                        className="text-sm"
                       />
-                    </div>
+                    </InputGroup>
                     <div className="flex items-center gap-1">
                       {quickPickAmounts.map((amount) => (
                         <Button
@@ -832,10 +848,6 @@ export default function TranscriptionPage() {
                 <TabsTrigger value="usage" className="flex-1">
                   <Activity className="h-4 w-4 mr-2" />
                   Usage Statistics
-                </TabsTrigger>
-                <TabsTrigger value="examples" className="flex-1">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Usage Examples
                 </TabsTrigger>
               </TabsList>
 
@@ -1217,219 +1229,6 @@ export default function TranscriptionPage() {
                         <p className="text-xs text-muted-foreground mt-1">Please try refreshing the page</p>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Usage Examples Tab */}
-              <TabsContent value="examples" className="mt-6">
-                <Card>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">API Usage Examples</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Code examples for using your API keys with the transcription service
-                      </p>
-                    </div>
-                    <Tabs defaultValue="curl" className="w-full">
-                      <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="curl">cURL</TabsTrigger>
-                        <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                        <TabsTrigger value="python">Python</TabsTrigger>
-                        <TabsTrigger value="node">Node.js</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="curl" className="mt-4">
-                        <div className="rounded-lg bg-muted p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-xs font-mono text-muted-foreground">cURL</Label>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => {
-                                const code = `curl -X POST https://transcription.vexa.ai/v1/audio/transcriptions \\
-  -H "X-API-Key: YOUR_API_KEY" \\
-  -F "file=@audio.mp3"`
-                                navigator.clipboard.writeText(code);
-                                toast({
-                                  title: "Code copied",
-                                  description: "cURL example copied to clipboard",
-                                });
-                              }}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <pre className="text-xs font-mono overflow-x-auto">
-                            <code>{`curl -X POST https://transcription.vexa.ai/v1/audio/transcriptions \\
-  -H "X-API-Key: YOUR_API_KEY" \\
-  -F "file=@audio.mp3"`}</code>
-                          </pre>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="javascript" className="mt-4">
-                        <div className="rounded-lg bg-muted p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-xs font-mono text-muted-foreground">JavaScript (Fetch)</Label>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => {
-                                const code = `const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-const response = await fetch('https://transcription.vexa.ai/v1/audio/transcriptions', {
-  method: 'POST',
-  headers: {
-    'X-API-Key': 'YOUR_API_KEY'
-  },
-  body: formData
-});
-
-const data = await response.json();`
-                                navigator.clipboard.writeText(code);
-                                toast({
-                                  title: "Code copied",
-                                  description: "JavaScript example copied to clipboard",
-                                });
-                              }}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <pre className="text-xs font-mono overflow-x-auto">
-                            <code>{`const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-const response = await fetch(
-  'https://transcription.vexa.ai/v1/audio/transcriptions',
-  {
-    method: 'POST',
-    headers: {
-      'X-API-Key': 'YOUR_API_KEY'
-    },
-    body: formData
-  }
-);
-
-const data = await response.json();`}</code>
-                          </pre>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="python" className="mt-4">
-                        <div className="rounded-lg bg-muted p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-xs font-mono text-muted-foreground">Python (requests)</Label>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => {
-                                const code = `import requests
-
-url = "https://transcription.vexa.ai/v1/audio/transcriptions"
-headers = {"X-API-Key": "YOUR_API_KEY"}
-
-with open("audio.mp3", "rb") as f:
-    files = {"file": f}
-    response = requests.post(url, headers=headers, files=files)
-
-data = response.json()`
-                                navigator.clipboard.writeText(code);
-                                toast({
-                                  title: "Code copied",
-                                  description: "Python example copied to clipboard",
-                                });
-                              }}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <pre className="text-xs font-mono overflow-x-auto">
-                            <code>{`import requests
-
-url = "https://transcription.vexa.ai/v1/audio/transcriptions"
-headers = {"X-API-Key": "YOUR_API_KEY"}
-
-with open("audio.mp3", "rb") as f:
-    files = {"file": f}
-    response = requests.post(url, headers=headers, files=files)
-
-data = response.json()`}</code>
-                          </pre>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="node" className="mt-4">
-                        <div className="rounded-lg bg-muted p-4 border">
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-xs font-mono text-muted-foreground">Node.js</Label>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2"
-                              onClick={() => {
-                                const code = `const FormData = require('form-data');
-const fs = require('fs');
-const axios = require('axios');
-
-const form = new FormData();
-form.append('file', fs.createReadStream('audio.mp3'));
-
-const response = await axios.post(
-  'https://transcription.vexa.ai/v1/audio/transcriptions',
-  form,
-  {
-    headers: {
-      'X-API-Key': 'YOUR_API_KEY',
-      ...form.getHeaders()
-    }
-  }
-);
-
-console.log(response.data);`
-                                navigator.clipboard.writeText(code);
-                                toast({
-                                  title: "Code copied",
-                                  description: "Node.js example copied to clipboard",
-                                });
-                              }}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <pre className="text-xs font-mono overflow-x-auto">
-                            <code>{`const FormData = require('form-data');
-const fs = require('fs');
-const axios = require('axios');
-
-const form = new FormData();
-form.append('file', fs.createReadStream('audio.mp3'));
-
-const response = await axios.post(
-  'https://transcription.vexa.ai/v1/audio/transcriptions',
-  form,
-  {
-    headers: {
-      'X-API-Key': 'YOUR_API_KEY',
-      ...form.getHeaders()
-    }
-  }
-);
-
-console.log(response.data);`}</code>
-                          </pre>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                    <div className="rounded-lg bg-blue-50/50 dark:bg-blue-950/20 p-3 border border-blue-200/50 dark:border-blue-800/50">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                        <p className="text-xs text-blue-900 dark:text-blue-100">
-                          Replace <code className="px-1 py-0.5 bg-blue-200 dark:bg-blue-800 rounded text-xs font-mono">YOUR_API_KEY</code> with your actual API key from the API Keys tab.
-                        </p>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
