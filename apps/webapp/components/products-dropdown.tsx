@@ -2,59 +2,41 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { ChevronDown } from "lucide-react"
 import {
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
 
 export function ProductsDropdown() {
   return (
-    <NavigationMenuItem>
-      <NavigationMenuTrigger>Products</NavigationMenuTrigger>
-      <NavigationMenuContent>
-        <ul className="grid w-[200px] gap-3 p-4">
-          <li>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/product/google-meet-transcription-api"
-                className={cn(
-                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                )}
-              >
-                <div className="text-sm font-medium leading-none">Google Meet</div>
-              </Link>
-            </NavigationMenuLink>
-          </li>
-          <li>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/product/microsoft-teams-transcription-api"
-                className={cn(
-                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                )}
-              >
-                <div className="text-sm font-medium leading-none">Microsoft Teams</div>
-              </Link>
-            </NavigationMenuLink>
-          </li>
-          <li>
-            <NavigationMenuLink asChild>
-              <Link
-                href="/open-source"
-                className={cn(
-                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                )}
-              >
-                <div className="text-sm font-medium leading-none">Open Source</div>
-              </Link>
-            </NavigationMenuLink>
-          </li>
-        </ul>
-      </NavigationMenuContent>
-    </NavigationMenuItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger className={cn(navigationMenuTriggerStyle(), "gap-1")}>
+        Products
+        <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[200px]">
+        <DropdownMenuItem asChild>
+          <Link href="/product/google-meet-transcription-api">
+            Google Meet
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/product/microsoft-teams-transcription-api">
+            Microsoft Teams
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/open-source">
+            Open Source
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

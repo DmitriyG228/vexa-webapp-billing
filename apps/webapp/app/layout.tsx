@@ -187,10 +187,11 @@ export default async function RootLayout({
                   </div>
 
                   {/* Center: Navigation */}
-                  <NavigationMenu className="hidden md:flex">
-                    <NavigationMenuList>
-                      <ProductsDropdown />
-                      <NavigationMenuItem>
+                  <div className="hidden md:flex items-center gap-1 flex-1">
+                    <ProductsDropdown />
+                    <NavigationMenu className="flex">
+                      <NavigationMenuList>
+                        <NavigationMenuItem>
                         <NavigationMenuLink asChild>
                           <Link href="/get-started" className={navigationMenuTriggerStyle()}>
                             Get Started
@@ -225,9 +226,10 @@ export default async function RootLayout({
                       </NavigationMenuItem>
                     </NavigationMenuList>
                   </NavigationMenu>
+                  </div>
                   
                   {/* Right: GitHub + Theme Toggle + Dashboard + Auth */}
-                  <div className="flex flex-1 items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-2 ml-4">
                     <Button variant="ghost" size="icon" className="hidden sm:flex" asChild>
                       <a
                         href="https://github.com/Vexa-ai/vexa"
@@ -244,7 +246,7 @@ export default async function RootLayout({
                     <ModeToggle />
 
                     {session && (
-                      <Button asChild variant="ghost" size="sm">
+                      <Button asChild variant="default" size="sm" className="font-semibold">
                         <Link href="/dashboard">
                           Dashboard
                         </Link>
