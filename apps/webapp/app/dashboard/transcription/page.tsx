@@ -24,7 +24,9 @@ import {
   RefreshCw,
   Sparkles,
   Clock,
-  Calendar
+  Calendar,
+  HelpCircle,
+  ExternalLink
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -651,11 +653,30 @@ export default function TranscriptionPage() {
               Back to Dashboard
             </Button>
           </Link>
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Transcription Service</h1>
-            <p className="text-muted-foreground text-sm">
-              Manage your API keys and transcription minutes. Create multiple keys for different applications.
-            </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <h1 className="text-3xl font-bold tracking-tight">Transcription Service</h1>
+              <p className="text-muted-foreground text-sm">
+                Manage your API keys and transcription minutes. Create multiple keys for different applications.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="shrink-0"
+            >
+              <a 
+                href="https://discord.gg/KXpwveJewr" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Support
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </Button>
           </div>
         </div>
 
