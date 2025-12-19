@@ -19,11 +19,11 @@ function addSecurityHeaders(response: NextResponse) {
   // Content Security Policy (CSP) - Strict but allowing necessary third parties
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://analytics.umami.is https://*.vercel-scripts.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://analytics.umami.is https://cloud.umami.is https://*.vercel-scripts.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "connect-src 'self' https://www.google-analytics.com https://analytics.umami.is https://api.github.com https://*.vercel.com wss://*.pusher.com",
+    "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.umami.is https://api.github.com https://*.vercel.com https://transcription.vexa.ai wss://*.pusher.com",
     "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
     "object-src 'none'",
     "base-uri 'self'",
@@ -37,8 +37,8 @@ function addSecurityHeaders(response: NextResponse) {
   return response;
 }
 
-// Main middleware function
-export function middleware(request: NextRequest) {
+// Main proxy function (replaces middleware in Next.js 16)
+export function proxy(request: NextRequest) {
   // Apply security headers to all responses
   const response = NextResponse.next();
   addSecurityHeaders(response);
@@ -46,8 +46,8 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// This config specifies that the middleware applies
-// to all routes (for security headers) and /dashboard for auth
+// This config specifies that the proxy applies
+// to all routes (for security headers)
 export const config = {
   matcher: [
     /*
@@ -60,3 +60,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
+

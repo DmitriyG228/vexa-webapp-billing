@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
-import { getOrCreateApiToken } from '@/lib/transcription-client';
+import { getOrCreateApiToken, revokeApiToken, regenerateApiToken } from '@/lib/transcription-client';
 
 /**
  * GET /api/transcription/api-key
@@ -35,6 +35,12 @@ export async function GET(request: NextRequest) {
       token_created_at: response.token_created_at,
       token_last_used_at: response.token_last_used_at,
       is_active: response.is_active,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
     });
   } catch (error) {
     console.error('Error getting transcription API key:', error);
@@ -83,9 +89,145 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/transcription/api-key
- * Creates a new API key for the transcription service (same as GET, but explicit)
+ * Regenerates a new API key for the transcription service
+ * This will create a new token, effectively revoking the old one
  */
 export async function POST(request: NextRequest) {
-  return GET(request);
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in.' },
+        { status: 401 }
+      );
+    }
+
+    // Regenerate API token - this will delete the old token and create a new one
+    const response = await regenerateApiToken({
+      email: session.user.email,
+      name: session.user.name || null,
+    });
+
+    return NextResponse.json({
+      api_token: response.api_token,
+      user_id: response.user_id,
+      email: response.email,
+      name: response.name,
+      balance_minutes: response.balance_minutes,
+      token_created_at: response.token_created_at,
+      token_last_used_at: response.token_last_used_at,
+      is_active: response.is_active,
+      message: 'API key regenerated successfully',
+    });
+  } catch (error) {
+    console.error('Error regenerating transcription API key:', error);
+    
+    let errorMessage = 'Failed to regenerate API key';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Check if it's a transcription gateway API error
+      if (errorMessage.includes('Transcription Gateway API error')) {
+        // Extract the actual error detail from the message
+        const match = errorMessage.match(/\((\d+)\):\s*(.+)/);
+        if (match) {
+          statusCode = parseInt(match[1], 10);
+          errorMessage = match[2];
+        }
+      }
+    } else {
+      errorMessage = String(error);
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Failed to regenerate API key',
+        message: errorMessage,
+        detail: error instanceof Error ? error.stack : undefined
+      },
+      { status: statusCode }
+    );
+  }
 }
+
+/**
+ * DELETE /api/transcription/api-key
+ * Revokes the current API key and regenerates a new one
+ * This provides better UX - user doesn't lose access, just gets a new key
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in.' },
+        { status: 401 }
+      );
+    }
+
+    // Regenerate the API token (this will delete the old one and create a new one)
+    console.log('[DELETE /api/transcription/api-key] Starting token regeneration for:', session.user.email);
+    
+    const response = await regenerateApiToken({
+      email: session.user.email,
+      name: session.user.name || null,
+    });
+
+    console.log('[DELETE /api/transcription/api-key] Successfully regenerated token for:', session.user.email, 'Response keys:', Object.keys(response));
+
+    if (!response || !response.api_token) {
+      console.error('[DELETE /api/transcription/api-key] Invalid response from regenerateApiToken:', response);
+      throw new Error('Invalid response from transcription gateway: missing api_token');
+    }
+
+    return NextResponse.json({
+      message: 'API key revoked and regenerated',
+      api_token: response.api_token,
+      user_id: response.user_id,
+      email: response.email,
+      name: response.name,
+      balance_minutes: response.balance_minutes,
+      token_created_at: response.token_created_at,
+      token_last_used_at: response.token_last_used_at,
+      is_active: response.is_active,
+    }, { status: 200 });
+  } catch (error) {
+    console.error('Error revoking transcription API key:', error);
+    
+    let errorMessage = 'Failed to revoke API key';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Check if it's a transcription gateway API error
+      if (errorMessage.includes('Transcription Gateway API error')) {
+        // Extract the actual error detail from the message
+        const match = errorMessage.match(/\((\d+)\):\s*(.+)/);
+        if (match) {
+          statusCode = parseInt(match[1], 10);
+          errorMessage = match[2];
+        }
+      }
+    } else {
+      errorMessage = String(error);
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Failed to revoke API key',
+        message: errorMessage,
+        detail: error instanceof Error ? error.stack : undefined
+      },
+      { status: statusCode }
+    );
+  }
+}
+
+
+
 

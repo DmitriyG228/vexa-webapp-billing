@@ -416,28 +416,6 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Transcription Service Quick Access */}
-        <Card className="lg:col-span-1 md:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transcription Service</CardTitle>
-            <Key className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Get your transcription API key and manage minutes
-              </p>
-              <Link href="/dashboard/transcription">
-                <Button className="w-full" variant="outline">
-                  <Key className="h-4 w-4 mr-2" />
-                  Transcription Service
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Subscription Management Section - Always show manage subscription button */}
