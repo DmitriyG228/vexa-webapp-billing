@@ -2,48 +2,59 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ChevronDown } from "lucide-react"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu"
+import { cn } from "@/lib/utils"
 
 export function ProductsDropdown() {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-        Products
-        <ChevronDown className="h-4 w-4 transition-transform group-hover:text-foreground" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuItem asChild>
-          <Link
-            href="/product/google-meet-transcription-api"
-            className="w-full cursor-pointer"
-          >
-            Google Meet
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href="/product/microsoft-teams-transcription-api"
-            className="w-full cursor-pointer"
-          >
-            Microsoft Teams
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link
-            href="/open-source"
-            className="w-full cursor-pointer"
-          >
-            Open Source
-          </Link>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <NavigationMenuItem>
+      <NavigationMenuTrigger>Products</NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <ul className="grid w-[200px] gap-3 p-4">
+          <li>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/product/google-meet-transcription-api"
+                className={cn(
+                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                )}
+              >
+                <div className="text-sm font-medium leading-none">Google Meet</div>
+              </Link>
+            </NavigationMenuLink>
+          </li>
+          <li>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/product/microsoft-teams-transcription-api"
+                className={cn(
+                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                )}
+              >
+                <div className="text-sm font-medium leading-none">Microsoft Teams</div>
+              </Link>
+            </NavigationMenuLink>
+          </li>
+          <li>
+            <NavigationMenuLink asChild>
+              <Link
+                href="/open-source"
+                className={cn(
+                  "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                )}
+              >
+                <div className="text-sm font-medium leading-none">Open Source</div>
+              </Link>
+            </NavigationMenuLink>
+          </li>
+        </ul>
+      </NavigationMenuContent>
+    </NavigationMenuItem>
   )
 }
 

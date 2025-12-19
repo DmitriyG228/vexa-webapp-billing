@@ -7,10 +7,10 @@ import { getAdminAPIClient } from '@/lib/admin-api-client';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { tokenId: string } }
+  { params }: { params: Promise<{ tokenId: string }> }
 ) {
   try {
-    const tokenId = params.tokenId;
+    const { tokenId } = await params;
 
     if (!tokenId) {
       return NextResponse.json(

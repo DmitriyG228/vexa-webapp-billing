@@ -88,6 +88,7 @@ import {
   EmptyMedia,
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
+import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 import {
   Tabs,
   TabsContent,
@@ -659,19 +660,17 @@ export default function TranscriptionPage() {
   return (
     <PageContainer>
       <Section>
+        {/* Dashboard Tabs */}
+        <div className="mb-8">
+          <DashboardTabs />
+        </div>
+        
         {/* Header Section - Improved spacing and typography */}
         <div className="mb-8 space-y-4">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="mb-2 -ml-2">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1 flex-1">
-              <h1 className="text-3xl font-bold tracking-tight">Transcription Service</h1>
-              <p className="text-muted-foreground text-sm">
-                Manage your API keys and transcription minutes. Create multiple keys for different applications.
+              <p className="text-sm text-muted-foreground">
+                Transcription service dashboard
               </p>
             </div>
             <Button

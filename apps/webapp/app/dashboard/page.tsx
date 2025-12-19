@@ -24,11 +24,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2, Shield, Mail, BarChart3 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2, Shield, Mail, BarChart3, Eye, EyeOff, Copy, Check, Plus, Trash2, HelpCircle, ExternalLink } from "lucide-react"
 import { PageContainer, Section } from "@/components/ui/page-container"
 import { Metric } from "@/components/ui/metric"
 import { NotificationBanner, NotificationItem } from "@/components/ui/notification-banner"
 import { NotificationRefreshButton } from "@/components/dashboard/notification-refresh-button"
+import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
+import { Separator } from "@/components/ui/separator"
 
 interface UserData {
   id: number
@@ -47,6 +58,19 @@ interface UserData {
   }
 }
 
+interface ApiKey {
+  id: number
+  token: string
+  user_id: number
+  created_at: string
+  name?: string
+  prefix?: string
+  active?: boolean
+  lastUsed?: string | null
+  expiredAt?: string | null
+  type?: 'live' | 'test'
+}
+
 export default function DashboardPage() {
   const { data: session, status: sessionStatus } = useSession()
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -54,6 +78,13 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [visibleKeys, setVisibleKeys] = useState<Record<number, boolean>>({})
+  const [newKeyDialogOpen, setNewKeyDialogOpen] = useState(false)
+  const [copiedKey, setCopiedKey] = useState<number | "new" | null>(null)
+  const [isLoadingApiKeys, setIsLoadingApiKeys] = useState(false)
 
 
 
@@ -113,7 +144,159 @@ export default function DashboardPage() {
     fetchNotifications()
   }, [])
 
+  // Fetch API keys
+  const fetchApiKeys = async () => {
+    if (sessionStatus !== "authenticated" || !(session?.user as any)?.id) {
+      setApiKeys([])
+      return
+    }
+    
+    const userId = (session?.user as any)?.id
+    if (!userId) return
 
+    setIsLoadingApiKeys(true)
+    try {
+      const response = await fetch(`/api/admin/tokens?userId=${encodeURIComponent(userId)}&_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || errorData.error || 'Failed to fetch API keys')
+      }
+      
+      const data = await response.json()
+      setApiKeys(data.api_tokens || [])
+    } catch (err) {
+      console.error("Error fetching API keys:", err)
+      setApiKeys([])
+    } finally {
+      setIsLoadingApiKeys(false)
+    }
+  }
+
+  // Fetch API keys when session is loaded
+  useEffect(() => {
+    fetchApiKeys()
+  }, [sessionStatus, session])
+
+  // Format API key date
+  const formatApiKeyDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "-"
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+
+  // Toggle key visibility
+  const toggleKeyVisibility = (keyId: number) => {
+    setVisibleKeys((prev: Record<number, boolean>) => ({
+      ...prev,
+      [keyId]: !prev[keyId],
+    }))
+  }
+
+  // Copy key to clipboard
+  const copyToClipboard = (keyId: number | "new", fullKey: string) => {
+    if (!fullKey) return
+    navigator.clipboard.writeText(fullKey)
+    setCopiedKey(keyId)
+    setTimeout(() => setCopiedKey(null), 2000)
+
+    toast({
+      title: "API key copied",
+      description: "The API key has been copied to your clipboard.",
+      duration: 3000,
+    })
+  }
+
+  // Create new API key
+  const createNewApiKey = async () => {
+    if (sessionStatus !== "authenticated" || !(session?.user as any)?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to create an API key.",
+        variant: "destructive",
+        duration: 3000,
+      })
+      return
+    }
+
+    const userId = (session?.user as any)?.id
+    setError(null)
+
+    try {
+      const response = await fetch('/api/admin/tokens', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: Number(userId) }),
+      })
+
+      if (!response.ok) {
+        const errorResult = await response.json().catch(() => ({}))
+        throw new Error(errorResult.detail || errorResult.error || 'Failed to create API key')
+      }
+
+      const result = await response.json()
+
+      // Re-fetch keys after successful creation
+      await fetchApiKeys()
+
+      setNewKeyDialogOpen(false)
+
+      toast({
+        title: "API key created",
+        description: result.message || "Your new API key has been successfully created.",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
+      setError(errorMessage)
+      toast({
+        title: "Error creating key",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Revoke API key
+  const revokeApiKey = async (keyId: number) => {
+    const userId = (session?.user as any)?.id
+    if (!userId) {
+      toast({ title: "Error", description: "User session not found.", variant: "destructive" })
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/tokens/${keyId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.status === 204 || response.ok) {
+        await fetchApiKeys()
+        toast({
+          title: "API key revoked",
+          description: "The API key has been revoked.",
+        })
+      } else {
+        const result = await response.json().catch(() => ({}))
+        throw new Error(result.detail || result.error || 'Failed to revoke API key')
+      }
+    } catch (err) {
+      toast({
+        title: "Error revoking key",
+        description: err instanceof Error ? err.message : 'Could not revoke API key.',
+        variant: "destructive",
+      })
+    }
+  }
 
   // Pricing calculation functions (same as in DynamicPricingCard)
   const calculatePrice = (bots: number): number => {
@@ -296,8 +479,7 @@ export default function DashboardPage() {
       <PageContainer>
         <Section>
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">Your current plan and usage</p>
+            <p className="text-sm text-muted-foreground">Bots dashboard</p>
           </div>
           
           <Alert variant="destructive">
@@ -315,168 +497,312 @@ export default function DashboardPage() {
     <PageContainer>
       <Section>
         <Toaster />
-        <div className="relative">
-          <NotificationRefreshButton />
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {userData?.name || userData?.email || 'User'}
-            </p>
-          </div>
-        </div>
-
-        {/* System Notifications */}
-        <NotificationBanner notifications={notifications} />
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Current Bot Limit */}
-        <Card className="rounded-xl border bg-card text-card-foreground shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
-            <CardTitle className="text-sm font-medium">Current Bot Limit</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="p-6 pt-0">
-            <Metric 
-              value={(() => {
-                const count = (userData?.max_concurrent_bots ?? 0)
-                console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
-                return count
-              })()} 
-              unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
-              size="lg"
-            />
-            <p className="text-xs text-muted-foreground">
-              {userData?.data?.subscription_status === 'cancelling' ? (
-                <>
-                  Grace period - access until {userData?.data?.subscription_end_date ? formatDate(userData.data.subscription_end_date) : 'billing period ends'}
-                </>
-              ) : userData?.data?.subscription_status === 'trialing' ? (
-                <>
-                  Trial ends on {formatDateTime((userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end) as any)}
-                </>
-              ) : userData?.data?.subscription_tier ? (
-                `${userData.data.subscription_tier.charAt(0).toUpperCase() + userData.data.subscription_tier.slice(1)} Plan`
-              ) : (
-                'Free Plan'
-              )}
-            </p>
-                  </CardContent>
-                </Card>
-
-        {/* Next Payment Due */}
-        <Card className="rounded-xl border bg-card text-card-foreground shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-6">
-            <CardTitle className="text-sm font-medium">Subscription Status</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="p-6 pt-0">
-              <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {getSubscriptionStatus(userData?.data?.subscription_status)}
+        <div className="space-y-8">
+          {/* Dashboard Tabs */}
+          <DashboardTabs />
+          
+          {/* Header Section - Improved spacing and typography */}
+          <div className="mb-8 space-y-4 relative">
+            <NotificationRefreshButton />
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1 flex-1">
+                <p className="text-sm text-muted-foreground">
+                  Bots dashboard
+                </p>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {userData?.data?.subscription_status === 'active' || userData?.data?.subscription_status === 'cancelling' ? (
-                  <>
-                    {(userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) ? (
-                      `Next payment due: ${formatDate((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}`
-                    ) : (
-                      "Active subscription"
-                    )}
-                  </>
-                ) : userData?.data?.subscription_status === 'trialing' ? (
-                  <>Trial ends on {formatDateTime((userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end) as any)}</>
-                ) : userData?.data?.subscription_status === 'canceled' ? (
-                  "Subscription canceled"
-                ) : (
-                  "No active subscription"
-                )}
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="shrink-0"
+              >
+                <a 
+                  href="https://discord.gg/KXpwveJewr" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  Support
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* API Keys Quick Access */}
-        <Card className="lg:col-span-1 md:col-span-2">
+          {/* System Notifications */}
+          <NotificationBanner notifications={notifications} />
+
+          {/* First Row: Current Bot Limit + Subscription Status + Manage Subscription */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                {/* Current Bot Limit */}
+                <div className="flex items-baseline gap-2">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Current Bot Limit</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <Metric 
+                        value={(() => {
+                          const count = (userData?.max_concurrent_bots ?? 0)
+                          console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
+                          return count
+                        })()} 
+                        unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
+                        size="lg"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {userData?.data?.subscription_status === 'cancelling' ? (
+                        <>
+                          Grace period - access until {userData?.data?.subscription_end_date ? formatDate(userData.data.subscription_end_date) : 'billing period ends'}
+                        </>
+                      ) : userData?.data?.subscription_status === 'trialing' ? (
+                        <>
+                          Trial ends on {formatDateTime((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}
+                        </>
+                      ) : userData?.data?.subscription_tier ? (
+                        `${userData.data.subscription_tier.charAt(0).toUpperCase() + userData.data.subscription_tier.slice(1)} Plan`
+                      ) : (
+                        'Free Plan'
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Subscription Status */}
+                <div className="flex items-center gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Subscription Status</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {getSubscriptionStatus(userData?.data?.subscription_status)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {userData?.data?.subscription_status === 'active' || userData?.data?.subscription_status === 'cancelling' ? (
+                          <>
+                            {(userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) ? (
+                              `Next payment due: ${formatDate((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}`
+                            ) : (
+                              "Active subscription"
+                            )}
+                          </>
+                        ) : userData?.data?.subscription_status === 'trialing' ? (
+                          <>Trial ends on {formatDateTime((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}</>
+                        ) : userData?.data?.subscription_status === 'canceled' ? (
+                          "Subscription canceled"
+                        ) : (
+                          "No active subscription"
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Manage Subscription Button */}
+                <div className="flex items-center">
+                  <Button 
+                    onClick={handleOpenStripePortal} 
+                    disabled={isOpeningPortal}
+                    size="sm"
+                    className="h-8"
+                  >
+                    {isOpeningPortal ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                        Opening...
+                      </>
+                    ) : (
+                      <>
+                        <Settings className="h-3.5 w-3.5 mr-1.5" />
+                        Manage Subscription
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* API Keys Management */}
+          <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">API Keys</CardTitle>
             <Key className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Manage your API keys for bot integration
               </p>
-              <Link href="/dashboard/api-keys">
-                <Button className="w-full" variant="outline">
-                  <Key className="h-4 w-4 mr-2" />
-                  Manage API Keys
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
+              
+              {isLoadingApiKeys ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
+                  <span className="text-sm text-muted-foreground">Loading API keys...</span>
+                </div>
+              ) : apiKeys.filter((key: ApiKey) => key.active !== false).length === 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">No API keys yet. Create your first key to get started.</p>
+                  <Dialog open={newKeyDialogOpen} onOpenChange={setNewKeyDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full" variant="outline">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create API Key
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Create new API key</DialogTitle>
+                        <DialogDescription>
+                          Click create to generate a new API key. You will only be able to view the key once.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setNewKeyDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            createNewApiKey()
+                          }} 
+                          disabled={sessionStatus !== 'authenticated'}
+                        >
+                          Create API key
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {apiKeys
+                    .filter((key: ApiKey) => key.active !== false)
+                    .map((key: ApiKey) => (
+                      <div key={key.id} className="space-y-3 pb-3 border-b last:border-b-0 last:pb-0">
+                        {/* First row: Label and masked key with delete button */}
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">Your API key</p>
+                            <p className="text-xs text-muted-foreground">
+                              {key.prefix || "sk_"}...{key.token.slice(-4)}
+                            </p>
+                          </div>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" disabled={sessionStatus !== 'authenticated'}>
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Revoke key</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Revoke API key</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to revoke this API key? This action cannot be undone, and any
+                                  applications using this key will no longer be able to access the API.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  onClick={() => revokeApiKey(key.id)}
+                                  disabled={sessionStatus !== 'authenticated'}
+                                >
+                                  Revoke
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                        {/* Second row: Full API key input with visibility toggle and copy button - Always displayed */}
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              type={visibleKeys[key.id] ? "text" : "password"}
+                              value={key.token}
+                              readOnly
+                              className="pr-10 font-mono text-xs"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full px-3 py-1"
+                              onClick={() => toggleKeyVisibility(key.id)}
+                            >
+                              {visibleKeys[key.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              <span className="sr-only">{visibleKeys[key.id] ? "Hide key" : "Show key"}</span>
+                            </Button>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={() => copyToClipboard(key.id, key.token)}
+                          >
+                            {copiedKey === key.id ? (
+                              <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            <span className="sr-only">Copy key</span>
+                          </Button>
+                        </div>
+                        {/* Third row: Created date */}
+                        <div className="text-xs text-muted-foreground">Created: {formatApiKeyDate(key.created_at)}</div>
+                      </div>
+                    ))}
+                  <Dialog open={newKeyDialogOpen} onOpenChange={setNewKeyDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full" variant="outline" size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create API Key
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Create new API key</DialogTitle>
+                        <DialogDescription>
+                          Click create to generate a new API key. You will only be able to view the key once.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setNewKeyDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            createNewApiKey()
+                          }} 
+                          disabled={sessionStatus !== 'authenticated'}
+                        >
+                          Create API key
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Subscription Management Section - Always show manage subscription button */}
-      <div className="mt-8 space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Subscription Management</h2>
-            <p className="text-muted-foreground text-sm">
-              {userData?.data?.subscription_status === 'scheduled_to_cancel'
-                ? "Your subscription is scheduled to cancel at the end of your current billing period. You can still manage it until then."
-                : userData?.data?.subscription_status === 'cancelling' 
-                ? "Your subscription is being cancelled. You can still manage it until the end of your billing period."
-                : userData?.data?.subscription_status === 'trialing'
-                ? "You're currently on a trial. Add a payment method to continue after your trial ends."
-                : "Manage your subscription, payment methods, and billing information through Stripe's secure customer portal."
-              }
-            </p>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                {userData?.data?.subscription_status === 'trialing' ? 'Manage Trial & Payment' : 'Manage Subscription'}
-              </CardTitle>
-              <CardDescription>
-                {userData?.data?.subscription_status === 'scheduled_to_cancel'
-                  ? "Your subscription will end soon. You can still manage your billing information and cancel the scheduled cancellation if needed."
-                  : userData?.data?.subscription_status === 'trialing' 
-                  ? "Add a payment method to continue using Vexa after your trial ends, or upgrade your plan through Stripe's secure customer portal."
-                  : "Update your subscription, payment methods, and billing information through Stripe's secure customer portal."
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Button 
-                  onClick={handleOpenStripePortal} 
-                  disabled={isOpeningPortal}
-                  className="w-full"
-                >
-                  {isOpeningPortal ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Opening Portal...
-                    </>
-                  ) : (
-                    'Manage Subscription'
-                  )}
-                </Button>
-                
-
-              </div>
-            </CardContent>
-          </Card>
-      </div>
-
-
-
-      {/* Subscription Info */}
-      {userData?.data?.stripe_subscription_id && (
-        <div className="mt-6">
+          {/* Subscription Info */}
+          {userData?.data?.stripe_subscription_id && (
+            <>
+              <Separator className="my-8" />
+              <div>
         <Card>
           <CardHeader>
               <CardTitle className="text-lg">Subscription Details</CardTitle>
@@ -519,8 +845,10 @@ export default function DashboardPage() {
               )}
           </CardContent>
         </Card>
+              </div>
+            </>
+          )}
         </div>
-      )}
       </Section>
     </PageContainer>
   )

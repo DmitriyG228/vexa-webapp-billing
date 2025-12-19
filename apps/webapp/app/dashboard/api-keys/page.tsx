@@ -507,7 +507,8 @@ export default function ApiKeysPage() {
               .filter((key: ApiKey) => key.active !== false)
               .map((key: ApiKey) => (
                       <Card key={key.id} className="rounded-xl border bg-card text-card-foreground shadow-sm">
-                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                        {/* First row: Label and masked key with delete button */}
+                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                           <div className="space-y-1">
                             <CardTitle>
                               Your API key
@@ -546,6 +547,7 @@ export default function ApiKeysPage() {
                             </AlertDialog>
                           </div>
                         </CardHeader>
+                        {/* Second row: Full API key input with visibility toggle and copy button - Always displayed */}
                         <CardContent className="pb-2">
                           <div className="flex items-center gap-2">
                             <div className="relative flex-1">
@@ -580,7 +582,7 @@ export default function ApiKeysPage() {
                             </Button>
                           </div>
                         </CardContent>
-                        
+                        {/* Third row: Created date */}
                         <CardFooter className="flex justify-between">
                            <div className="text-xs text-muted-foreground">Created: {formatDate(key.created_at)}</div>
                         </CardFooter>
