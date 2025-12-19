@@ -4,10 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CheckCircle2, Cloud, Server, Shield, Users, Zap, Globe, Info, Linkedin } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { CheckCircle2, Cloud, Server, Shield, Users, Zap, Globe, Info, Linkedin, Bot, Mic, BookOpen, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ConcurrencyPricingCard } from './components/ConcurrencyPricingCard'
+import { TranscriptionPricingCard } from './components/TranscriptionPricingCard'
 import { GetStartedButton } from './components/GetStartedButton'
 import { FOUNDER_IMAGE_URL } from '@/lib/constants'
 import { absoluteUrl } from '@/lib/utils'
@@ -185,22 +187,39 @@ export default function PricingPage() {
       {/* Header Section */}
         <section className="py-6">
           <div className="mx-auto max-w-5xl text-center space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-4">
               <h1 className="text-3xl font-display tracking-tight sm:text-4xl md:text-5xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                API transcription for <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Google Meet</span>
+                Meeting Transcription API
               </h1>
+              {/* Platform logos */}
+              <div className="flex items-center justify-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-2">
+                  <Image 
+                    src="/microsoft-teams-logo.png" 
+                    alt="Microsoft Teams" 
+                    width={24} 
+                    height={24} 
+                    className="h-6 w-6 object-contain" 
+                    priority
+                    fetchPriority="high"
+                  />
+                  <span className="text-sm font-semibold text-foreground">Microsoft Teams</span>
+                </div>
+                <span className="text-muted-foreground">+</span>
+                <div className="flex items-center gap-2">
+                  <Image 
+                    src="/google-meet-logo.png" 
+                    alt="Google Meet" 
+                    width={24} 
+                    height={24} 
+                    className="h-6 w-6 object-contain" 
+                    priority
+                    fetchPriority="high"
+                  />
+                  <span className="text-sm font-semibold text-foreground">Google Meet</span>
+                </div>
+              </div>
             </div>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-7">
-              Microsoft Teams supported (v0.6). Hosted Open-source — self-host anytime - no lock-in. Zoom coming next.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-xs md:text-sm flex-wrap">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Unlimited minutes</Badge>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Open-source (Apache-2)</Badge>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Teams + Meet</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto mt-2">
-              Prefer full control? Self-host the open-source Vexa core at no license cost.
-            </p>
           </div>
         </section>
 
@@ -210,18 +229,63 @@ export default function PricingPage() {
         <section className="py-2" id="pricing">
           <div className="mx-auto max-w-5xl space-y-4">
            <div className="grid grid-cols-1 gap-6 items-stretch max-w-5xl mx-auto">
-             {/* Trial information */}
-             <div className="text-center">
-               <Link href="/dashboard/api-keys">
-                 <Button variant="outline" size="lg" className="gap-3 px-8 py-6 text-lg font-semibold">
-                   <Zap className="h-6 w-6" />
-                   Start free 1-hour trial in 2 clicks
-                 </Button>
-               </Link>
-             </div>
-
-             <div>
-               <ConcurrencyPricingCard />
+             {/* Pricing Tabs */}
+             <div className="space-y-6">
+               <div className="flex justify-center w-full">
+                 <Tabs defaultValue="bots" className="w-full">
+                   <TabsList className="grid w-full max-w-md grid-cols-2 mx-auto">
+                     <TabsTrigger value="bots" className="flex items-center gap-2">
+                       <Bot className="h-4 w-4" />
+                       <span>Bots</span>
+                     </TabsTrigger>
+                     <TabsTrigger value="transcription" className="flex items-center gap-2">
+                       <Mic className="h-4 w-4" />
+                       <span>Transcription</span>
+                     </TabsTrigger>
+                   </TabsList>
+                   <TabsContent value="bots" className="mt-6 space-y-8">
+                     {/* Product description */}
+                     <div className="text-center space-y-6">
+                       <div className="space-y-4 max-w-2xl mx-auto">
+                         <p className="text-base leading-relaxed text-muted-foreground">
+                           Full Service - just grab API key
+                         </p>
+                         {/* Trial information - Bots only */}
+                         <Link href="/dashboard/api-keys" className="inline-block">
+                           <Button variant="outline" size="lg" className="gap-3 px-8 py-6 text-lg font-semibold hover:bg-accent transition-colors">
+                             <Zap className="h-6 w-6" />
+                             Start free 1-hour trial in 2 clicks
+                           </Button>
+                         </Link>
+                       </div>
+                     </div>
+                     <ConcurrencyPricingCard />
+                   </TabsContent>
+                   <TabsContent value="transcription" className="mt-6 space-y-8">
+                     {/* Product description and deployment guide */}
+                     <div className="text-center space-y-6">
+                       <div className="space-y-3 max-w-2xl mx-auto">
+                         <p className="text-base leading-relaxed text-muted-foreground">
+                           Full privacy, self host with single docker container, GPU-free - connect to this transcription service for scalability and simplicity of setup
+                         </p>
+                         <Link 
+                           href="https://github.com/Vexa-ai/vexa/blob/feat/monolithic-on-remote-transcription-rebased/docs/vexa-lite-deployment.md"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="inline-block"
+                         >
+                           <Button variant="outline" size="lg" className="gap-2 hover:bg-accent transition-colors">
+                             <BookOpen className="h-5 w-5" />
+                             View Deployment Guide
+                             <ExternalLink className="h-4 w-4" />
+                           </Button>
+                         </Link>
+                       </div>
+                     </div>
+                     <TranscriptionPricingCard />
+                   </TabsContent>
+                 </Tabs>
+               </div>
              </div>
 
              {/* Two separate cards: Enterprise and Speak to Founder */}

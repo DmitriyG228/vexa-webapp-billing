@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { ReactNode } from "react";
 import { YouTubeEmbed } from "@/components/ui/youtube-embed";
+import { Button } from "@/components/ui/button";
 
 export interface VideoFeatureBullet {
   strong: string;
@@ -122,21 +123,19 @@ export function VideoFeature({
               {(primaryCta || secondaryCta) && (
                 <div className="mt-7 flex flex-wrap items-center gap-3">
                   {primaryCta && (
-                    <Link
-                      href={primaryCta.href}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow transition hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                    >
-                      {primaryCta.label}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    <Button asChild size="lg" className="gap-2">
+                      <Link href={primaryCta.href}>
+                        {primaryCta.label}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   )}
                   {secondaryCta && (
-                    <Link
-                      href={secondaryCta.href}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-foreground ring-1 ring-border hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ml-auto"
-                    >
-                      {secondaryCta.label}
-                    </Link>
+                    <Button asChild variant="outline" size="lg" className="ml-auto">
+                      <Link href={secondaryCta.href}>
+                        {secondaryCta.label}
+                      </Link>
+                    </Button>
                   )}
                 </div>
               )}

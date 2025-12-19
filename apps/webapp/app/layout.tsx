@@ -229,7 +229,7 @@ export default async function RootLayout({
                   </div>
                   
                   {/* Right: GitHub + Theme Toggle + Dashboard + Auth */}
-                  <div className="flex items-center justify-end gap-2 ml-4">
+                  <div className="flex items-center justify-end gap-3 ml-auto">
                     <Button variant="ghost" size="icon" className="hidden sm:flex" asChild>
                       <a
                         href="https://github.com/Vexa-ai/vexa"
@@ -246,7 +246,7 @@ export default async function RootLayout({
                     <ModeToggle />
 
                     {session && (
-                      <Button asChild variant="default" size="sm" className="font-semibold">
+                      <Button asChild variant="default" size="sm" className="font-semibold h-8 px-3 text-xs">
                         <Link href="/dashboard">
                           Dashboard
                         </Link>

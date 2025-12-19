@@ -21,6 +21,11 @@ export function ProductsDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[200px]">
         <DropdownMenuItem asChild>
+          <Link href="/product/vexa-lite">
+            Vexa Lite
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link href="/product/google-meet-transcription-api">
             Google Meet
           </Link>

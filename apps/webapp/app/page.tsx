@@ -3,6 +3,7 @@
 import { ArrowRight, Star } from "lucide-react";
 import { CodePane } from "@/components/ui/split-feature"
 import { SplitFeature } from "@/components/ui/split-feature"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { trackEvent } from '@/lib/analytics'
 import { useEffect, useState } from "react";
 import Hero from "@/components/sections/hero";
@@ -142,33 +143,20 @@ export default function LandingPage() {
         primaryCta={{ href: "/get-started#quickstart", label: "Test the API in 5 minutes" }}
         visual={
           <div className="space-y-4">
-            <div className="flex gap-2 mb-4">
-              <button 
-                onClick={() => {
-                  console.log('🖱️  [CLICK] Platform selector: Google Meet');
-                  setSelectedPlatform('google_meet');
+            <div className="mb-4">
+              <Tabs 
+                value={selectedPlatform} 
+                onValueChange={(value) => {
+                  const platform = value as 'google_meet' | 'teams';
+                  console.log(`🖱️  [CLICK] Platform selector: ${platform === 'google_meet' ? 'Google Meet' : 'Microsoft Teams'}`);
+                  setSelectedPlatform(platform);
                 }}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                  selectedPlatform === 'google_meet' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
               >
-                Google Meet
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('🖱️  [CLICK] Platform selector: Microsoft Teams');
-                  setSelectedPlatform('teams');
-                }}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                  selectedPlatform === 'teams' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                Microsoft Teams
-              </button>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="google_meet">Google Meet</TabsTrigger>
+                  <TabsTrigger value="teams">Microsoft Teams</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
             <CodePane
               caption="1) Create bot"

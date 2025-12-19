@@ -253,6 +253,19 @@ export default function TranscriptionPage() {
     }
   }, [sessionStatus]);
 
+  // Handle purchase query parameter from pricing page
+  useEffect(() => {
+    const purchaseParam = searchParams.get('purchase');
+    if (purchaseParam) {
+      const amount = parseFloat(purchaseParam);
+      if (!isNaN(amount) && amount >= 5) {
+        setPurchaseAmount(amount.toString());
+        // Clean up URL by removing query parameter
+        router.replace('/dashboard/transcription', { scroll: false });
+      }
+    }
+  }, [searchParams, router]);
+
   // Handle payment success/cancelled from Stripe redirect
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
@@ -932,13 +945,12 @@ export default function TranscriptionPage() {
                         </EmptyContent>
                       </Empty>
                     ) : (
-                      <div className="rounded-lg border overflow-hidden">
+                      <div className="rounded-lg border overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-[220px]">Name</TableHead>
-                              <TableHead>Token</TableHead>
-                              <TableHead className="w-[100px]">Status</TableHead>
+                              <TableHead className="w-[220px] min-w-[180px]">Name</TableHead>
+                              <TableHead className="min-w-[200px]">Token</TableHead>
                               <TableHead className="w-[130px]">
                                 <div className="flex items-center gap-1.5">
                                   <Calendar className="h-3.5 w-3.5" />
@@ -951,7 +963,7 @@ export default function TranscriptionPage() {
                                   Last Used
                                 </div>
                               </TableHead>
-                              <TableHead className="text-right w-[60px]">Actions</TableHead>
+                              <TableHead className="text-right w-[60px] min-w-[60px]">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1009,7 +1021,7 @@ export default function TranscriptionPage() {
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-2 max-w-md">
-                                    <div className="relative flex-1">
+                                    <div className="relative flex-1 min-w-[150px]">
                                       <Input
                                         type={showTokenId === token.id ? "text" : "password"}
                                         value={token.token}
@@ -1042,15 +1054,6 @@ export default function TranscriptionPage() {
                                       )}
                                     </Button>
                                   </div>
-                                </TableCell>
-                                <TableCell>
-                                  {token.is_active ? (
-                                    <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                                      Active
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="secondary">Inactive</Badge>
-                                  )}
                                 </TableCell>
                                 <TableCell className="text-sm text-muted-foreground">
                                   {new Date(token.created_at).toLocaleDateString('en-US', { 
