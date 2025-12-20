@@ -194,8 +194,21 @@ dev: ## Run webapp locally
 	@bash -c 'export NVM_DIR="$$HOME/.nvm" && [ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh" && cd apps/webapp && nvm use 20 && export $$(grep -v "^#" ../../.env | xargs) && npm run dev'
 
 auth: ## Authenticate with GCloud
+	@echo "$(YELLOW)Project configuration:$(RESET)"
+	@echo "  Project ID: $(PROJECT_ID)"
+	@echo "  Current gcloud project: $$(gcloud config get-value project 2>/dev/null || echo 'not set')"
+	@echo ""
+	@read -p "$(YELLOW)Continue with project '$(PROJECT_ID)'? [y/N]: $(RESET)" CONFIRM && \
+	if [ "$$CONFIRM" != "y" ] && [ "$$CONFIRM" != "Y" ]; then \
+		echo "$(YELLOW)Authentication cancelled$(RESET)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Setting gcloud project to $(PROJECT_ID)...$(RESET)"
+	@gcloud config set project $(PROJECT_ID)
 	@gcloud auth login
 	@gcloud auth application-default login
+	@echo "$(YELLOW)Setting quota project to $(PROJECT_ID)...$(RESET)"
+	@gcloud auth application-default set-quota-project $(PROJECT_ID)
 	@echo "$(GREEN)✓ Authentication complete$(RESET)"
 
 status: ## Show deployment status
