@@ -6,66 +6,115 @@ interface LandingBackgroundProps {
 }
 
 /**
- * Reusable background pattern component for all landing pages.
- * Provides consistent visual foundation with animated gradients and patterns.
+ * Clean, technical background for API/SaaS landing pages.
+ * Uses theme "chart" hues (not primary) for subtle color, plus a masked grid + dots.
  */
 export function LandingBackground({ children, className = "" }: LandingBackgroundProps) {
+  const heroMask = "radial-gradient(ellipse 80% 60% at 50% 10%, black 0%, transparent 70%)";
+
   return (
-    <div 
-      className={`relative min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-background dark:from-slate-900 dark:via-slate-950 dark:to-background ${className}`}
-      style={{
-        backgroundImage: `radial-gradient(circle, hsl(var(--foreground)/0.05) 1px, transparent 1px)`,
-        backgroundSize: '20px 20px',
-      }}
-    >
-      {/* Launch-UI inspired background layers with subtle motion */}
-      <div className="fixed inset-0 -z-30 pointer-events-none overflow-hidden">
-        {/* Radial glow effects - much more visible */}
-        <div className="absolute top-[10%] left-[20%] w-[600px] h-[600px] bg-gradient-radial from-primary/25 via-primary/15 to-transparent rounded-full blur-3xl animate-slow-pulse" />
-        <div className="absolute top-[60%] right-[15%] w-[500px] h-[500px] bg-gradient-radial from-primary/20 via-primary/10 to-transparent rounded-full blur-3xl animate-slow-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-[20%] left-[50%] w-[400px] h-[400px] bg-gradient-radial from-primary/18 via-primary/9 to-transparent rounded-full blur-2xl animate-slow-pulse" style={{ animationDelay: '4s' }} />
-        
-        {/* Subtle grid pattern - more visible */}
-        <div 
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] animate-drift"
+    <div className={`relative min-h-screen bg-background ${className}`}>
+      {/* Base background */}
+      <div className="fixed inset-0 -z-50 bg-gradient-to-b from-slate-50/70 via-background to-background dark:from-slate-950 dark:via-background dark:to-background" />
+
+      {/* Aurora wash + glows (mode-specific so light mode stays cold) */}
+      {/* Light mode: teal + blue (chart-2, chart-3) */}
+      <div className="fixed inset-0 -z-40 pointer-events-none overflow-hidden dark:hidden">
+        <div
+          className="absolute inset-0 opacity-90"
+          style={{
+            background:
+              "radial-gradient(1100px 520px at 50% -120px, hsl(var(--chart-3) / 0.22), transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -top-24 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-60"
+          style={{
+            background:
+              "radial-gradient(circle, hsl(var(--chart-2) / 0.28) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute top-24 -right-48 h-[560px] w-[560px] rounded-full blur-3xl opacity-55"
+          style={{
+            background:
+              "radial-gradient(circle, hsl(var(--chart-3) / 0.22) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.18]"
           style={{
             backgroundImage: `
-              linear-gradient(hsl(var(--foreground)/0.12) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--foreground)/0.12) 1px, transparent 1px)
+              linear-gradient(115deg, transparent 0%, hsl(var(--chart-3) / 0.10) 22%, transparent 55%),
+              linear-gradient(35deg, transparent 0%, hsl(var(--chart-2) / 0.09) 18%, transparent 50%)
             `,
-            backgroundSize: '32px 32px'
           }}
         />
-        
-        {/* Floating dots pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.008] dark:opacity-[0.015] animate-drift"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, hsl(var(--foreground)/0.12) 1px, transparent 0)`,
-            backgroundSize: '64px 64px',
-            animation: 'float 25s ease-in-out infinite'
-          }}
-        />
-        
-        {/* Subtle noise texture */}
-        <div 
-          className="absolute inset-0 opacity-[0.005] dark:opacity-[0.01]" 
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
-          }} 
-        />
-      </div>
-      
-      {/* Strategic glow orbs for depth and focus - highly visible */}
-      <div className="fixed inset-0 -z-20 pointer-events-none overflow-hidden">
-        <div className="absolute top-[15%] left-[25%] w-[500px] h-[500px] bg-gradient-radial from-primary/22 via-primary/12 to-transparent rounded-full blur-3xl animate-slow-pulse" />
-        <div className="absolute top-[70%] right-[20%] w-[450px] h-[450px] bg-gradient-radial from-primary/18 via-primary/9 to-transparent rounded-full blur-3xl animate-slow-pulse" style={{ animationDelay: '3s' }} />
-        <div className="absolute bottom-[25%] left-[45%] w-[350px] h-[350px] bg-gradient-radial from-primary/15 via-primary/8 to-transparent rounded-full blur-2xl animate-slow-pulse" style={{ animationDelay: '6s' }} />
       </div>
 
-      {children}
+      {/* Dark mode: blue + teal (chart-1, chart-2) */}
+      <div className="fixed inset-0 -z-40 pointer-events-none overflow-hidden hidden dark:block">
+        <div
+          className="absolute inset-0 opacity-100"
+          style={{
+            background:
+              "radial-gradient(1100px 520px at 50% -120px, hsl(var(--chart-1) / 0.24), transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -top-24 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-50"
+          style={{
+            background:
+              "radial-gradient(circle, hsl(var(--chart-1) / 0.28) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute top-24 -right-48 h-[560px] w-[560px] rounded-full blur-3xl opacity-45"
+          style={{
+            background:
+              "radial-gradient(circle, hsl(var(--chart-2) / 0.24) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.22]"
+          style={{
+            backgroundImage: `
+              linear-gradient(115deg, transparent 0%, hsl(var(--chart-1) / 0.10) 22%, transparent 55%),
+              linear-gradient(35deg, transparent 0%, hsl(var(--chart-2) / 0.08) 18%, transparent 50%)
+            `,
+          }}
+        />
+      </div>
+
+      {/* Technical grid (masked to hero area) */}
+      <div
+        className="fixed inset-0 -z-30 pointer-events-none opacity-[0.05] dark:opacity-[0.10]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, hsl(var(--foreground) / 0.10) 1px, transparent 1px),
+            linear-gradient(to bottom, hsl(var(--foreground) / 0.10) 1px, transparent 1px)
+          `,
+          backgroundSize: "36px 36px",
+          maskImage: heroMask,
+          WebkitMaskImage: heroMask,
+        }}
+      />
+
+      {/* Dots layer (gives texture, still clean) */}
+      <div
+        className="fixed inset-0 -z-20 pointer-events-none opacity-[0.04] dark:opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.16) 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+          maskImage: heroMask,
+          WebkitMaskImage: heroMask,
+        }}
+      />
+
+      <div className="relative z-0">
+        {children}
+      </div>
     </div>
   );
 }
-
-

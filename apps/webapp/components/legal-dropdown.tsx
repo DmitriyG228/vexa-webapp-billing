@@ -12,6 +12,22 @@ import {
 import { CookiePrefsButton } from "@/components/cookie-prefs-button"
 
 export function LegalDropdown() {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Prevent hydration mismatch by only rendering on client
+  if (!mounted) {
+    return (
+      <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        Legal
+        <ChevronDown className="h-3 w-3" />
+      </button>
+    )
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">

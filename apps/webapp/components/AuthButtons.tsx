@@ -25,9 +25,14 @@ export default function AuthButtons() {
   const [showConsent, setShowConsent] = useState(false);
   const [consented, setConsented] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Don't show consent modal on legal document pages
   const isOnLegalPage = pathname?.startsWith('/legal/');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (session && !consentChecked) {
@@ -77,7 +82,7 @@ export default function AuthButtons() {
     }
   };
 
-  if (status === "loading") {
+  if (status === "loading" || !mounted) {
     // Optional: Render a loading state or skeleton
     return (
       <Button variant="outline" size="sm" disabled>

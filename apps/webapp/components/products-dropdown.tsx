@@ -13,6 +13,22 @@ import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
 
 export function ProductsDropdown() {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Prevent hydration mismatch by only rendering on client
+  if (!mounted) {
+    return (
+      <button className={cn(navigationMenuTriggerStyle(), "gap-1")}>
+        Products
+        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+      </button>
+    )
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className={cn(navigationMenuTriggerStyle(), "gap-1")}>

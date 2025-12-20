@@ -36,7 +36,7 @@ export default function Hero({
   badge = (
     <Badge variant="outline" className="animate-pulse">
       <span className="text-muted-foreground">
-        v0.6 Now with Microsoft Teams support
+        v0.7 Now easy self hosting
       </span>
       <ArrowRightIcon className="size-3 ml-1" />
     </Badge>

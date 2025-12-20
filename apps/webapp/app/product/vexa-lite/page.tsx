@@ -108,17 +108,17 @@ export default function VexaLitePage() {
             {
               title: "Auto-join bots",
               description: "Bots join meetings automatically — your system captures the raw signal.",
-              icon: <Bot className="size-5 stroke-1" />,
+              icon: <Bot className="size-7 stroke-1" />,
             },
             {
               title: "Real-time transcripts",
               description: "Stream live transcript events + fetch artifacts after the call.",
-              icon: <Zap className="size-5 stroke-1" />,
+              icon: <Zap className="size-7 stroke-1" />,
             },
             {
               title: "API + webhooks",
               description: "Consume meeting events via webhooks. Query data via API.",
-              icon: <Webhook className="size-5 stroke-1" />,
+              icon: <Webhook className="size-7 stroke-1" />,
             },
           ]}
         />
@@ -152,21 +152,21 @@ export default function VexaLitePage() {
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-3">
                   <div className="flex items-start gap-3">
-                    <Bot className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Bot className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">Meeting bots</div>
                       <div className="text-sm text-muted-foreground">Reliable capture for Meet + Teams.</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Webhook className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Webhook className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">Event stream</div>
                       <div className="text-sm text-muted-foreground">Transcript chunks + lifecycle events.</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Server className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Server className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">Queryable artifacts</div>
                       <div className="text-sm text-muted-foreground">Transcripts + metadata behind an API.</div>
@@ -181,28 +181,28 @@ export default function VexaLitePage() {
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-3">
                   <div className="flex items-start gap-3">
-                    <Container className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Container className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">One Docker container</div>
                       <div className="text-sm text-muted-foreground">Deploy in minutes. Low ops overhead.</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Shield className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Shield className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">Data stays in your infra</div>
                       <div className="text-sm text-muted-foreground">Better governance for sensitive meetings.</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <DollarSign className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <DollarSign className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">No per-seat pricing</div>
                       <div className="text-sm text-muted-foreground">Infra economics for internal rollouts.</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Sparkles className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Sparkles className="size-7 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <div className="font-semibold text-foreground">Build custom product logic</div>
                       <div className="text-sm text-muted-foreground">Summaries, search, CRM sync, copilots.</div>

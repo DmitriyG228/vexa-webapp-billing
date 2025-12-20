@@ -12,7 +12,7 @@ interface LogoProps {
 export function Logo({ 
   className, 
   showVersion = true, 
-  version = "v0.6", 
+  version = "v0.7", 
   size = "md" 
 }: LogoProps) {
   const sizeClasses = {

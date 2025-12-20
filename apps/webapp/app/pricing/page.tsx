@@ -460,7 +460,7 @@ export default function PricingPage() {
             </div>
             <div>
               <div className="font-medium">Which platforms are supported?</div>
-              <div className="text-muted-foreground">Microsoft Teams & Google Meet (v0.6); Zoom coming next.</div>
+              <div className="text-muted-foreground">Microsoft Teams & Google Meet (v0.7); Zoom coming next.</div>
             </div>
           </div>
         </div>
