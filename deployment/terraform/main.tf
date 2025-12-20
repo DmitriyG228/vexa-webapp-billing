@@ -48,16 +48,18 @@ module "secrets" {
   environment = var.environment
 
   # Secret values
-  stripe_secret_key      = var.stripe_secret_key
-  stripe_webhook_secret  = var.stripe_webhook_secret
-  admin_api_url          = var.admin_api_url
-  admin_api_token        = var.admin_api_token
-  portal_return_url      = var.portal_return_url
-  nextauth_secret        = var.nextauth_secret
-  nextauth_url           = var.nextauth_url
-  google_client_id       = var.google_client_id
-  google_client_secret   = var.google_client_secret
-  github_token           = var.github_token
+  stripe_secret_key           = var.stripe_secret_key
+  stripe_webhook_secret       = var.stripe_webhook_secret
+  admin_api_url               = var.admin_api_url
+  admin_api_token             = var.admin_api_token
+  portal_return_url           = var.portal_return_url
+  nextauth_secret             = var.nextauth_secret
+  nextauth_url                = var.nextauth_url
+  google_client_id            = var.google_client_id
+  google_client_secret        = var.google_client_secret
+  github_token                = var.github_token
+  transcription_gateway_url   = var.transcription_gateway_url
+  transcription_admin_api_key = var.transcription_admin_api_key
 
   depends_on = [google_project_service.required_apis]
 }
@@ -86,16 +88,18 @@ module "webapp" {
   }
 
   secret_env_vars = {
-    NEXTAUTH_SECRET        = module.secrets.nextauth_secret_id
-    NEXTAUTH_URL           = module.secrets.nextauth_url_id
-    GOOGLE_CLIENT_ID       = module.secrets.google_client_id_id
-    GOOGLE_CLIENT_SECRET   = module.secrets.google_client_secret_id
-    STRIPE_SECRET_KEY      = module.secrets.stripe_secret_key_id
-    STRIPE_WEBHOOK_SECRET  = module.secrets.stripe_webhook_secret_id
-    ADMIN_API_URL          = module.secrets.admin_api_url_id
-    ADMIN_API_TOKEN        = module.secrets.admin_api_token_id
-    PORTAL_RETURN_URL      = module.secrets.portal_return_url_id
-    GITHUB_TOKEN           = module.secrets.github_token_id
+    NEXTAUTH_SECRET              = module.secrets.nextauth_secret_id
+    NEXTAUTH_URL                 = module.secrets.nextauth_url_id
+    GOOGLE_CLIENT_ID             = module.secrets.google_client_id_id
+    GOOGLE_CLIENT_SECRET         = module.secrets.google_client_secret_id
+    STRIPE_SECRET_KEY            = module.secrets.stripe_secret_key_id
+    STRIPE_WEBHOOK_SECRET        = module.secrets.stripe_webhook_secret_id
+    ADMIN_API_URL                = module.secrets.admin_api_url_id
+    ADMIN_API_TOKEN              = module.secrets.admin_api_token_id
+    PORTAL_RETURN_URL            = module.secrets.portal_return_url_id
+    GITHUB_TOKEN                 = module.secrets.github_token_id
+    TRANSCRIPTION_GATEWAY_URL     = module.secrets.transcription_gateway_url_id
+    TRANSCRIPTION_ADMIN_API_KEY   = module.secrets.transcription_admin_api_key_id
   }
 
   allow_public_access = true

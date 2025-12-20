@@ -76,5 +76,18 @@ variable "github_token" {
   default     = ""
 }
 
+variable "transcription_gateway_url" {
+  description = "Transcription Gateway URL"
+  type        = string
+  default     = ""
+}
+
+variable "transcription_admin_api_key" {
+  description = "Transcription Admin API Key"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 
 

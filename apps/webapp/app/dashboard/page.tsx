@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const { data: session, status: sessionStatus } = useSession()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [adminApiError, setAdminApiError] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   
@@ -85,6 +85,7 @@ export default function DashboardPage() {
   const [newKeyDialogOpen, setNewKeyDialogOpen] = useState(false)
   const [copiedKey, setCopiedKey] = useState<number | "new" | null>(null)
   const [isLoadingApiKeys, setIsLoadingApiKeys] = useState(false)
+  const [apiKeysError, setApiKeysError] = useState<string | null>(null)
 
 
 
@@ -108,16 +109,23 @@ export default function DashboardPage() {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
           console.error("Dashboard API error:", response.status, errorData);
-          throw new Error(errorData.detail || errorData.error || 'Failed to fetch user data')
+          const errorMessage = errorData.detail || errorData.error || errorData.details || 'Failed to fetch user data from admin API'
+          setAdminApiError(errorMessage)
+          // Don't throw - allow dashboard to render with partial data
+          setUserData(null)
+        } else {
+          const data = await response.json()
+          console.log(`[Dashboard] Admin API returned:`, JSON.stringify(data, null, 2))
+          setUserData(data)
+          setAdminApiError(null) // Clear error on success
         }
-        
-        const data = await response.json()
-        console.log(`[Dashboard] Admin API returned:`, JSON.stringify(data, null, 2))
-        setUserData(data)
         // No longer need to set bot count since we're using Stripe portal
       } catch (err) {
         console.error("Error fetching user data:", err)
-        setError(err instanceof Error ? err.message : 'Failed to load user data')
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load user data from admin API'
+        setAdminApiError(errorMessage)
+        setUserData(null)
+        // Don't prevent dashboard from rendering
       } finally {
         setIsLoading(false)
       }
@@ -155,6 +163,7 @@ export default function DashboardPage() {
     if (!userId) return
 
     setIsLoadingApiKeys(true)
+    setApiKeysError(null) // Clear previous errors
     try {
       const response = await fetch(`/api/admin/tokens?userId=${encodeURIComponent(userId)}&_t=${Date.now()}`, {
         cache: 'no-store',
@@ -165,13 +174,18 @@ export default function DashboardPage() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.detail || errorData.error || 'Failed to fetch API keys')
+        const errorMessage = errorData.detail || errorData.error || errorData.details || 'Failed to fetch API keys from admin API'
+        setApiKeysError(errorMessage)
+        setApiKeys([])
+      } else {
+        const data = await response.json()
+        setApiKeys(data.api_tokens || [])
+        setApiKeysError(null) // Clear error on success
       }
-      
-      const data = await response.json()
-      setApiKeys(data.api_tokens || [])
     } catch (err) {
       console.error("Error fetching API keys:", err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch API keys from admin API'
+      setApiKeysError(errorMessage)
       setApiKeys([])
     } finally {
       setIsLoadingApiKeys(false)
@@ -228,7 +242,8 @@ export default function DashboardPage() {
     }
 
     const userId = (session?.user as any)?.id
-    setError(null)
+    setAdminApiError(null)
+    setApiKeysError(null)
 
     try {
       const response = await fetch('/api/admin/tokens', {
@@ -257,7 +272,7 @@ export default function DashboardPage() {
       })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
-      setError(errorMessage)
+      setApiKeysError(errorMessage)
       toast({
         title: "Error creating key",
         description: errorMessage,
@@ -474,25 +489,6 @@ export default function DashboardPage() {
     )
   }
 
-  if (error) {
-    return (
-      <PageContainer>
-        <Section>
-          <div className="text-center mb-8">
-            <p className="text-sm text-muted-foreground">Bots dashboard</p>
-          </div>
-          
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {error}
-            </AlertDescription>
-          </Alert>
-        </Section>
-      </PageContainer>
-    )
-  }
-
   return (
     <PageContainer>
       <Section>
@@ -533,77 +529,99 @@ export default function DashboardPage() {
           {/* System Notifications */}
           <NotificationBanner notifications={notifications} />
 
+          {/* Service-specific error banners */}
+          {adminApiError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Admin API Unavailable:</strong> {adminApiError}
+                <br />
+                <span className="text-xs mt-1 block">Some features may be limited. The dashboard will continue to work with available data.</span>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* First Row: Current Bot Limit + Subscription Status + Manage Subscription */}
           <Card className="mb-6">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between gap-4 flex-wrap">
-                {/* Current Bot Limit */}
-                <div className="flex items-baseline gap-2">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Current Bot Limit</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <Metric 
-                        value={(() => {
-                          const count = (userData?.max_concurrent_bots ?? 0)
-                          console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
-                          return count
-                        })()} 
-                        unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
-                        size="lg"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {userData?.data?.subscription_status === 'cancelling' ? (
-                        <>
-                          Grace period - access until {userData?.data?.subscription_end_date ? formatDate(userData.data.subscription_end_date) : 'billing period ends'}
-                        </>
-                      ) : userData?.data?.subscription_status === 'trialing' ? (
-                        <>
-                          Trial ends on {formatDateTime((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}
-                        </>
-                      ) : userData?.data?.subscription_tier ? (
-                        `${userData.data.subscription_tier.charAt(0).toUpperCase() + userData.data.subscription_tier.slice(1)} Plan`
-                      ) : (
-                        'Free Plan'
-                      )}
+                {!userData && adminApiError ? (
+                  <div className="flex-1 text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      Unable to load subscription data. Please try refreshing the page.
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Current Bot Limit */}
+                    <div className="flex items-baseline gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Bot className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-muted-foreground">Current Bot Limit</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <Metric 
+                            value={(() => {
+                              const count = (userData?.max_concurrent_bots ?? 0)
+                              console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
+                              return count
+                            })()} 
+                            unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
+                            size="lg"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {userData?.data?.subscription_status === 'cancelling' ? (
+                            <>
+                              Grace period - access until {userData?.data?.subscription_end_date ? formatDate(userData.data.subscription_end_date) : 'billing period ends'}
+                            </>
+                          ) : userData?.data?.subscription_status === 'trialing' ? (
+                            <>
+                              Trial ends on {formatDateTime((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}
+                            </>
+                          ) : userData?.data?.subscription_tier ? (
+                            `${userData.data.subscription_tier.charAt(0).toUpperCase() + userData.data.subscription_tier.slice(1)} Plan`
+                          ) : (
+                            'Free Plan'
+                          )}
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Subscription Status */}
-                <div className="flex items-center gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Subscription Status</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        {getSubscriptionStatus(userData?.data?.subscription_status)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {userData?.data?.subscription_status === 'active' || userData?.data?.subscription_status === 'cancelling' ? (
-                          <>
-                            {(userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) ? (
-                              `Next payment due: ${formatDate((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}`
+                    {/* Subscription Status */}
+                    <div className="flex items-center gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-muted-foreground">Subscription Status</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            {getSubscriptionStatus(userData?.data?.subscription_status)}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {userData?.data?.subscription_status === 'active' || userData?.data?.subscription_status === 'cancelling' ? (
+                              <>
+                                {(userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) ? (
+                                  `Next payment due: ${formatDate((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}`
+                                ) : (
+                                  "Active subscription"
+                                )}
+                              </>
+                            ) : userData?.data?.subscription_status === 'trialing' ? (
+                              <>Trial ends on {formatDateTime((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}</>
+                            ) : userData?.data?.subscription_status === 'canceled' ? (
+                              "Subscription canceled"
                             ) : (
-                              "Active subscription"
+                              "No active subscription"
                             )}
-                          </>
-                        ) : userData?.data?.subscription_status === 'trialing' ? (
-                          <>Trial ends on {formatDateTime((userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date) as any)}</>
-                        ) : userData?.data?.subscription_status === 'canceled' ? (
-                          "Subscription canceled"
-                        ) : (
-                          "No active subscription"
-                        )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
 
                 {/* Manage Subscription Button */}
                 <div className="flex items-center">
@@ -641,6 +659,15 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 Manage your API keys for bot integration
               </p>
+              
+              {apiKeysError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Unable to load API keys:</strong> {apiKeysError}
+                  </AlertDescription>
+                </Alert>
+              )}
               
               {isLoadingApiKeys ? (
                 <div className="flex items-center justify-center py-4">

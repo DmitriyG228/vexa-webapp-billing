@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RefreshCw, Settings } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -56,17 +57,25 @@ export function BlogRefreshButton() {
 
   return (
     <div className="absolute top-4 right-4 z-10">
-      <Button
-        onClick={handleRefresh}
-        disabled={isRefreshing}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2 bg-white/90 backdrop-blur-sm border-gray-200 shadow-sm hover:bg-white hover:shadow-md opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity duration-200"
-        title="Refresh blog content and notifications (Admin only)"
-      >
-        <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-        <Settings className="h-3 w-3 opacity-50" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 bg-white/90 backdrop-blur-sm border-gray-200 shadow-sm hover:bg-white hover:shadow-md opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity duration-200"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <Settings className="h-3 w-3 opacity-50" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Refresh blog content and notifications (Admin only)</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

@@ -83,6 +83,8 @@ vars: ## Update all variables: secrets from .env + validate terraform.tfvars + i
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.google_client_id projects/$(PROJECT_ID)/secrets/$(ENV)-google-client-id 2>/dev/null && echo "  ✓ google-client-id" || echo "  ⚠ google-client-id" && \
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.google_client_secret projects/$(PROJECT_ID)/secrets/$(ENV)-google-client-secret 2>/dev/null && echo "  ✓ google-client-secret" || echo "  ⚠ google-client-secret" && \
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.github_token projects/$(PROJECT_ID)/secrets/$(ENV)-github-token 2>/dev/null && echo "  ✓ github-token" || echo "  ⚠ github-token" && \
+		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.transcription_gateway_url projects/$(PROJECT_ID)/secrets/$(ENV)-transcription-gateway-url 2>/dev/null && echo "  ✓ transcription-gateway-url" || echo "  ⚠ transcription-gateway-url" && \
+		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.transcription_admin_api_key projects/$(PROJECT_ID)/secrets/$(ENV)-transcription-admin-api-key 2>/dev/null && echo "  ✓ transcription-admin-api-key" || echo "  ⚠ transcription-admin-api-key" && \
 		echo "$(YELLOW)Validating terraform configuration...$(RESET)" && \
 		if terraform validate -var-file="environments/$(ENV)/terraform.tfvars" >/dev/null 2>&1; then \
 			echo "$(GREEN)✓ Secrets updated, resources imported, and terraform configuration validated$(RESET)"; \
@@ -136,6 +138,8 @@ deploy: ## Deploy to Cloud Run
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.google_client_id projects/$(PROJECT_ID)/secrets/$(ENV)-google-client-id >/dev/null 2>&1 || true; \
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.google_client_secret projects/$(PROJECT_ID)/secrets/$(ENV)-google-client-secret >/dev/null 2>&1 || true; \
 		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.github_token projects/$(PROJECT_ID)/secrets/$(ENV)-github-token >/dev/null 2>&1 || true; \
+		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.transcription_gateway_url projects/$(PROJECT_ID)/secrets/$(ENV)-transcription-gateway-url >/dev/null 2>&1 || true; \
+		terraform import -var-file="environments/$(ENV)/terraform.tfvars" -input=false module.secrets.google_secret_manager_secret.transcription_admin_api_key projects/$(PROJECT_ID)/secrets/$(ENV)-transcription-admin-api-key >/dev/null 2>&1 || true; \
 	)
 	@cd deployment/terraform && terraform apply -var-file="environments/$(ENV)/terraform.tfvars" -auto-approve
 	@gcloud run services update $(ENV)-webapp --region=$(REGION) --image=$(REGISTRY)/webapp:latest --quiet 2>/dev/null || true
@@ -204,9 +208,12 @@ auth: ## Authenticate with GCloud
 		exit 1; \
 	fi
 	@echo "$(YELLOW)Setting gcloud project to $(PROJECT_ID)...$(RESET)"
-	@gcloud config set project $(PROJECT_ID)
-	@gcloud auth login
-	@gcloud auth application-default login
+	@echo "$(YELLOW)Note: If credentials are expired, we'll refresh them next.$(RESET)"
+	@gcloud config set project $(PROJECT_ID) --quiet 2>/dev/null || \
+		(gcloud config set project $(PROJECT_ID) 2>&1 | grep -v "Reauthentication\|cannot prompt" || true)
+	@echo "$(YELLOW)Authenticating with gcloud (browser will open)...$(RESET)"
+	@echo "$(YELLOW)This will open your browser for authentication.$(RESET)"
+	@gcloud auth login --update-adc --brief
 	@echo "$(YELLOW)Setting quota project to $(PROJECT_ID)...$(RESET)"
 	@gcloud auth application-default set-quota-project $(PROJECT_ID)
 	@echo "$(GREEN)✓ Authentication complete$(RESET)"

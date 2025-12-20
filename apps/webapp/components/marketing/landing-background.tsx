@@ -1,3 +1,5 @@
+'use client';
+
 import { ReactNode } from "react";
 
 interface LandingBackgroundProps {
@@ -14,12 +16,12 @@ export function LandingBackground({ children, className = "" }: LandingBackgroun
 
   return (
     <div className={`relative min-h-screen bg-background ${className}`}>
-      {/* Base background */}
-      <div className="fixed inset-0 -z-50 bg-gradient-to-b from-slate-50/70 via-background to-background dark:from-slate-950 dark:via-background dark:to-background" />
+      {/* Base background - Enhanced for better visibility */}
+      <div className="fixed inset-0 -z-50 bg-gradient-to-b from-blue-50/40 via-slate-50/30 to-background dark:from-slate-950 dark:via-background dark:to-background" />
 
       {/* Aurora wash + glows (mode-specific so light mode stays cold) */}
-      {/* Light mode: teal + blue (direct RGB for visibility) */}
-      <div className="fixed inset-0 -z-40 pointer-events-none overflow-hidden dark:hidden">
+      {/* Light mode: teal + blue (direct RGB for visibility) - Always show by default */}
+      <div className="fixed inset-0 -z-40 pointer-events-none overflow-hidden block dark:hidden">
         <div
           className="absolute inset-0"
           style={{

@@ -7,6 +7,9 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PageContainer, Section } from '@/components/ui/page-container';
 import { Button } from '@/components/ui/button';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReadingProgress } from '@/components/blog/reading-progress';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { SocialShareSidebar } from '@/components/blog/social-share-sidebar';
@@ -203,25 +206,27 @@ export default async function Post({ params }: PostProps) {
             {/* Main Content Container - Aligned with Hero Image */}
             <div className="w-full max-w-[720px] flex-shrink-0">
               {/* Breadcrumb navigation - Aligned with content */}
-              <nav aria-label="Breadcrumb" className="mb-8">
-                <ol className="flex items-center space-x-2 text-sm">
-                  <li>
-                    <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
-                      Home
-                    </Link>
-                  </li>
-                  <li className="text-muted-foreground">/</li>
-                  <li>
-                    <Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
-                      Blog
-                    </Link>
-                  </li>
-                  <li className="text-muted-foreground">/</li>
-                  <li className="text-foreground truncate max-w-md" title={post.title}>
-                    {post.title}
-                  </li>
-                </ol>
-              </nav>
+              <Breadcrumb className="mb-8">
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link href="/">Home</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link href="/blog">Blog</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="truncate max-w-md" title={post.title}>
+                      {post.title}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
 
               <article>
                 {/* Hero Background with Header - Matched to content width */}
@@ -284,7 +289,7 @@ export default async function Post({ params }: PostProps) {
                         </div>
                       )}
                       
-                      <span className="text-white/50">•</span>
+                      <Separator orientation="vertical" className="h-4 bg-white/30" />
                       <span className="text-white/80">{formatDate(post.date)}</span>
                     </div>
                   </div>
@@ -299,23 +304,25 @@ export default async function Post({ params }: PostProps) {
                   }}
                 />
                 
+                <Separator className="my-12" />
+                
                 {/* CTA Section */}
-                <div className="mt-16 mb-8 p-8 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold mb-3">Don't want to host it yourself?</h3>
-                    <p className="text-muted-foreground mb-6">
+                <Card className="mt-16 mb-8 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-2xl">Don't want to host it yourself?</CardTitle>
+                    <CardDescription className="text-base">
                       Try Vexa Cloud for hassle-free meeting transcription with the same powerful API.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Button asChild size="lg">
-                        <Link href="/get-started">Get Started Free</Link>
-                      </Button>
-                      <Button asChild variant="outline" size="lg">
-                        <Link href="/pricing">View Pricing</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button asChild size="lg">
+                      <Link href="/get-started">Get Started Free</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg">
+                      <Link href="/pricing">View Pricing</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
                 {/* Copy-Button handler: decode base64 from data attribute and copy */}
                 <script
                   dangerouslySetInnerHTML={{

@@ -50,5 +50,15 @@ output "github_token_id" {
   value       = google_secret_manager_secret.github_token.secret_id
 }
 
+output "transcription_gateway_url_id" {
+  description = "Secret Manager secret ID for Transcription Gateway URL"
+  value       = google_secret_manager_secret.transcription_gateway_url.secret_id
+}
+
+output "transcription_admin_api_key_id" {
+  description = "Secret Manager secret ID for Transcription Admin API Key"
+  value       = google_secret_manager_secret.transcription_admin_api_key.secret_id
+}
+
 
 

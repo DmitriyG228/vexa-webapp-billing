@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Twitter, Linkedin, Link2, Check } from 'lucide-react';
 import { absoluteUrl } from '@/lib/utils';
 
@@ -39,40 +40,62 @@ export function SocialShareSidebar({ url, title, description }: SocialShareSideb
   return (
     <div className="hidden lg:block">
       <div className="sticky top-24">
-        <div className="flex flex-col gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={shareToTwitter}
-            className="w-12 h-12"
-            aria-label="Share on Twitter"
-          >
-            <Twitter className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={shareToLinkedIn}
-            className="w-12 h-12"
-            aria-label="Share on LinkedIn"
-          >
-            <Linkedin className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={copyLink}
-            className="w-12 h-12"
-            aria-label="Copy link"
-            title={copied ? 'Copied!' : 'Copy link'}
-          >
-            {copied ? (
-              <Check className="h-5 w-5" />
-            ) : (
-              <Link2 className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex flex-col gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={shareToTwitter}
+                  className="w-12 h-12"
+                  aria-label="Share on Twitter"
+                >
+                  <Twitter className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Share on Twitter</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={shareToLinkedIn}
+                  className="w-12 h-12"
+                  aria-label="Share on LinkedIn"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Share on LinkedIn</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={copyLink}
+                  className="w-12 h-12"
+                  aria-label="Copy link"
+                >
+                  {copied ? (
+                    <Check className="h-5 w-5" />
+                  ) : (
+                    <Link2 className="h-5 w-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{copied ? 'Copied!' : 'Copy link'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
     </div>
   );

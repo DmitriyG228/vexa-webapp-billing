@@ -168,5 +168,18 @@ variable "github_repo_path" {
   default     = ""
 }
 
+variable "transcription_gateway_url" {
+  description = "Transcription Gateway URL"
+  type        = string
+  default     = ""
+}
+
+variable "transcription_admin_api_key" {
+  description = "Transcription Admin API Key"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 
 

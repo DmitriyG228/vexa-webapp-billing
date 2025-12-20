@@ -97,6 +97,8 @@ update_secret "nextauth-secret" "$NEXTAUTH_SECRET"
 update_secret "nextauth-url" "$NEXTAUTH_URL"
 update_secret "google-client-id" "$GOOGLE_CLIENT_ID"
 update_secret "google-client-secret" "$GOOGLE_CLIENT_SECRET"
+update_secret "transcription-gateway-url" "$TRANSCRIPTION_GATEWAY_URL"
+update_secret "transcription-admin-api-key" "$TRANSCRIPTION_ADMIN_API_KEY"
 
 # GitHub secrets for blog integration
 if [ ! -z "$GITHUB_TOKEN" ]; then

@@ -201,5 +201,45 @@ resource "google_secret_manager_secret_version" "github_token" {
   secret_data = var.github_token
 }
 
+resource "google_secret_manager_secret" "transcription_gateway_url" {
+  secret_id = "${var.environment}-transcription-gateway-url"
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+  }
+}
+
+resource "google_secret_manager_secret_version" "transcription_gateway_url" {
+  count = var.transcription_gateway_url != "" ? 1 : 0
+
+  secret      = google_secret_manager_secret.transcription_gateway_url.id
+  secret_data = var.transcription_gateway_url
+}
+
+resource "google_secret_manager_secret" "transcription_admin_api_key" {
+  secret_id = "${var.environment}-transcription-admin-api-key"
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+  }
+}
+
+resource "google_secret_manager_secret_version" "transcription_admin_api_key" {
+  count = var.transcription_admin_api_key != "" ? 1 : 0
+
+  secret      = google_secret_manager_secret.transcription_admin_api_key.id
+  secret_data = var.transcription_admin_api_key
+}
+
 
 
