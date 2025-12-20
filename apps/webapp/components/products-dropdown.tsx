@@ -24,7 +24,7 @@ export function ProductsDropdown() {
     return (
       <button className={cn(navigationMenuTriggerStyle(), "gap-1")}>
         Products
-        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+        <ChevronDown className="h-4 w-4 transition-transform duration-200" aria-hidden="true" />
       </button>
     )
   }
@@ -33,7 +33,7 @@ export function ProductsDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger className={cn(navigationMenuTriggerStyle(), "gap-1")}>
         Products
-        <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" />
+        <ChevronDown className="h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-180" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[200px]">
         <DropdownMenuItem asChild>

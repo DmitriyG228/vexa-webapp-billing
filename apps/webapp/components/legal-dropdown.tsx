@@ -23,7 +23,7 @@ export function LegalDropdown() {
     return (
       <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
         Legal
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-3 w-3" aria-hidden="true" />
       </button>
     )
   }
@@ -32,7 +32,7 @@ export function LegalDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
         Legal
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-3 w-3" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>
