@@ -206,7 +206,7 @@ export default function LandingPage() {
                     <div className="flex items-center gap-2">
                       <Star className="h-5 w-5 fill-current text-foreground" />
                       <div className="flex flex-col items-start">
-                        <span className="text-2xl font-bold text-foreground leading-none">1.5k</span>
+                        <span className="text-2xl font-bold text-foreground leading-none">1.6k</span>
                         <span className="text-xs text-muted-foreground">Stars</span>
                       </div>
                     </div>
