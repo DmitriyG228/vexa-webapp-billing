@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { ReactNode } from "react";
@@ -39,7 +41,7 @@ export function VideoFeature({
   // Show MCP diagram if no videoId provided
   const showDiagram = !videoId;
   return (
-    <section className={`py-12 sm:py-16 ${className}`}>
+    <section className={`py-12 sm:py-16 ${className}`} suppressHydrationWarning>
       <div className="max-w-6xl mx-auto px-4">
         <div className="rounded-2xl border bg-card/80 backdrop-blur-sm shadow-sm p-8 sm:p-12 overflow-hidden">
           <div className="grid items-stretch gap-8 sm:gap-12 min-h-[400px] lg:grid-cols-2">

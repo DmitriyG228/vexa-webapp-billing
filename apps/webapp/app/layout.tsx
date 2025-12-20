@@ -94,10 +94,8 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         
-        {/* Preload critical assets with high priority */}
+        {/* Preload critical assets with high priority - only logo, images are handled by Next.js Image priority */}
         <link rel="preload" href="/logodark.svg" as="image" type="image/svg+xml" fetchPriority="high" />
-        <link rel="preload" href="/microsoft-teams-logo.png" as="image" fetchPriority="high" />
-        <link rel="preload" href="/google-meet-logo.png" as="image" fetchPriority="high" />
         
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

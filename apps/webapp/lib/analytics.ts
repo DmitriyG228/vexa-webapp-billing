@@ -55,14 +55,16 @@ export function trackEvent(
           ...eventParams
         });
       } 
-      // No tracking available
+      // No tracking available - only warn in production, silent in dev
       else {
-        console.warn(
-          `%c📊 GA not loaded [${getLogTimestamp()}]`,
-          'color: #ea4335; font-weight: bold;',
-          `\n   Would track: ${eventName}`,
-          eventParams ? `\n   Params: ${JSON.stringify(eventParams, null, 2)}` : ''
-        );
+        if (process.env.NODE_ENV === 'production') {
+          console.warn(
+            `%c📊 GA not loaded [${getLogTimestamp()}]`,
+            'color: #ea4335; font-weight: bold;',
+            `\n   Would track: ${eventName}`,
+            eventParams ? `\n   Params: ${JSON.stringify(eventParams, null, 2)}` : ''
+          );
+        }
       }
     } else {
       console.log(
