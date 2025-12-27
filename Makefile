@@ -240,6 +240,16 @@ logs-webapp: ## View webapp logs
 logs-billing: ## View billing logs
 	@gcloud run services logs read $(ENV)-billing --region=$(REGION) --limit=50
 
+generate-docs-export: ## Regenerate the static docs export markdown file (admin only)
+	@echo "$(GREEN)Regenerating docs export...$(RESET)"
+	@if [ ! -f .env ]; then \
+		echo "$(YELLOW)Error: .env not found$(RESET)"; \
+		exit 1; \
+	fi
+	@WEBAPP_URL=$$(grep -E '^NEXT_PUBLIC_WEBAPP_URL=' .env 2>/dev/null | cut -d'=' -f2 | tr -d '\n' | tr -d '\r' || echo 'http://localhost:3002') && \
+	bash -c 'export NVM_DIR="$$HOME/.nvm" && [ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh" && cd apps/webapp && nvm use 20 && export WEBAPP_URL="$$WEBAPP_URL" && npx tsx scripts/generate-docs-export.ts'
+	@echo "$(GREEN)✓ Docs export regenerated$(RESET)"
+
 clean: ## Clean local Docker images
 	@docker images | grep $(REGISTRY) | awk '{print $$3}' | xargs docker rmi -f 2>/dev/null || true
 	@echo "$(GREEN)✓ Cleaned$(RESET)"

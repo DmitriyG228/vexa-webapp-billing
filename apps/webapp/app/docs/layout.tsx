@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { ExportDocsButton } from "@/components/docs/export-docs-button";
 
 const docsNav = [
   {
@@ -12,6 +13,7 @@ const docsNav = [
     items: [
       { title: "Overview", href: "/docs" },
       { title: "Authentication", href: "/docs/auth" },
+      { title: "Export Docs", href: "/docs/export" },
     ],
   },
   {
@@ -65,10 +67,13 @@ export default function DocsLayout({
       <aside className="hidden lg:block w-64 border-r bg-background shrink-0">
         <div className="sticky top-0 h-screen overflow-hidden flex flex-col">
           <div className="p-6 border-b">
-            <Link href="/docs" className="flex items-center gap-2 font-semibold hover:text-primary transition-colors">
-              <BookOpen className="h-5 w-5" />
-              <span>API Docs</span>
-            </Link>
+            <div className="flex items-center justify-between mb-4">
+              <Link href="/docs" className="flex items-center gap-2 font-semibold hover:text-primary transition-colors">
+                <BookOpen className="h-5 w-5" />
+                <span>API Docs</span>
+              </Link>
+            </div>
+            <ExportDocsButton />
           </div>
           <ScrollArea className="flex-1">
             <nav className="p-4 space-y-6">
