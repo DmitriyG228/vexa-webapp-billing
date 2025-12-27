@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Geist, Geist_Mono } from 'next/font/google'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,16 @@ const inter = Inter({
   display: 'swap', // Optimize font loading performance
   preload: true,
   adjustFontFallback: true,
+})
+
+const geistSans = Geist({
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+})
+
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 })
 
 export const metadata: Metadata = {
@@ -109,9 +119,13 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{
           __html: `
             document.addEventListener('DOMContentLoaded', function() {
-              // Make all sidebars sticky
+              // Make all sidebars sticky (except docs sidebar which has its own structure)
               const sidebars = document.querySelectorAll('aside');
               sidebars.forEach(sidebar => {
+                // Skip docs sidebar - it has its own sticky container structure
+                if (sidebar.closest('[class*="docs"]') || sidebar.querySelector('[class*="sticky"]')) {
+                  return;
+                }
                 if (!sidebar.className.includes('sticky')) {
                   sidebar.classList.add('sticky', 'top-16', 'h-[calc(100vh-4rem)]', 'overflow-y-auto');
                 }
@@ -151,7 +165,7 @@ export default async function RootLayout({
           />
         )}
       </head>
-      <body className={`${inter.variable} font-sans`}>
+      <body className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans`}>
         <AuthProvider>
           <ThemeProvider
             attribute="class"
