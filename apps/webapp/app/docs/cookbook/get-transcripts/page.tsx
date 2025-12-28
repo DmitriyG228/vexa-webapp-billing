@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { APIEndpointDoc } from "@/components/docs/api-endpoint-doc";
+import { CodeBlock } from "@/components/code-block";
 
 export const metadata: Metadata = {
   title: "Get Transcripts | Vexa API Cookbook",
@@ -64,134 +66,48 @@ export default function GetTranscriptsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="js">
-            <TabsList>
-              <TabsTrigger value="js">JavaScript</TabsTrigger>
-              <TabsTrigger value="python">Python</TabsTrigger>
-              <TabsTrigger value="curl">curl</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="js" className="mt-4">
-              <div className="space-y-2">
-                <code className="text-xs text-muted-foreground">JavaScript/TypeScript Example</code>
-                <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{`// Fetch transcripts for a meeting
-async function getTranscripts(platform, nativeMeetingId) {
-  const response = await fetch(
-    \`https://your-api-url/transcripts/\${platform}/\${nativeMeetingId}\`,
-    {
-      headers: {
-        'X-API-Key': 'your-api-key',
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-  
-  if (!response.ok) {
-    throw new Error(\`Failed to fetch transcripts: \${response.statusText}\`);
-  }
-  
-  const data = await response.json();
-  
-  // data.segments contains all transcript segments
-  console.log(\`Found \${data.segments.length} transcript segments\`);
-  
-  // Each segment has:
-  // - text: The transcribed text
-  // - speaker: Speaker name
-  // - start/end: Relative timestamps (seconds from meeting start)
-  // - absolute_start_time/absolute_end_time: ISO timestamps
-  // - language: Detected language code
-  // - created_at: When the segment was created
-  
-  return data.segments;
-}
-
-// Usage
-const segments = await getTranscripts('google_meet', 'abc-defg-hij');
-
-// Display transcripts
-segments.forEach(segment => {
-  console.log(\`[\${segment.speaker}] \${segment.text}\`);
-});`}</code>
-                </pre>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="python" className="mt-4">
-              <div className="space-y-2">
-                <code className="text-xs text-muted-foreground">Python Example</code>
-                <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{`import requests
-
-def get_transcripts(platform, native_meeting_id, api_key):
-    url = f"https://your-api-url/transcripts/{platform}/{native_meeting_id}"
-    headers = {
-        "X-API-Key": api_key,
-        "Content-Type": "application/json"
-    }
-    
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    
-    data = response.json()
-    
-    # data['segments'] contains all transcript segments
-    print(f"Found {len(data['segments'])} transcript segments")
-    
-    # Each segment has:
-    # - text: The transcribed text
-    # - speaker: Speaker name
-    # - start/end: Relative timestamps (seconds from meeting start)
-    # - absolute_start_time/absolute_end_time: ISO timestamps
-    # - language: Detected language code
-    # - created_at: When the segment was created
-    
-    return data['segments']
-
-# Usage
-segments = get_transcripts('google_meet', 'abc-defg-hij', 'your-api-key')
-
-# Display transcripts
-for segment in segments:
-    print(f"[{segment['speaker']}] {segment['text']}")`}</code>
-                </pre>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="curl" className="mt-4">
-              <div className="space-y-2">
-                <code className="text-xs text-muted-foreground">curl Example</code>
-                <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{`# Fetch transcripts
-curl -X GET \\
-  "https://your-api-url/transcripts/google_meet/abc-defg-hij" \\
-  -H "X-API-Key: your-api-key" \\
-  -H "Content-Type: application/json"
-
-# Response:
-# {
-#   "id": 123,
-#   "platform": "google_meet",
-#   "native_meeting_id": "abc-defg-hij",
-#   "status": "completed",
-#   "segments": [
-#     {
-#       "start": 0.0,
-#       "end": 5.2,
-#       "text": "Hello everyone, welcome to today's meeting.",
-#       "speaker": "Alice",
-#       "language": "en",
-#       "absolute_start_time": "2024-01-01T12:00:00Z",
-#       "absolute_end_time": "2024-01-01T12:00:05Z",
-#       "created_at": "2024-01-01T12:00:05Z"
-#     }
-#   ]
-# }`}</code>
-                </pre>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <APIEndpointDoc
+            title=""
+            description=""
+            method="GET"
+            path="/transcripts/{platform}/{native_meeting_id}"
+            authType="user"
+            dashboardProxy="/api/vexa/transcripts/{platform}/{native_meeting_id}"
+            pathParams={[
+              {
+                name: "platform",
+                type: "string",
+                description: "Meeting platform: google_meet or teams",
+                required: true,
+              },
+              {
+                name: "native_meeting_id",
+                type: "string",
+                description: "The platform-specific meeting ID",
+                required: true,
+              },
+            ]}
+            responseExample={{
+              segments: [
+                {
+                  id: 1,
+                  text: "Hello, welcome to our meeting.",
+                  speaker: "John Doe",
+                  start: 0.0,
+                  end: 5.2,
+                  absolute_start_time: "2024-01-01T12:00:00.000Z",
+                  absolute_end_time: "2024-01-01T12:00:05.200Z",
+                  language: "en",
+                  confidence: 0.95,
+                  created_at: "2024-01-01T12:00:05.200Z"
+                }
+              ]
+            }}
+            notes={[
+              "Returns all transcript segments for the meeting",
+              "Segments are ordered chronologically by start time",
+            ]}
+          />
         </CardContent>
       </Card>
 

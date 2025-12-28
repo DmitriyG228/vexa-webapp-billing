@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { generateCodeExamples, type APIRequest } from "@/lib/docs/code-generator";
 import { cn } from "@/lib/utils";
+import { CodeBlock } from "@/components/code-block";
 
 interface APIEndpointDocProps {
   title: string;
@@ -197,9 +198,11 @@ export function APIEndpointDoc({
             {requestBody.description && <CardDescription>{requestBody.description}</CardDescription>}
           </CardHeader>
           <CardContent>
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-              <code>{JSON.stringify(requestBody.schema, null, 2)}</code>
-            </pre>
+            <CodeBlock
+              language="json"
+              value={JSON.stringify(requestBody.schema, null, 2)}
+              className="bg-muted"
+            />
           </CardContent>
         </Card>
       )}
@@ -224,7 +227,7 @@ export function APIEndpointDoc({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 z-10"
                     onClick={() => handleCopy(example.code, example.language)}
                   >
                     {copiedLang === example.language ? (
@@ -233,9 +236,11 @@ export function APIEndpointDoc({
                       <Copy className="h-4 w-4" />
                     )}
                   </Button>
-                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{example.code}</code>
-                  </pre>
+                  <CodeBlock
+                    language={example.language}
+                    value={example.code}
+                    className="bg-muted"
+                  />
                 </div>
               </TabsContent>
             ))}
@@ -250,9 +255,11 @@ export function APIEndpointDoc({
             <CardTitle>Response</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-              <code>{JSON.stringify(responseExample, null, 2)}</code>
-            </pre>
+            <CodeBlock
+              language="json"
+              value={JSON.stringify(responseExample, null, 2)}
+              className="bg-muted"
+            />
           </CardContent>
         </Card>
       )}
@@ -270,9 +277,11 @@ export function APIEndpointDoc({
                   <Badge variant="destructive">{error.status}</Badge>
                   {error.description && <span className="text-sm">{error.description}</span>}
                 </div>
-                <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-                  <code>{JSON.stringify(error.body, null, 2)}</code>
-                </pre>
+                <CodeBlock
+                  language="json"
+                  value={JSON.stringify(error.body, null, 2)}
+                  className="bg-muted"
+                />
               </div>
             ))}
           </CardContent>

@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APIEndpointDoc } from "@/components/docs/api-endpoint-doc";
+import { CodeBlock } from "@/components/code-block";
 
 export const metadata: Metadata = {
   title: "Start Transcription Bot | Vexa API Cookbook",
@@ -44,17 +46,38 @@ export default function StartTranscriptionPage() {
               Send a POST request to create a bot. The bot will automatically join the meeting.
             </p>
             <div className="space-y-4">
-              <div>
-                <code className="bg-muted px-2 py-1 rounded text-sm font-mono">POST /bots</code>
-              </div>
-              <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                <code>{JSON.stringify({
+              <APIEndpointDoc
+                title=""
+                description=""
+                method="POST"
+                path="/bots"
+                authType="user"
+                dashboardProxy="/api/vexa/bots"
+                requestBody={{
+                  description: "Bot configuration",
+                  schema: {
+                    platform: "google_meet",
+                    native_meeting_id: "abc-defg-hij",
+                    bot_name: "My Transcription Bot",
+                    language: "en",
+                  },
+                }}
+                responseExample={{
+                  id: 123,
                   platform: "google_meet",
                   native_meeting_id: "abc-defg-hij",
-                  bot_name: "My Transcription Bot",
-                  language: "en",
-                }, null, 2)}</code>
-              </pre>
+                  status: "requested",
+                  start_time: null,
+                  end_time: null,
+                  bot_container_id: null,
+                  data: {},
+                  created_at: "2024-01-01T12:00:00Z",
+                }}
+                notes={[
+                  "The bot will transition through statuses: requested → joining → awaiting_admission → active",
+                  "For Google Meet, meeting IDs follow the format: abc-defg-hij",
+                ]}
+              />
               <Link href="/docs/rest/bots" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
                 View full API reference
                 <ArrowRight className="h-4 w-4" />

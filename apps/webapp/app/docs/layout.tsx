@@ -13,7 +13,6 @@ const docsNav = [
     items: [
       { title: "Overview", href: "/docs" },
       { title: "Authentication", href: "/docs/auth" },
-      { title: "Export Docs", href: "/docs/export" },
     ],
   },
   {
@@ -35,6 +34,7 @@ const docsNav = [
     {
       title: "Cookbooks",
       items: [
+        { title: "Get Started", href: "/docs/cookbook/get-started" },
         { title: "Start Transcription", href: "/docs/cookbook/start-transcription" },
         { title: "Track Meeting Status", href: "/docs/cookbook/track-meeting-status" },
         { title: "Get Transcripts", href: "/docs/cookbook/get-transcripts" },

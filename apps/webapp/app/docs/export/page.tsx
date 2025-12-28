@@ -101,6 +101,13 @@ export default async function ExportDocsPage() {
             <strong>Direct Link:</strong> You can also access the markdown file directly at{" "}
             <code className="text-sm bg-muted px-1 py-0.5 rounded">{downloadUrl}</code>
           </li>
+          <li>
+            <strong>HTML Version:</strong> For LLM consumption (ChatGPT, Claude, etc.), use the{" "}
+            <a href="/docs/export/html" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              HTML version
+            </a>
+            {" "}which renders the markdown as clean HTML.
+          </li>
         </ul>
         
         <h2>What's Included</h2>

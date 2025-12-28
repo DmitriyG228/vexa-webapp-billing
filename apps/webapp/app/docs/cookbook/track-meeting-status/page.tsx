@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { APIEndpointDoc } from "@/components/docs/api-endpoint-doc";
+import { CodeBlock } from "@/components/code-block";
 
 export const metadata: Metadata = {
   title: "Track Meeting Status | Vexa API Cookbook",
@@ -71,8 +73,9 @@ export default function TrackMeetingStatusPage() {
             <TabsContent value="js" className="mt-4">
               <div className="space-y-2">
                 <code className="text-xs text-muted-foreground">JavaScript/TypeScript Example</code>
-                <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{`// Connect to WebSocket
+                <CodeBlock
+                  language="javascript"
+                  value={`// Connect to WebSocket
 const ws = new WebSocket('wss://your-api-url/ws?api_key=your-api-key');
 
 ws.onopen = () => {
@@ -87,13 +90,13 @@ ws.onopen = () => {
 
 ws.onmessage = (event) => {
   const message = JSON.parse(event.data);
-  
+
   if (message.type === 'meeting.status') {
     const status = message.payload.status;
     const meeting = message.meeting;
-    
+
     console.log(\`Meeting \${meeting.native_id} status: \${status}\`);
-    
+
     // Handle different statuses
     switch (status) {
       case 'requested':
@@ -120,26 +123,27 @@ ws.onmessage = (event) => {
         ws.close();
         break;
     }
-    
+
     // Update your UI with the new status
     updateStatusIndicator(meeting.native_id, status);
   }
-};`}</code>
-                </pre>
+};`}
+                />
               </div>
             </TabsContent>
 
             <TabsContent value="python" className="mt-4">
               <div className="space-y-2">
                 <code className="text-xs text-muted-foreground">Python Example</code>
-                <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{`import asyncio
+                <CodeBlock
+                  language="python"
+                  value={`import asyncio
 import websockets
 import json
 
 async def track_meeting_status():
     uri = "wss://your-api-url/ws?api_key=your-api-key"
-    
+
     async with websockets.connect(uri) as websocket:
         # Subscribe to meeting
         await websocket.send(json.dumps({
@@ -148,17 +152,17 @@ async def track_meeting_status():
                 {"platform": "google_meet", "native_id": "abc-defg-hij"}
             ]
         }))
-        
+
         # Listen for messages
         async for message in websocket:
             data = json.loads(message)
-            
+
             if data.get("type") == "meeting.status":
                 status = data["payload"]["status"]
                 meeting = data["meeting"]
-                
+
                 print(f"Meeting {meeting['native_id']} status: {status}")
-                
+
                 # Handle different statuses
                 if status == "requested":
                     print("Bot is starting up...")
@@ -177,8 +181,8 @@ async def track_meeting_status():
                     break
 
 # Run the async function
-asyncio.run(track_meeting_status())`}</code>
-                </pre>
+asyncio.run(track_meeting_status())`}
+                />
               </div>
             </TabsContent>
 
@@ -188,8 +192,9 @@ asyncio.run(track_meeting_status())`}</code>
                 <p className="text-sm text-muted-foreground">
                   WebSocket connections cannot be made with curl. Use a WebSocket client library in your preferred language, or use a tool like <code className="bg-muted px-1 rounded">wscat</code>:
                 </p>
-                <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{`# Install wscat: npm install -g wscat
+                <CodeBlock
+                  language="bash"
+                  value={`# Install wscat: npm install -g wscat
 
 # Connect to WebSocket
 wscat -c "wss://your-api-url/ws?api_key=your-api-key"
@@ -200,8 +205,8 @@ wscat -c "wss://your-api-url/ws?api_key=your-api-key"
 # You'll receive status updates like:
 # {"type":"meeting.status","meeting":{"platform":"google_meet","native_id":"abc-defg-hij"},"payload":{"status":"requested"},"ts":"2024-01-01T12:00:00Z"}
 # {"type":"meeting.status","meeting":{"platform":"google_meet","native_id":"abc-defg-hij"},"payload":{"status":"joining"},"ts":"2024-01-01T12:00:15Z"}
-# ...`}</code>
-                </pre>
+# ...`}
+                />
               </div>
             </TabsContent>
           </Tabs>

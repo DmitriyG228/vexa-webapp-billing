@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { APIEndpointDoc } from "@/components/docs/api-endpoint-doc";
+import { CodeBlock } from "@/components/code-block";
 
 export const metadata: Metadata = {
   title: "Rename Meeting | Vexa API Cookbook",

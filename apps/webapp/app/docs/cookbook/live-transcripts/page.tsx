@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APIEndpointDoc } from "@/components/docs/api-endpoint-doc";
+import { CodeBlock } from "@/components/code-block";
 
 export const metadata: Metadata = {
   title: "Live Transcripts | Vexa API Cookbook",

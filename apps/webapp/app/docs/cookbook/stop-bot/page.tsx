@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APIEndpointDoc } from "@/components/docs/api-endpoint-doc";
+import { CodeBlock } from "@/components/code-block";
 
 export const metadata: Metadata = {
   title: "Stop Bot | Vexa API Cookbook",
@@ -33,13 +35,32 @@ export default function StopBotPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <code className="bg-muted px-2 py-1 rounded text-sm font-mono">DELETE /bots/{`{platform}`}/{`{native_meeting_id}`}</code>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Replace <code className="bg-muted px-1 rounded">platform</code> with <code className="bg-muted px-1 rounded">google_meet</code> or <code className="bg-muted px-1 rounded">teams</code>,
-                and <code className="bg-muted px-1 rounded">native_meeting_id</code> with your meeting ID.
-              </p>
+              <APIEndpointDoc
+                title=""
+                description=""
+                method="DELETE"
+                path="/bots/{platform}/{native_meeting_id}"
+                authType="user"
+                dashboardProxy="/api/vexa/bots/{platform}/{native_meeting_id}"
+                pathParams={[
+                  {
+                    name: "platform",
+                    type: "string",
+                    description: "Meeting platform: google_meet or teams",
+                    required: true,
+                  },
+                  {
+                    name: "native_meeting_id",
+                    type: "string",
+                    description: "The platform-specific meeting ID",
+                    required: true,
+                  },
+                ]}
+                notes={[
+                  "Stopping a bot will mark the meeting as completed",
+                  "Transcripts remain available after stopping the bot",
+                ]}
+              />
               <Link href="/docs/rest/bots" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
                 View full API reference
                 <ArrowRight className="h-4 w-4" />
