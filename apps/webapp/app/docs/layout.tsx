@@ -13,6 +13,16 @@ const docsNav = [
     items: [
       { title: "Overview", href: "/docs" },
       { title: "Authentication", href: "/docs/auth" },
+      { title: "MCP Integration", href: "/docs/mcp" },
+    ],
+  },
+  {
+    title: "Deployment",
+    items: [
+      { title: "Vexa Lite", href: "/docs/deployment/lite" },
+      { title: "Fly.io", href: "/docs/deployment/fly" },
+      { title: "Docker Compose", href: "/docs/deployment/compose" },
+      { title: "Development", href: "/docs/deployment/development" },
     ],
   },
   {
