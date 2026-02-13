@@ -10,6 +10,15 @@ require('dotenv').config();
 
 console.log('📋 Setting up docs project...');
 
+// Sync Vexa product docs from the open-source repo into local content/ and public/ folders.
+// This powers the SEO-friendly /vexa-docs route.
+try {
+  require('./sync-vexa-docs');
+} catch (err) {
+  console.warn('⚠️  Warning: Failed to sync Vexa docs. The /vexa-docs section may be empty.');
+  console.warn(String(err && err.message ? err.message : err));
+}
+
 // Check if required environment variables are present
 const requiredEnvVars = [
   'NEXTAUTH_SECRET',

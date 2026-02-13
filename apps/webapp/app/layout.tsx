@@ -20,11 +20,10 @@ import AuthButtons from "@/components/AuthButtons";
 import { CookiePrefsButton } from "@/components/cookie-prefs-button";
 import { LegalDropdown } from "@/components/legal-dropdown";
 import { ProductsDropdown } from "@/components/products-dropdown";
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { getServerSession } from 'next-auth/next';
 import { Logo } from '@/components/ui/logo';
 import { SignupTracker } from '@/components/SignupTracker';
 import { LoginLink } from '@/components/LoginLink';
+import { HeaderAuthedActions, MobileAuthedLinks } from "@/components/header-authed-actions";
 import './globals.css'
 
 const inter = Inter({ 
@@ -73,8 +72,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions);
-
   // Organization schema for homepage SEO
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -224,6 +221,13 @@ export default async function RootLayout({
                       </NavigationMenuItem>
                       <NavigationMenuItem>
                         <NavigationMenuLink asChild>
+                          <Link href="/vexa-docs" className={navigationMenuTriggerStyle()}>
+                            Product Docs
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                      <NavigationMenuItem>
+                        <NavigationMenuLink asChild>
                           <Link href="/pricing" className={navigationMenuTriggerStyle()}>
                             Pricing
                           </Link>
@@ -255,14 +259,7 @@ export default async function RootLayout({
                     </a>
 
                     <ModeToggle />
-
-                    {session && (
-                      <Button asChild variant="default" size="sm" className="font-semibold h-8 px-3 text-xs">
-                        <Link href="/dashboard">
-                          Dashboard
-                        </Link>
-                      </Button>
-                    )}
+                    <HeaderAuthedActions />
 
                     <AuthButtons />
 
@@ -297,22 +294,16 @@ export default async function RootLayout({
                           >
                             API Docs
                           </Link>
+                          <Link href="/vexa-docs" className="text-base font-caption transition-colors hover:text-primary">
+                            Product Docs
+                          </Link>
                           <Link href="/pricing" className="text-base font-caption transition-colors hover:text-primary">
                             Pricing
                           </Link>
                           <Link href="/blog" className="text-base font-caption transition-colors hover:text-primary">
                             Blog
                           </Link>
-                          {session && (
-                            <>
-                              <Link href="/dashboard/api-keys" className="text-base font-caption transition-colors hover:text-primary">
-                                API Keys
-                              </Link>
-                              <Link href="/dashboard" className="text-base font-caption transition-colors hover:text-primary">
-                                Dashboard
-                              </Link>
-                            </>
-                          )}
+                          <MobileAuthedLinks />
                           <div className="pt-4 border-t">
                             <AuthButtons />
                           </div>
