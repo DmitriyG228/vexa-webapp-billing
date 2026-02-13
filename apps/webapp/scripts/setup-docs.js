@@ -10,14 +10,8 @@ require('dotenv').config();
 
 console.log('📋 Setting up docs project...');
 
-// Sync Vexa product docs from the open-source repo into local content/ and public/ folders.
-// This powers the SEO-friendly /vexa-docs route.
-try {
-  require('./sync-vexa-docs');
-} catch (err) {
-  console.warn('⚠️  Warning: Failed to sync Vexa docs. The /vexa-docs section may be empty.');
-  console.warn(String(err && err.message ? err.message : err));
-}
+// Product docs are now hosted via Mintlify at https://docs.vexa.ai.
+// Keep local setup lightweight: no cloning/syncing docs in this app.
 
 // Check if required environment variables are present
 const requiredEnvVars = [

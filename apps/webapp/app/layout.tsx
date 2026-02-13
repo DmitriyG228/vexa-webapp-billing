@@ -221,7 +221,12 @@ export default async function RootLayout({
                       </NavigationMenuItem>
                       <NavigationMenuItem>
                         <NavigationMenuLink asChild>
-                          <Link href="/vexa-docs" className={navigationMenuTriggerStyle()}>
+                          <Link
+                            href="https://docs.vexa.ai"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={navigationMenuTriggerStyle()}
+                          >
                             Product Docs
                           </Link>
                         </NavigationMenuLink>
@@ -294,7 +299,12 @@ export default async function RootLayout({
                           >
                             API Docs
                           </Link>
-                          <Link href="/vexa-docs" className="text-base font-caption transition-colors hover:text-primary">
+                          <Link
+                            href="https://docs.vexa.ai"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-base font-caption transition-colors hover:text-primary"
+                          >
                             Product Docs
                           </Link>
                           <Link href="/pricing" className="text-base font-caption transition-colors hover:text-primary">
