@@ -1,9 +1,12 @@
-# public/robots.txt
 User-agent: *
 Allow: /
 
-# Disallow specific paths if needed, e.g.:
-# Disallow: /api/
-# Disallow: /private/
+Disallow: /api/
+Disallow: /email-preview/
+Disallow: /email-verification/
+Disallow: /dashboard/
+Disallow: /ga-test/
+Disallow: /test-cover/
 
-Sitemap: https://yourdomain.com/sitemap.xml # Replace with your actual domain 
+Sitemap: https://vexa.ai/sitemap.xml
+Sitemap: https://vexa.ai/feed.xml

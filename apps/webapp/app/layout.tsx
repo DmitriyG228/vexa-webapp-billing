@@ -23,8 +23,35 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Vexa — Meeting Transcription API (Microsoft Teams & Google Meet, WebSocket)',
-  description: 'Open-source meeting transcription API. Now with Microsoft Teams and Google Meet support, plus WebSocket streaming for sub-second transcripts. Self-host or use our hosted API.',
+  metadataBase: new URL('https://vexa.ai'),
+  title: 'Vexa — Meeting Transcription API (Microsoft Teams, Google Meet & Zoom)',
+  description: 'Open-source meeting transcription API. Auto-join bots for Microsoft Teams, Google Meet & Zoom with real-time WebSocket transcripts. Self-host or use our hosted API.',
+  openGraph: {
+    title: 'Vexa — Open-Source Meeting Transcription API',
+    description: 'Auto-join bots for Microsoft Teams, Google Meet & Zoom. Real-time transcripts via REST API & WebSocket. Self-host or use hosted SaaS. Apache 2.0.',
+    url: 'https://vexa.ai',
+    siteName: 'Vexa',
+    images: [
+      {
+        url: '/images/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: 'Vexa — Meeting Transcription API',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Vexa — Open-Source Meeting Transcription API',
+    description: 'Auto-join bots for Teams, Meet & Zoom. Real-time transcripts. Self-host or hosted SaaS.',
+    images: ['/images/og-default.png'],
+    creator: '@grankin_d',
+  },
+  alternates: {
+    canonical: 'https://vexa.ai',
+  },
   icons: {
     icon: [
       {
@@ -108,7 +135,7 @@ export default async function RootLayout({
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Link href="/">
-                      <Logo size="md" showVersion={true} version="v0.6" />
+                      <Logo size="md" showVersion={true} version="v0.9" />
                     </Link>
                   </div>
                   <nav className="hidden md:flex items-center gap-6">

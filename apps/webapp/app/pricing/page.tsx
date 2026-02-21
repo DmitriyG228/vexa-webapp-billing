@@ -11,8 +11,22 @@ import { ConcurrencyPricingCard } from './components/ConcurrencyPricingCard'
 import { GetStartedButton } from './components/GetStartedButton'
 
 export const metadata: Metadata = {
-  title: 'Pricing | Vexa',
-  description: 'API transcription for Google Meet. Hosted SaaS, API-first. Unlimited minutes. Open-source core (Apache-2) with no lock-in—self-host anytime.',
+  title: 'Pricing | Vexa — Meeting Transcription API',
+  description: 'Meeting transcription API pricing for Google Meet, Microsoft Teams & Zoom. Hosted SaaS, API-first. Concurrency-based pricing with unlimited minutes. Open-source core (Apache-2.0) — self-host anytime.',
+  alternates: {
+    canonical: 'https://vexa.ai/pricing',
+  },
+  openGraph: {
+    title: 'Vexa Pricing — Meeting Transcription API',
+    description: 'Concurrency-based pricing for Google Meet, Microsoft Teams & Zoom transcription. Unlimited minutes. Open-source with no lock-in.',
+    url: 'https://vexa.ai/pricing',
+    images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Vexa Pricing — Meeting Transcription API',
+    description: 'Concurrency-based pricing. Unlimited minutes. Open-source with no lock-in.',
+  },
 }
 
 interface PricingCardProps {
