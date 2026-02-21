@@ -45,7 +45,7 @@ export function HeroSection() {
             {/* CTAs */}
             <div className="animate-fade-up d4 flex flex-col sm:flex-row gap-3">
               <Link
-                href="/get-started"
+                href="https://docs.vexa.ai/quickstart"
                 className="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full bg-gray-950 text-white text-[14px] font-medium hover:bg-gray-800 transition-colors shadow-sm"
               >
                 Quick Start

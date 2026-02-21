@@ -62,7 +62,7 @@ export function MarketingHeader() {
             Sign in
           </Link>
           <Link
-            href="/get-started"
+            href="https://docs.vexa.ai/quickstart"
             className="inline-flex items-center gap-1 h-8 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors"
           >
             Get started
@@ -139,7 +139,7 @@ export function MarketingHeader() {
                   Sign in
                 </Link>
                 <Link
-                  href="/get-started"
+                  href="https://docs.vexa.ai/quickstart"
                   className="inline-flex items-center justify-center gap-1 h-8 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors w-fit"
                   onClick={() => setOpen(false)}
                 >
