@@ -1,7 +1,7 @@
 # Vexa LP — Design Guidelines
 
-Reference implementation: `v2.html`
-Style direction: **minimal & clean** (Stripe / Linear aesthetic)
+Reference implementation: `index.html` (v14)
+Style direction: **minimal & clean** (Vercel / Stripe aesthetic)
 
 ---
 
@@ -12,6 +12,7 @@ Style direction: **minimal & clean** (Stripe / Linear aesthetic)
 | Background | `#f8f8f7` | Page background (warm off-white, NOT pure #fff) |
 | Surface | `#ffffff` | Cards, nav, tag pills, buttons |
 | Border | `#e5e7eb` | All borders (gray-200) |
+| Border subtle | `#f3f4f6` | Intra-card dividers (gray-100) |
 | Text primary | `#030712` | Headlines (gray-950) |
 | Text secondary | `#6b7280` | Subheadings, body (gray-500) |
 | Text muted | `#9ca3af` | Labels, timestamps, meta (gray-400) |
@@ -20,6 +21,7 @@ Style direction: **minimal & clean** (Stripe / Linear aesthetic)
 | Accent amber | `#fbbf24` | Star icon in social proof only |
 | Terminal bg | `#111111` | Terminal content area |
 | Terminal chrome | `#1a1a1a` | Terminal header bar |
+| Terminal status | `#161616` | Terminal status bar |
 | Announcement bg | `#030712` | Top announcement bar (gray-950) |
 
 **Rules:**
@@ -27,6 +29,7 @@ Style direction: **minimal & clean** (Stripe / Linear aesthetic)
 - No accent colors beyond green (live) and amber (star)
 - No gradients on text (breaks minimal style)
 - No colored backgrounds on sections — whitespace does the work
+- Section dividers use `border-t border-gray-200` sparingly
 
 ---
 
@@ -38,30 +41,41 @@ Style direction: **minimal & clean** (Stripe / Linear aesthetic)
 
 | Element | Size | Weight | Tracking | Color |
 |---|---|---|---|---|
-| Headline line 1–2 | `64px` (lg), `60px` (sm), `52px` (base) | `600` semibold | `-0.03em` | gray-950 |
-| Headline accent word | same size | `300` light, `not-italic` | `-0.02em` | gray-400 |
+| H1 (hero) | `56px` (lg), `52px` (sm), `46px` (base) | `600` semibold | `-0.03em` | gray-950 |
+| H2 (sections) | `40px` (sm+), `34px` (base) | `600` semibold | `-0.03em` | gray-950 |
+| H2 accent word | same size | `300` light, `not-italic` | `-0.02em` | gray-400 |
+| H3 (cards) | `18px` | `600` semibold | `-0.01em` | gray-950 |
 | Subheading | `15.5px` | `400` normal | default | gray-500 |
+| Body copy | `14–16px` | `400` normal | default | gray-500/400 |
 | Nav links | `14px` | `400` | default | gray-500 |
 | Badge text | `11.5px` | `500` medium | default | gray-500 |
 | Tag text | `11.5px` | `500` medium | default | gray-600 |
-| Button text | `14px` | `500` medium | default | — |
+| Button text | `13–14px` | `500` medium | default | — |
 | Terminal body | `12px` | `400` | default | gray-300 |
 | Terminal speaker | `11.5px` | `600` semibold | default | per-speaker color |
 | Terminal meta | `9.5px` | `400` | default | gray-600 |
-| Status bar / labels | `10px` | `400–600` | `widest` | gray-600 |
+| Status bar | `10px` | `400–600` | `widest` | gray-600 |
 
-### Headline treatment (locked)
+### Section heading pattern (locked)
+All section headings use the same treatment:
 ```
-Meeting          ← semibold, gray-950
-Transcription    ← semibold, gray-950
-API              ← light (300), gray-400, not-italic em tag
+text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em]
 ```
-The last word in the headline stack is always the "accent" word — lighter weight, gray-400. Never use color or gradient for this.
+The last word(s) are the "accent" — wrapped in `<em>` with:
+```
+not-italic font-light text-gray-400
+```
+Examples:
+- "From open source to **enterprise scale**"
+- "Intelligence for every **meeting**"
+- "Three API calls to **meeting intelligence**"
 
 ### Line heights
-- Headlines: `1.03–1.06`
-- Subheading: `1.7`
+- H1 headline: `1.05`
+- H2 section headings: `1.08`
+- Subheading/body: `1.7`
 - Terminal entries: `relaxed` (1.625)
+- Card descriptions: `1.6`
 
 ---
 
@@ -71,51 +85,62 @@ Always use Tailwind's 4px base unit. Key values in use:
 
 | Context | Value |
 |---|---|
-| Page max-width | `max-w-6xl` (72rem) |
+| Page max-width | `max-w-6xl` (72rem / 1152px) |
 | Page horizontal padding | `px-6` |
-| Hero vertical padding | `py-16 lg:py-24` |
-| Two-column gap | `gap-14 lg:gap-20` |
+| Hero vertical padding | `pt-12 lg:pt-16 pb-6 lg:pb-8` |
+| Section vertical padding | `py-16 lg:py-20` |
+| Two-column gap | `gap-10 lg:gap-14` (hero), `gap-10 lg:gap-16` (workflow) |
 | Left column gap between elements | `gap-6` |
 | Nav height | `h-14` (56px) |
 | Nav item padding | `px-3 py-1.5` |
-| Button height | `h-[44px]`, `px-6` |
+| Button height (hero) | `h-[44px]`, `px-6` |
+| Button height (cards) | `h-[40px]`, `px-4` |
 | Badge padding | `px-3 py-[5px]` |
-| Tag padding | `px-2.5 py-1` |
+| Card padding | `p-6` (bento, pricing) |
 | Terminal padding | `p-5` |
-| Terminal height | `h-[400px]` |
-
-**Rules:**
-- Never mix gap-6 and gap-7 in the same column — pick one and keep it
-- Section padding is always `py-16 lg:py-24` — don't shrink it
-- Terminal height is fixed at 400px — don't change it per iteration
+| Terminal height | `h-[320px]` |
+| Bento grid gap | `gap-4` |
+| Section header margin-bottom | `mb-10` |
 
 ---
 
 ## 4. Layout
 
-### Grid
-- **Mobile:** single column, stacked (copy on top, terminal below)
-- **Desktop (lg+):** `grid-cols-2`, left = copy, right = terminal
-- Left column: `~55%` of visual weight (wider text column)
-- Right column: terminal card, full width of its cell
+### Page structure (top to bottom)
+1. Announcement bar (dark, full-width)
+2. Marketing header (sticky, glassmorphic)
+3. Hero section (2-col + workflow diagram card)
+4. Bento grid (7 feature cards)
+5. Agentic section (skills + integrations)
+6. Meeting bots section (2-col)
+7. Use cases tabs (7 tabs)
+8. Code showcase (3-lang tabs)
+9. Pricing section (4-tier grid)
+10. Footer (minimal)
 
 ### Nav
-- Sticky, `bg-white/80 backdrop-blur-md`
-- Left: logo icon (26×26, rounded-[7px]) + "vexa" wordmark
-- Center: Docs / Pricing / GitHub (hover: bg-gray-100 rounded-md)
-- Right: "Sign in" text link + "Get started" pill CTA
-- Always include the logo image — never text-only wordmark
+- Sticky, `bg-white/80 backdrop-blur-md`, `border-b border-gray-200/70`
+- Left: logo icon (26×26, rounded-[7px]) + "vexa" wordmark (15px semibold)
+- Center: Docs / Pricing / GitHub (`hidden md:flex`)
+- Right: "Sign in" text link (`hidden sm:block`) + "Get started" pill CTA
+- Mobile: hamburger → Sheet drawer with all links
 
 ### Announcement bar
 - Full-width, `bg-gray-950`, `py-2`
 - Single line of text, centered, `text-[11.5px]`
-- Inline text link, right of the message
+- Version in white, description in gray-400, link in white/70
 
 ### Background
 - Dot grid: `radial-gradient(circle, #d1d5db 1px, transparent 1px)`, `22px 22px`
-- Radial vignette mask so dot grid fades at edges
-- Subtle white-to-transparent gradient at top (`height: 280px`, `from-white/50`)
-- No glow orbs, no blobs, no noise textures
+- Radial vignette mask: `ellipse 90% 90% at 50% 50%`
+- Subtle white-to-transparent gradient at top (`height: 200px`, `from-white/50`)
+- Used in hero section only — other sections use plain `border-t` separators
+
+### Footer
+- `border-t border-gray-200`, `py-10`
+- Left: logo + wordmark
+- Right: Docs, GitHub, Pricing, Contact links
+- `text-[13px] text-gray-400`
 
 ---
 
@@ -126,18 +151,8 @@ Always use Tailwind's 4px base unit. Key values in use:
 rounded-full, border border-gray-200, bg-white, shadow-sm
 ● (emerald-400 dot, 7px) + text
 ```
-- Always has the green dot on the left
-- One badge only, top of copy column
-
-### Tag pills
-```
-rounded-md, border border-gray-200, bg-white
-icon (11px, stroke) + text
-```
-- Wrap in `flex flex-wrap gap-2`
-- Max 4 tags per row
-- Use inline SVG icons (stroke, 11–12px) — not emoji, not colored icons
-- Exception: platform logos (Teams, Meet) use actual `<img>` at 14×14px
+- Used at top of hero and as section labels (without dot)
+- Section labels: just text in pill, no dot
 
 ### Buttons
 | Type | Style |
@@ -145,10 +160,10 @@ icon (11px, stroke) + text
 | Primary | `rounded-full bg-gray-950 text-white hover:bg-gray-800` |
 | Secondary | `rounded-full border border-gray-200 bg-white text-gray-800 hover:border-gray-400` |
 
-- Both `h-[44px] px-6 text-[14px] font-medium`
-- Primary always has trailing arrow icon (14px)
-- Secondary (GitHub) always has GitHub SVG icon (15px) on the left
-- Buttons sit in a `flex flex-row gap-3` — never stacked vertically on desktop
+- Hero: `h-[44px] px-6 text-[14px]`
+- Cards: `h-[40px] px-4 text-[13px]`
+- Primary always has trailing arrow icon
+- GitHub button has GitHub SVG on the left
 
 ### Terminal card
 ```
@@ -157,61 +172,128 @@ shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]
 ```
 **Chrome bar** (1a1a1a):
 - Traffic lights: `#ff5f57` / `#febc2e` / `#28c840`, 11px, gap-[6px]
-- Centered title: absolute positioned, `text-[11px] text-gray-500 font-mono`
-- LIVE badge: emerald pulsing dot + "LIVE" text, right-aligned
+- Centered title: `text-[11px] text-gray-500 font-mono`
+- LIVE badge: emerald pulsing dot + "LIVE" text
 
 **Content area** (111111):
-- `p-5`, `font-mono text-[12px]`, `h-[400px]`, `overflow-y-auto`
-- Speaker name: semibold, per-speaker color (blue/purple/green/red)
+- `p-5`, `font-mono text-[12px]`, `h-[320px]`, `overflow-y-auto`
+- Speaker name: semibold, per-speaker color
 - Transcript text: gray-300
 - Ghost/unspoken words: gray-700
-- Cursor: `▌` with `animate-blink`
+- Cursor: `▌` (U+258C) with `animate-blink`
+- Animation: word-by-word typing, 55–150ms random delay
 
 **Status bar** (161616):
 - `● Connected · Google Meet` left, live clock right
-- `text-[10px] text-gray-600 font-mono`
+- `text-[10px] text-gray-600/700 font-mono`
 
-**Never add:**
-- Tab bars (Transcript / Intelligence tabs)
-- Secondary panes or split panels inside the terminal
-- Color accents (indigo, purple) inside the terminal UI chrome
+### Bento grid cards
+```
+rounded-2xl, border border-gray-200, bg-white, p-6
+shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)
+```
+- H3: `text-[18px] font-semibold text-gray-950`
+- Description: `text-[14px] text-gray-500 leading-[1.6]`
+- Arrow link: circle button `w-8 h-8 rounded-full border border-gray-200`
+- Each card has a mini visual mockup at the bottom
+
+**Grid layout (3 rows):**
+- Row 1: heading (span-1) + Real-time Transcription (span-1) + Interactive Bot (span-1)
+- Row 2: Recording + Screenshare + Storage (3 equal columns)
+- Row 3: MCP Server (span-1) + Multi-tenant Platform (span-1)
+
+**Mini mockup styles:**
+- Transcription: dark terminal `bg-[#111] rounded-xl p-4` with colored speaker names
+- Interactive Bot: pill badges (TTS Speak, Listen, Respond, Screenshare)
+- Recording: waveform bars `bg-gray-300/400` with red REC dot + timer
+- Screenshare: browser chrome mockup with gray address bar + placeholder image
+- Storage: mini table `font-mono text-[11px]` with header row + 3 data rows
+- MCP: capability pills (REST API, WebSocket, MCP, Webhooks, SDKs, Self-hosted)
+- Multi-tenant: 3 tenant rows with letter avatars + colored progress bars
+
+### Workflow diagram
+Full-width card below the 2-col hero. Shows data pipeline as a node graph.
+
+**Card:** `rounded-2xl border border-gray-200 bg-white px-8 py-10 lg:px-12 lg:py-12`
+- Shadow: `0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)`
+- 2-column grid: diagram (left), text content (right)
+
+**Nodes:**
+- Meeting pill: 3 stacked items (Teams, Meet, Zoom) in `rounded-2xl` container, each `56×56px`
+- Center hub: `76×76px`, `rounded-2xl`, stronger shadow (`0 2px 12px rgba(0,0,0,0.08)`)
+- Output nodes: `48×48px`, `rounded-xl`, 4 stacked (OpenAI, Claude, n8n, OpenClaw)
+
+**SVG connections:**
+- Gray bezier curve: meetings → vexa (`stroke: #d1d5db`, `stroke-width: 2`)
+- Colored curves vexa → outputs: blue (#3b82f6), red (#ef4444), amber (#f59e0b), teal (#14b8a6)
+- All curves: `opacity: 0.75`, `stroke-width: 2`, `stroke-linecap: round`
+- Port dots at target endpoints: `r=3`, filled with curve color, `opacity: 0.6`
+- Redraws on window resize
+
+**Right text:**
+- Icon + "Meeting-Defined Infrastructure" label (`text-[13px] text-gray-400`)
+- H2: `text-[28px] sm:text-[32px]` (smaller than section headings)
+- Body: `text-[16px] text-gray-400 leading-[1.7]`
+
+**Mobile:** Simplified vertical flow with down-arrow SVGs between sections
+
+### Agentic section
+- `py-16 lg:py-20`, no border-top
+- 3-column bento: heading (span-1) + Skills card + Integrations card
+- Skills card: 3 items (OpenClaw 🦀, Claude Code, Codex) with logos
+- Integrations card: 4 items (n8n with logo, Webhooks, Zapier, Custom) as pills
+
+### Meeting bots section
+- `py-16 lg:py-20 border-t border-gray-200`
+- 2-column grid: copy (left) + visual (right)
+- Copy: badge pill + H2 + description + 3 checkmark items
+- Visual: platform logos (Teams, Meet, Zoom) with dividers + placeholder text
+- Checkmark items: green check SVG + bold label + description
+
+### Use case tabs
+- 7 tabs: Sales, HR & Recruiting, Engineering, Video Production, Medical, Education, Legal
+- Tab style: `rounded-full px-4 py-1.5 text-[13px]`
+- Active tab: `bg-gray-950 text-white`
+- Inactive tab: `text-gray-400 hover:text-gray-600 hover:bg-gray-100`
+- Each panel: 2-column grid (copy left + mockup card right)
+- Mockup cards have detailed domain-specific visualizations
+
+### Code showcase
+- 3 language tabs: Python, cURL, TypeScript
+- Tab style: `rounded-t-lg px-4 py-2 text-[13px]`
+- Active: `bg-[#111] text-white`
+- Inactive: `text-gray-400 bg-transparent`
+- Code block: `bg-[#111] rounded-b-2xl rounded-tr-2xl` with macOS chrome
+- Filename badge: `text-[11px] text-gray-500`
+- Syntax colors: blue (`#7dd3fc`) for strings, green (`#6ee7b7`) for URLs, gray-600 for comments, white for code
+
+### Pricing section (4-tier)
+- `py-16 lg:py-20 border-t border-gray-200`
+- 4-column grid: Open Source, Individual (highlighted), Startup, Enterprise
+- All cards equal height (`flex flex-col`, features pushed to bottom with `mt-auto`)
+
+**Card styles:**
+| Tier | Border | Badge |
+|---|---|---|
+| Open Source | `border border-gray-200` | — |
+| Individual | `border-2 border-gray-950` | "START HERE" pill above |
+| Startup | `border border-gray-200` | — |
+| Enterprise | `border border-gray-200` | — |
+
+**Individual "START HERE" badge:** `absolute -top-3 left-1/2 -translate-x-1/2`, `bg-gray-950 text-white text-[11px] rounded-full`
+
+**Pricing display:**
+- Open Source: "Free" (30px semibold)
+- Individual: "$12" (30px) + "/mo" (14px gray-400)
+- Startup: "from" (14px gray-400) + "$150" (30px) + "/mo"
+- Enterprise: "Custom" (30px semibold)
+
+**Features:** checkmarks with `text-[13px]`, Individual uses `stroke="#111"`, others use `stroke="#9ca3af"`
 
 ### Social proof
 - 5 avatars, `h-6 w-6`, `ring-[2px] ring-white`, overlap `-7px margin`
 - `|` divider (`h-4 w-px bg-gray-200`)
 - Amber star + "Starred by **1.3k+** developers"
-
-### Workflow diagram (n8n-inspired, v5+)
-Full-width card below the two-column hero. Shows data pipeline as a node graph.
-
-**Section heading:** `text-[15px] text-gray-400 font-medium`, centered above card with `mb-6`
-- Accent word in `<em>`: `not-italic font-light text-gray-300`
-- Text: "Built for your *stack*"
-
-**Card:** `rounded-2xl border border-gray-200 bg-white px-8 py-8`
-- Shadow: `0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)` (multi-layer premium)
-- No transparency — solid white (not bg-white/70)
-
-**Node (standard):** `64×64px`, `rounded-xl`, `border border-gray-200 bg-white shadow-sm`, icon 28px centered
-**Node (small):** `52×52px`, `rounded-[10px]`, icon 24px — used for AI stack column
-**Node (primary):** `72×72px`, stronger shadow + `border-color: #d1d5db`, icon 32px — used for vexa center node
-
-**Labels:** `text-[11px] font-medium text-gray-500`, centered below node, `margin-top: 6px`
-**Section labels:** `text-[11px] font-medium text-gray-400 tracking-[0.08em] uppercase`
-
-**Layout:** CSS Grid — 3 columns (Meetings | Pipeline | AI Stack) with `minmax(64px,120px)` spacers. Max width `max-w-3xl` centered.
-- Left: 2 standard nodes stacked (Teams, Meet)
-- Center: 1 primary node (vexa API)
-- Right: 4 small nodes stacked (OpenAI, Claude, OpenClaw, n8n)
-
-**SVG connections:** Cubic bezier paths, `stroke: #d1d5db`, `stroke-width: 1.5px`, `opacity: 0.7`
-- Single forward arrowheads only (no bidirectional — marketing pages use one-way flow)
-- Port dots at connection endpoints: `r=3, fill: #e5e7eb, stroke: #d1d5db`
-- JS draws paths after load to match actual node positions; redraws on resize
-
-**Icons:** All nodes use inline SVG or PNG logos — no emoji. OpenClaw uses a custom SVG crab icon (`stroke: #ef4444`).
-
-**Mobile:** Vertical stack with down-arrows (↓) between sections. 4 AI nodes in a `grid-cols-4` row.
 
 ---
 
@@ -219,8 +301,9 @@ Full-width card below the two-column hero. Shows data pipeline as a node graph.
 
 - **Fade-up only:** `opacity: 0 → 1` + `translateY(20px → 0)`
 - Duration: `0.6s`, easing: `cubic-bezier(0.16, 1, 0.3, 1)` (spring-like)
-- Stagger delays: `0.04s, 0.12s, 0.20s, 0.28s, 0.36s, 0.44s` (8ms increments)
-- Terminal column: `0.10s` delay (appears slightly after copy starts)
+- Stagger delays: `d1=0.04s, d2=0.12s, d3=0.20s, d4=0.28s, d5=0.36s, d6=0.44s, d7=0.10s, d8=0.52s`
+- Terminal column: `d7 = 0.10s` delay (appears slightly after copy starts)
+- Workflow diagram: `d8 = 0.52s` (last to appear in hero)
 - Terminal cursor: `animate-blink` (1s step-end)
 - Live dot: `animate-pulse`
 - **Nothing else animates** — no hover scale, no slide-in, no glow pulse
@@ -244,20 +327,20 @@ Pastel tones only — never saturated colors on a dark bg.
 
 ## 8. What NOT to Do
 
-| ❌ Don't | ✅ Do instead |
+| Don't | Do instead |
 |---|---|
 | Gradient text (`bg-clip-text`) | Plain `text-gray-950` + light accent word |
 | Glow orbs / blobs in background | Dot grid + vignette mask only |
 | Colored section backgrounds | White surface cards on off-white bg |
 | Tab bars inside the terminal | Single scrolling transcript pane |
-| Split terminal (transcript + insights pane) | One pane, one job |
-| More than 4 tag pills | Keep to the essentials |
+| Split terminal (transcript + insights) | One pane, one job |
 | Stacking buttons vertically on desktop | `flex-row gap-3` always |
 | Text-only logo in nav | Always `logodark.svg` + "vexa" wordmark |
-| Pure white (`#fff`) page background | `#f8f8f7` warm off-white |
-| Changing the headline type treatment mid-iteration | Lock: semibold / light-gray accent pattern |
+| Pure white page background | `#f8f8f7` warm off-white |
+| Changing the headline type treatment | Lock: semibold / light-gray accent pattern |
 | Adding new accent colors | Only green (live) and amber (star) |
 | Animation beyond fade-up + blink + pulse | Those three only |
+| Dark mode styles | Light mode only, forced via ThemeProvider |
 
 ---
 
@@ -266,9 +349,16 @@ Pastel tones only — never saturated colors on a dark bg.
 | File | Status | Notes |
 |---|---|---|
 | `v1.html` | Frozen | Centered layout, "Meeting Transcription API" |
-| `v2.html` | Frozen ← current reference | Two-column, original messaging, 4 tags, single terminal |
-| `v3.html` | Frozen | Two-column, "Build Meeting Intelligence", ecosystem strip, dual-pane terminal |
-| `v4.html` | Frozen | Two-column, "Meeting Transcription API", 4 tags, single terminal |
-| `v5.html` | Frozen | "Meeting Intelligence API", n8n-style workflow diagram, forward-only arrows, premium card |
+| `v2.html` | Frozen | Two-column, original messaging, 4 tags, single terminal |
+| `v3.html` | Frozen | Two-column, "Build Meeting Intelligence", ecosystem strip |
+| `v4.html` | Frozen | Two-column, "Meeting Transcription API", 4 tags |
+| `v5.html` | Frozen | "Meeting Intelligence API", n8n-style workflow diagram |
 | `v6.html` | Frozen | Full LP: hero + workflow + features + components + bots + pricing |
-| `index.html` | Working file = v6 | Fork from the version you want to iterate on |
+| `v7.html` | Frozen | Vercel bento grid, compact sections, agentic section |
+| `v8.html` | Frozen | Use case tabs (7 panels), code showcase (3 langs) |
+| `v9.html` | Frozen | Recording waveform, screenshare browser mockup |
+| `v10.html` | Frozen | Multi-tenant tenant bars, MCP capability pills |
+| `v11.html` | Frozen | Refined workflow diagram with colorful bezier curves |
+| `v12.html` | Frozen | 4-tier pricing (Open Source / Individual / Startup / Enterprise) |
+| `v13.html` | Frozen | Flat $12/mo Individual, removed slider |
+| `v14.html` / `index.html` | **Current** | Unlimited transcription, Zoom in Startup, equal-height cards |
