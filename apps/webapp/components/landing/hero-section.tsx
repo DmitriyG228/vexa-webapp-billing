@@ -6,7 +6,7 @@ export function HeroSection() {
   return (
     <main className="relative dot-grid dot-mask overflow-hidden">
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/50 to-transparent"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/50 dark:from-black/50 to-transparent"
         style={{ height: 200 }}
       />
 
@@ -16,7 +16,7 @@ export function HeroSection() {
           <div className="flex flex-col gap-6">
             {/* Badge */}
             <div className="animate-fade-up d1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[11.5px] text-gray-500 dark:text-gray-400 font-medium shadow-sm">
                 <span className="w-[7px] h-[7px] rounded-full bg-emerald-400 flex-shrink-0" />
                 Open Source &middot; Developer-first &middot; API-first
               </span>
@@ -24,19 +24,19 @@ export function HeroSection() {
 
             {/* Headline */}
             <div className="animate-fade-up d2">
-              <h1 className="text-[46px] sm:text-[52px] lg:text-[56px] font-semibold leading-[1.05] tracking-[-0.03em] text-gray-950">
+              <h1 className="text-[46px] sm:text-[52px] lg:text-[56px] font-semibold leading-[1.05] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
                 Meeting
                 <br />
                 Intelligence
                 <br />
-                <em className="not-italic font-light text-gray-400 tracking-[-0.02em]">
+                <em className="not-italic font-light text-gray-400 dark:text-gray-500 tracking-[-0.02em]">
                   API
                 </em>
               </h1>
             </div>
 
             {/* Subheading */}
-            <p className="animate-fade-up d3 text-[15.5px] text-gray-500 leading-[1.7] max-w-[420px]">
+            <p className="animate-fade-up d3 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-[420px]">
               The developer toolkit for meeting intelligence. Real-time
               transcription, bot control, and open APIs for Google Meet and
               Microsoft Teams. Open source, self-hostable, REST + MCP.
@@ -45,10 +45,10 @@ export function HeroSection() {
             {/* CTAs */}
             <div className="animate-fade-up d4 flex flex-col sm:flex-row gap-3">
               <Link
-                href="https://docs.vexa.ai/quickstart"
-                className="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full bg-gray-950 text-white text-[14px] font-medium hover:bg-gray-800 transition-colors shadow-sm"
+                href="/get-started"
+                className="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full bg-gray-950 text-white dark:bg-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm"
               >
-                Quick Start
+                Get started
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="14"
@@ -66,7 +66,7 @@ export function HeroSection() {
               <Link
                 href="https://github.com/Vexa-ai/vexa"
                 target="_blank"
-                className="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full border border-gray-200 bg-white text-gray-800 text-[14px] font-medium hover:border-gray-400 hover:bg-gray-50 transition-all"
+                className="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[14px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -88,35 +88,35 @@ export function HeroSection() {
                 <img
                   src="https://i.pravatar.cc/64?img=45"
                   alt=""
-                  className="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover"
+                  className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://i.pravatar.cc/64?img=23"
                   alt=""
-                  className="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover"
+                  className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://i.pravatar.cc/64?img=67"
                   alt=""
-                  className="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover"
+                  className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://i.pravatar.cc/64?img=12"
                   alt=""
-                  className="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover"
+                  className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="https://i.pravatar.cc/64?img=34"
                   alt=""
-                  className="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover"
+                  className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover"
                 />
               </div>
-              <div className="h-4 w-px bg-gray-200" />
-              <div className="flex items-center gap-1.5 text-[13px] text-gray-400">
+              <div className="h-4 w-px bg-gray-200 dark:bg-neutral-800" />
+              <div className="flex items-center gap-1.5 text-[13px] text-gray-400 dark:text-gray-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="12"
@@ -128,7 +128,7 @@ export function HeroSection() {
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 Starred by{" "}
-                <span className="text-gray-700 font-semibold">1.3k+</span>{" "}
+                <span className="text-gray-700 dark:text-gray-300 font-semibold">1.3k+</span>{" "}
                 developers
               </div>
             </div>

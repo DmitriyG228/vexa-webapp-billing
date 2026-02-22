@@ -2,6 +2,15 @@ import Link from 'next/link';
 import { getSortedPostsData, PostData } from '@/lib/posts';
 import { formatDate } from '@/lib/utils';
 import { BlogRefreshButton } from './blog-refresh-button';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
+}
 
 export default async function BlogIndex() {
   const allPostsData = await getSortedPostsData();
@@ -12,44 +21,61 @@ export default async function BlogIndex() {
         {/* Header */}
         <div className="relative text-center mb-10">
           <BlogRefreshButton />
-          <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm mb-4">
+          <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[11.5px] text-gray-500 dark:text-gray-400 font-medium shadow-sm mb-4">
             Blog
           </span>
-          <h1 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950">
+          <h1 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
             Insights &amp;&nbsp;
-            <em className="not-italic font-light text-gray-400">updates</em>
+            <em className="not-italic font-light text-gray-400 dark:text-gray-500">updates</em>
           </h1>
-          <p className="mt-4 text-[15.5px] text-gray-500 leading-[1.7] max-w-lg mx-auto">
+          <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-lg mx-auto">
             Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.
           </p>
         </div>
 
         {/* Post grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {allPostsData.map(({ slug, date, title, summary }: PostData, index: number) => (
+          {allPostsData.map(({ slug, date, title, summary, author, authorImage }: PostData, index: number) => (
             <Link
               href={`/blog/${slug}`}
               key={`${slug}-${index}`}
-              className="block rounded-2xl border border-gray-200 bg-white p-6 hover:border-gray-300 transition-all"
-              style={{
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)',
-              }}
+              className="group flex flex-col rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-7 hover:border-gray-300 dark:hover:border-neutral-700 transition-all shadow-sm dark:shadow-none min-h-[280px]"
             >
-              <h2 className="text-[17px] font-semibold text-gray-950 leading-snug mb-2">
-                {title}
-              </h2>
-              <p className="text-[13px] text-gray-400 mb-3">
+              {/* Date top-right style */}
+              <p className="text-[13px] text-gray-400 dark:text-gray-500 mb-4">
                 {formatDate(date)}
               </p>
-              <p className="text-[14px] text-gray-500 leading-[1.6]">
+
+              {/* Title */}
+              <h2 className="text-[18px] font-semibold text-gray-950 dark:text-gray-50 leading-snug mb-3 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                {title}
+              </h2>
+
+              {/* Summary */}
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] line-clamp-3 flex-1">
                 {summary}
               </p>
+
+              {/* Author badge */}
+              {author && (
+                <div className="flex items-center gap-2.5 mt-5 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                  <Avatar className="h-6 w-6">
+                    {authorImage && <AvatarImage src={authorImage} alt={author} />}
+                    <AvatarFallback className="text-[9px] bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400">
+                      {getInitials(author)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-[13px] text-gray-600 dark:text-gray-400 font-medium">
+                    {author}
+                  </span>
+                </div>
+              )}
             </Link>
           ))}
         </div>
 
         {allPostsData.length === 0 && (
-          <p className="text-center text-[15px] text-gray-400 mt-8">
+          <p className="text-center text-[15px] text-gray-400 dark:text-gray-500 mt-8">
             No blog posts yet. Check back soon!
           </p>
         )}

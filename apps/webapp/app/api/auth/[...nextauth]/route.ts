@@ -1,7 +1,8 @@
 import NextAuth, { AuthOptions, User as NextAuthUser } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import AzureADProvider from "next-auth/providers/azure-ad";
+import { cookies } from "next/headers";
 import { JWT } from "next-auth/jwt";
-// Stripe logic is delegated to Billing service; no direct Stripe SDK usage here.
 
 // Define a type for our user object that includes the id from our database
 interface DbUser {
@@ -11,6 +12,28 @@ interface DbUser {
   image_url?: string | null;
   created_at: string;
 }
+
+// Cookie options for SSO shared cookies
+function getCookieOptions(overrides?: Record<string, unknown>) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: "/",
+    ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
+    ...overrides,
+  };
+}
+
+// Check if Microsoft OAuth is enabled
+const isMicrosoftAuthEnabled = () => {
+  const enable = process.env.ENABLE_MICROSOFT_AUTH;
+  if (enable === "false" || enable === "0") return false;
+  const hasConfig = !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
+  if (enable === "true" || enable === "1") return hasConfig;
+  return hasConfig;
+};
 
 // Internal API call to find or create user in our database
 async function findOrCreateUser(email: string, name?: string | null, image?: string | null): Promise<DbUser | null> {
@@ -34,10 +57,6 @@ async function findOrCreateUser(email: string, name?: string | null, image?: str
         console.log(`[NextAuth] User ${statusLog}: ${email}, Status: ${response.status}, ID: ${responseData.id}`);
 
         if (responseData && typeof responseData.id === 'number') {
-          if (response.status === 201) {
-            console.log(`[NextAuth] New user created: ${email}, will access dashboard directly`);
-          }
-
           return responseData as DbUser;
         } else {
           console.error('[NextAuth] User created/found but response format unexpected:', responseData);
@@ -48,11 +67,10 @@ async function findOrCreateUser(email: string, name?: string | null, image?: str
     } else {
       console.error(`[NextAuth] Failed to find or create user. Status: ${response.status}, Response: ${responseText}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[NextAuth] Error in findOrCreateUser for ${email}:`, error);
 
-    // If circuit breaker is open, provide more specific error
-    if (error.message.includes('Circuit breaker is open')) {
+    if (error.message?.includes('Circuit breaker is open')) {
       console.error(`[NextAuth] Circuit breaker is open - authentication temporarily disabled for ${email}`);
     }
   }
@@ -61,24 +79,40 @@ async function findOrCreateUser(email: string, name?: string | null, image?: str
   return null;
 }
 
-// Function to create a trial subscription for new users (delegated to Billing service)
-// No longer needed since we're not using trial checkout
-// async function createTrialSubscription(email: string, userId: number) {
-//   const BILLING_URL = process.env.BILLING_URL
-//   const resp = await fetch(`${BILLING_URL}/v1/trials/api-key`, {
-//     method: 'POST',
-//     headers: { 'Content-Type': 'application/json' },
-//     body: JSON.stringify({ email, userId })
-//   })
-//   if (!BILLING_URL) {
-//     throw new Error('Server misconfiguration: BILLING_URL is not set')
-//   }
-//   if (!resp.ok) {
-//     const text = await resp.text()
-//     throw new Error(`Billing trial creation failed: ${resp.status} ${text}`)
-//   }
-//   return await resp.json()
-// }
+// Create an API token for the user via Admin API
+async function createApiToken(userId: number): Promise<string | null> {
+  try {
+    const { getAdminAPIClient } = await import('@/lib/admin-api-client');
+    const adminAPI = getAdminAPIClient();
+
+    const response = await adminAPI.fetch(`/admin/users/${userId}/tokens`, {
+      method: 'POST',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`[NextAuth] API token created for user ${userId}`);
+      return data.token;
+    } else {
+      const text = await response.text();
+      console.error(`[NextAuth] Failed to create API token for user ${userId}. Status: ${response.status}, Response: ${text}`);
+    }
+  } catch (error: any) {
+    console.error(`[NextAuth] Error creating API token for user ${userId}:`, error);
+  }
+  return null;
+}
+
+// Validate returnUrl against trusted domains to prevent open redirects
+function isAllowedReturnUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const trusted = ['vexa.ai', 'localhost'];
+    return trusted.some(d => parsed.hostname === d || parsed.hostname.endsWith('.' + d));
+  } catch {
+    return false;
+  }
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -94,71 +128,109 @@ export const authOptions: AuthOptions = {
       },
       checks: ['pkce', 'state'],
     }),
+    ...(isMicrosoftAuthEnabled()
+      ? [
+          AzureADProvider({
+            id: "microsoft",
+            name: "Microsoft",
+            clientId: process.env.MICROSOFT_CLIENT_ID!,
+            clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
+            tenantId: process.env.MICROSOFT_TENANT_ID || "common",
+          }),
+        ]
+      : []),
   ],
   session: {
-    strategy: "jwt", // Use JWT for session management
+    strategy: "jwt",
   },
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('[NextAuth] signIn callback triggered');
-      if (account?.provider === "google" && user.email) {
-        console.log(`[NextAuth] Google sign in attempt for: ${user.email}`);
+      const isOAuth = account?.provider === "google" || account?.provider === "microsoft";
+
+      if (isOAuth && user.email) {
+        console.log(`[NextAuth] ${account!.provider} sign in attempt for: ${user.email}`);
         const dbUser = await findOrCreateUser(user.email, user.name, user.image);
-        
+
         if (!dbUser) {
           console.error(`[NextAuth] Failed to find or create user in DB for ${user.email}. Denying sign in.`);
-          return false; // Prevent sign-in if user couldn't be synced with DB
+          return false;
         }
-        
+
         // Add the database user ID to the user object for the JWT callback
-        user.id = String(dbUser.id); 
-        
-        // All users can access the dashboard directly
+        user.id = String(dbUser.id);
+
+        // Create API token and set shared cookies for SSO with Dashboard
+        const apiToken = await createApiToken(dbUser.id);
+        if (apiToken) {
+          const cookieStore = await cookies();
+
+          // Set vexa-token cookie (API token for Dashboard auth)
+          cookieStore.set("vexa-token", apiToken, getCookieOptions());
+
+          // Set vexa-user-info cookie (user metadata for Dashboard)
+          const userInfo = JSON.stringify({
+            id: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name || user.name || dbUser.email.split("@")[0],
+          });
+          cookieStore.set("vexa-user-info", userInfo, getCookieOptions());
+
+          console.log(`[NextAuth] SSO cookies set for user ${user.email}`);
+        } else {
+          // Token creation failed — still allow sign-in, webapp works without it
+          console.warn(`[NextAuth] API token creation failed for ${user.email}, SSO cookies not set`);
+        }
+
         console.log(`[NextAuth] User ${user.email} synced with DB ID: ${user.id}. Allowing sign in.`);
-        
-        return true; // Allow sign-in
-      } 
+        return true;
+      }
       console.log('[NextAuth] signIn condition not met or email missing.');
-      return false; // Deny sign-in for other providers or if email is missing
+      return false;
     },
     async jwt({ token, user }) {
-      // Persist the user ID from the user object (added in signIn) to the JWT
       if (user?.id) {
         token.id = user.id;
         console.log(`[NextAuth] JWT callback: Added id ${user.id} to token for email ${token.email}`);
       }
-      
-      // No need to persist isNewUser flag since we're not using trial checkout
-      // if ((user as any)?.isNewUser) {
-      //   token.isNewUser = (user as any).isNewUser;
-      //   console.log(`[NextAuth] JWT callback: Added isNewUser flag to token for email ${token.email}`);
-      // }
-      
       return token;
     },
     async session({ session, token }) {
-      // Add the user ID from the JWT to the session object
       if (token?.id && session.user) {
-        // Important: Ensure you extend the Session and User types if using TypeScript
-        // to avoid type errors here.
         (session.user as any).id = token.id;
         console.log(`[NextAuth] Session callback: Added id ${token.id} to session for user ${session.user.email}`);
       }
-      
-      // No need to check isNewUser flag since we're not using trial checkout
-      // New users can access the dashboard directly
-      
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      // Allow cross-origin redirects to trusted domains (e.g., Dashboard)
+      if (isAllowedReturnUrl(url)) return url;
+      return baseUrl;
+    },
   },
-  secret: process.env.NEXTAUTH_SECRET, // Secret for signing JWTs
-  // pages: { // Optional: Define custom pages if needed
-  //   signIn: '/login',
-  //   // error: '/auth/error', // Error code passed in query string as ?error=
-  // }
+  events: {
+    async signOut() {
+      // Clear SSO cookies when user signs out from webapp
+      const cookieStore = await cookies();
+      const domain = process.env.COOKIE_DOMAIN;
+      if (domain) {
+        cookieStore.set("vexa-token", "", { maxAge: 0, path: "/", domain });
+        cookieStore.set("vexa-user-info", "", { maxAge: 0, path: "/", domain });
+      } else {
+        cookieStore.delete("vexa-token");
+        cookieStore.delete("vexa-user-info");
+      }
+    },
+  },
+  pages: {
+    signIn: "/signin",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
   useSecureCookies: process.env.NODE_ENV === 'production',
 };
 
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };

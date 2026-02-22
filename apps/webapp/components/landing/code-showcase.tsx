@@ -326,19 +326,19 @@ export function CodeShowcase() {
   const activeCode = codeTabs.find((t) => t.id === activeTab)!;
 
   return (
-    <section className="py-16 lg:py-20 border-t border-gray-200">
+    <section className="py-16 lg:py-20 border-t border-gray-200 dark:border-neutral-800">
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm mb-4">
+          <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[11.5px] text-gray-500 dark:text-gray-400 font-medium shadow-sm mb-4">
             Developer Experience
           </span>
-          <h2 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950">
+          <h2 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
             Three API calls to
             <br />
-            <em className="not-italic font-light text-gray-400">meeting intelligence</em>
+            <em className="not-italic font-light text-gray-400 dark:text-gray-500">meeting intelligence</em>
           </h2>
-          <p className="mt-4 text-[15.5px] text-gray-500 leading-[1.7] max-w-lg mx-auto">
+          <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-lg mx-auto">
             Join a meeting, get the transcript, run it through your AI. That&apos;s it.
           </p>
         </div>
@@ -362,7 +362,7 @@ export function CodeShowcase() {
           </div>
 
           {/* Code panel */}
-          <div className="rounded-b-2xl rounded-tr-2xl border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+          <div className="rounded-b-2xl rounded-tr-2xl border border-gray-200/80 dark:border-neutral-800/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
             {/* macOS chrome bar */}
             <div className="flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
               <div className="flex gap-[6px]">

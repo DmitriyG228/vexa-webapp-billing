@@ -7,7 +7,7 @@ function ArrowButton() {
   return (
     <Link
       href="#"
-      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4"
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600 transition-colors mb-4"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -34,10 +34,10 @@ export function BentoGrid() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
           {/* Left: big heading (spans 2 rows on desktop) */}
           <div className="lg:row-span-2 flex flex-col justify-center py-4">
-            <h2 className="text-[30px] sm:text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 mb-4">
+            <h2 className="text-[30px] sm:text-[36px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50 mb-4">
               All the components to build exactly what you need.
             </h2>
-            <p className="text-[15.5px] text-gray-500 leading-[1.7]">
+            <p className="text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7]">
               Everything to integrate AI into meetings. Use the full platform or
               pick individual primitives.
             </p>
@@ -45,13 +45,13 @@ export function BentoGrid() {
 
           {/* Real-time Transcription */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               Real-time Transcription
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               Sub-second latency, speaker-diarized, delivered via WebSocket.
               Feed directly into LLMs.
             </p>
@@ -77,29 +77,29 @@ export function BentoGrid() {
 
           {/* Interactive Bot */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               Interactive Bot
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               Conversational, bi-directional. Speaks via TTS, listens, responds
               in real time.
             </p>
             <ArrowButton />
             {/* Capability pills */}
             <div className="flex flex-wrap gap-2">
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 TTS Speak
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 Listen
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 Respond
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 Screenshare
               </span>
             </div>
@@ -110,22 +110,22 @@ export function BentoGrid() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           {/* Recording */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               Recording
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               Capture full meeting audio. Post-meeting transcription from
               recordings.
             </p>
             <ArrowButton />
-            <div className="rounded-lg bg-gray-50 border border-gray-100 p-4">
+            <div className="rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse" />
-                  <span className="text-[11px] text-gray-500 font-mono font-medium">
+                  <span className="text-[11px] text-gray-500 dark:text-gray-400 font-mono font-medium">
                     REC
                   </span>
                 </div>
@@ -221,20 +221,20 @@ export function BentoGrid() {
 
           {/* Screenshare */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               Screenshare
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               Present slides and dashboards into the meeting programmatically
               from your backend.
             </p>
             <ArrowButton />
-            <div className="rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+            <div className="rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 overflow-hidden">
               {/* Mini browser chrome */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 border-b border-gray-200">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-neutral-700">
                 <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                 <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                 <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
@@ -269,18 +269,18 @@ export function BentoGrid() {
 
           {/* Storage */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               Storage
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               All data in Postgres. Query history, search conversations, export
               via API. Your database.
             </p>
             <ArrowButton />
-            <div className="rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+            <div className="rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 overflow-hidden">
               <table className="w-full text-[10px]">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-100">
@@ -327,34 +327,34 @@ export function BentoGrid() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* MCP Server */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               MCP Server
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               AI-native interface via Model Context Protocol. Give Claude, GPT,
               or any MCP agent direct access to meeting data.
             </p>
             <ArrowButton />
             <div className="flex flex-wrap gap-2">
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 REST API
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 WebSocket
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 MCP
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 Webhooks
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 SDKs
               </span>
-              <span className="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+              <span className="px-2.5 py-1 rounded-md border border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800 text-[12px] text-gray-500 dark:text-gray-400 font-medium">
                 Self-hosted
               </span>
             </div>
@@ -362,19 +362,19 @@ export function BentoGrid() {
 
           {/* Multi-tenant Platform */}
           <div
-            className="rounded-2xl border border-gray-200 bg-white p-6"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6"
             style={{ boxShadow: cardShadow }}
           >
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">
               Multi-tenant Platform
             </h3>
-            <p className="text-[14px] text-gray-500 leading-[1.6] mb-3">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6] mb-3">
               Isolated data per customer, scoped API keys, per-tenant webhooks.
               Build a SaaS on top of Vexa.
             </p>
             <ArrowButton />
             {/* Tenant isolation visual */}
-            <div className="rounded-lg bg-gray-50 border border-gray-100 p-4">
+            <div className="rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 p-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-md bg-blue-50 border border-blue-100 flex items-center justify-center">
@@ -384,7 +384,7 @@ export function BentoGrid() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-gray-700">
+                      <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">
                         Acme Corp
                       </span>
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-medium">
@@ -407,7 +407,7 @@ export function BentoGrid() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-gray-700">
+                      <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">
                         NovaTech
                       </span>
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-medium">
@@ -430,7 +430,7 @@ export function BentoGrid() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-gray-700">
+                      <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300">
                         StartupXYZ
                       </span>
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-medium">

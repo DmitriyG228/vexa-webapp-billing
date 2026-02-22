@@ -24,7 +24,7 @@ export default function CTA({
   description = "From signup to your first API call in just 5 minutes. Start transcribing meetings today with our professional-grade transcription API.",
   buttons = [
     {
-      href: "/api/auth/signin",
+      href: "/signin",
       text: "Get Started Free",
       variant: "default",
       iconRight: <ArrowRightIcon className="size-4" />,

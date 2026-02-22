@@ -2,9 +2,9 @@ import { getAllPostSlugs, getPostData, PostData } from '@/lib/posts';
 import { notFound } from 'next/navigation';
 import { formatDate, absoluteUrl } from '@/lib/utils';
 import { Metadata, ResolvingMetadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BlogPostFooter } from '../blog-post-footer';
 
 export const dynamic = 'force-dynamic';
 
@@ -124,80 +124,80 @@ export default async function Post({ params }: PostProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="py-16 lg:py-20">
-        <div className="max-w-3xl mx-auto px-6">
-          <article>
-            {/* Back link */}
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-1 text-[13px] text-gray-400 hover:text-gray-600 transition-colors mb-8"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-              </svg>
-              Back to blog
-            </Link>
+      {/* Full-page background grid lines */}
+      <div className="blog-grid-lines" />
 
-            {/* Hero Image */}
-            {post.heroImage && (
-              <div className="mb-8 overflow-hidden rounded-2xl">
-                <Image
-                  src={post.heroImage}
-                  alt={`${post.title} hero image`}
-                  width={1200}
-                  height={630}
-                  className="w-full h-auto object-cover"
-                  priority
-                />
+      {/* Decorative header banner */}
+      <div className="relative z-10 overflow-hidden border-b border-gray-100 dark:border-neutral-800">
+        {/* Dot grid pattern */}
+        <div className="blog-header-dots absolute inset-0" />
+        {/* Radial fade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-black" />
+
+        <div className="relative max-w-3xl mx-auto px-6 pt-12 pb-16 lg:pt-16 lg:pb-20">
+          {/* Breadcrumb */}
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 text-[13px] text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mb-8"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Blog
+          </Link>
+
+          {/* Title */}
+          <h1 className="text-[36px] sm:text-[44px] lg:text-[48px] font-semibold leading-[1.08] tracking-[-0.04em] text-gray-950 dark:text-gray-50 mb-6">
+            {post.title}
+          </h1>
+
+          {/* Author + date row */}
+          <div className="flex items-center gap-3 text-[14px] text-gray-500 dark:text-gray-400">
+            {post.authorLinkedIn ? (
+              <Link
+                href={post.authorLinkedIn}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                <Avatar className="h-8 w-8">
+                  {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
+                  <AvatarFallback className="text-[10px]">{getInitials(post.author)}</AvatarFallback>
+                </Avatar>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{post.author}</span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <Avatar className="h-8 w-8">
+                  {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
+                  <AvatarFallback className="text-[10px]">{getInitials(post.author)}</AvatarFallback>
+                </Avatar>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{post.author}</span>
               </div>
             )}
+            <span className="text-gray-300 dark:text-gray-700">&middot;</span>
+            <span>{formatDate(post.date)}</span>
+          </div>
+        </div>
+      </div>
 
-            {/* Header */}
-            <header className="mb-10">
-              <h1 className="text-[32px] sm:text-[38px] font-semibold leading-[1.1] tracking-[-0.03em] text-gray-950 mb-4">
-                {post.title}
-              </h1>
-              <div className="flex items-center gap-3 text-[14px] text-gray-500">
-                {post.authorLinkedIn ? (
-                  <Link
-                    href={post.authorLinkedIn}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 hover:text-gray-700 transition-colors"
-                  >
-                    <Avatar className="h-7 w-7">
-                      {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
-                      <AvatarFallback className="text-[10px]">{getInitials(post.author)}</AvatarFallback>
-                    </Avatar>
-                    <span>{post.author}</span>
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-7 w-7">
-                      {post.authorImage && <AvatarImage src={post.authorImage} alt={post.author} />}
-                      <AvatarFallback className="text-[10px]">{getInitials(post.author)}</AvatarFallback>
-                    </Avatar>
-                    <span>{post.author}</span>
-                  </div>
-                )}
-                <span className="text-gray-300">&middot;</span>
-                <span className="text-gray-400">{formatDate(post.date)}</span>
-              </div>
-            </header>
-
+      {/* Article body */}
+      <section className="relative z-10 py-12 lg:py-16">
+        <div className="max-w-3xl mx-auto px-6">
+          <article>
             {/* Content */}
             <div
-              className="prose max-w-none prose-gray prose-headings:text-gray-950 prose-headings:tracking-[-0.02em] prose-a:text-gray-950 prose-a:underline-offset-2 prose-code-copy-buttons"
+              className="prose max-w-none prose-gray dark:prose-invert prose-headings:text-gray-950 dark:prose-headings:text-gray-50 prose-headings:tracking-[-0.02em] prose-code-copy-buttons"
               dangerouslySetInnerHTML={{ __html: post.contentHtml! }}
             />
 
@@ -236,6 +236,9 @@ export default async function Post({ params }: PostProps) {
                 `
               }}
             />
+
+            {/* CTA footer */}
+            <BlogPostFooter />
           </article>
         </div>
       </section>

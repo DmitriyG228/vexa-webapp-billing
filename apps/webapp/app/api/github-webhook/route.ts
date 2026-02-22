@@ -22,11 +22,15 @@ export async function POST(request: NextRequest) {
 
     const payload = JSON.parse(body);
     
-    // Check if the push affects the blog content directory
-    if (payload.commits?.some((commit: any) => 
-      commit.modified?.some((file: string) => file.startsWith('blog/')) ||
-      commit.added?.some((file: string) => file.startsWith('blog/')) ||
-      commit.removed?.some((file: string) => file.startsWith('blog/'))
+    // Check if the push affects blog content (markdown files at root or in configured path)
+    const blogPath = process.env.GITHUB_REPO_PATH || '';
+    const isBlogFile = (file: string) =>
+      (file.endsWith('.md') || file.endsWith('.mdx')) &&
+      (blogPath === '' || file.startsWith(`${blogPath}/`));
+    if (payload.commits?.some((commit: any) =>
+      commit.modified?.some(isBlogFile) ||
+      commit.added?.some(isBlogFile) ||
+      commit.removed?.some(isBlogFile)
     )) {
       // Revalidate the blog pages
       revalidatePath('/blog');

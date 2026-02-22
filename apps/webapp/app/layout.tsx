@@ -83,12 +83,12 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className={`${inter.variable} font-sans`} style={{ background: '#f8f8f7' }}>
+      <body className={`${inter.variable} font-sans bg-background`}>
         <AuthProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
-            forcedTheme="light"
+            defaultTheme="system"
+            enableSystem
             disableTransitionOnChange
           >
             <div className="flex flex-col min-h-screen">

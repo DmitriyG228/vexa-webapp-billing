@@ -340,7 +340,66 @@ Pastel tones only — never saturated colors on a dark bg.
 | Changing the headline type treatment | Lock: semibold / light-gray accent pattern |
 | Adding new accent colors | Only green (live) and amber (star) |
 | Animation beyond fade-up + blink + pulse | Those three only |
-| Dark mode styles | Light mode only, forced via ThemeProvider |
+---
+
+## 10. Dark Mode
+
+Follows the Vercel pattern: **pure black backgrounds, neutral (no blue tint) grays, subtle borders.**
+
+### Color Palette (Dark)
+
+| Token | Value | Usage |
+|---|---|---|
+| Background | `#000000` | Page background (pure black, via `--background` CSS var) |
+| Surface | `#0a0a0a` | Cards, elevated elements (`neutral-950`) |
+| Surface hover | `#171717` | Hover states, tab backgrounds (`neutral-900`) |
+| Border | `#262626` | All borders (`neutral-800`) |
+| Border subtle | `#1f1f1f` | Intra-card dividers |
+| Text primary | `#ededed` | Headlines (93% white, not pure `#fff`) |
+| Text secondary | `#a1a1a1` | Body copy (`gray-400`) |
+| Text muted | `#737373` | Labels, timestamps (`gray-500`) |
+| Text ghost | `#404040` | Separators, ghost-text (`neutral-700`) |
+
+### Rules
+
+- **Never use blue-tinted grays** for dark backgrounds/borders. Use `neutral-*` scale, not `gray-*`, for `dark:bg-*` and `dark:border-*` classes
+- Page background is **pure black** (`#000`), not dark gray
+- Cards use `dark:bg-neutral-900` (or `dark:bg-neutral-950` for minimal elevation)
+- Borders use `dark:border-neutral-800` — borders carry all visual weight (no card shadows in dark)
+- Text uses `dark:text-gray-*` (the blue tint in text is imperceptible)
+- Terminal/code areas are already dark-themed — no `dark:` overrides needed
+- The `from-white/50` hero gradient becomes `dark:from-black/50`
+- Dot grid dots: `#262626` in dark mode (neutral-800)
+- Card `boxShadow` is invisible on black bg — borders do the separation work
+- Nav uses `dark:bg-neutral-950/80 backdrop-blur-md`
+
+### Tailwind Pattern
+
+```
+{/* Light + dark card */}
+<div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800">
+
+{/* Light + dark text */}
+<h3 className="text-gray-950 dark:text-gray-50">
+<p className="text-gray-500 dark:text-gray-400">
+
+{/* Primary button */}
+<button className="bg-gray-950 text-white dark:bg-white dark:text-gray-950">
+
+{/* Nav */}
+<header className="bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-b border-gray-200/70 dark:border-neutral-800/70">
+```
+
+### CSS Variables (`.dark` in globals)
+
+```css
+.dark {
+  --background: 0 0% 0%;        /* #000 */
+  --foreground: 0 0% 93%;       /* #ededed */
+  --card: 0 0% 0%;              /* same as bg */
+  --border: 0 0% 12%;           /* #1f1f1f */
+}
+```
 
 ---
 

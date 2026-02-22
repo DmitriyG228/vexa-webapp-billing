@@ -1,6 +1,7 @@
 import matter from 'gray-matter';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeStringify from 'rehype-stringify';
@@ -163,6 +164,7 @@ export async function getPostData(slug: string): Promise<PostData> {
     // Use unified, remark-parse, remark-rehype, rehype-pretty-code, and rehype-stringify to process markdown
     const processedContent = await unified()
       .use(remarkParse) // Parse markdown
+      .use(remarkGfm) // GitHub Flavored Markdown (tables, strikethrough, autolinks, task lists)
       .use(remarkRehype) // Convert markdown to rehype (HTML AST)
       .use(rehypePrettyCode, { // Apply syntax highlighting
         theme: 'github-dark', // Choose a theme (e.g., github-dark, github-light, one-dark-pro)
@@ -176,14 +178,29 @@ export async function getPostData(slug: string): Promise<PostData> {
     
     // Add copy buttons to code blocks
     contentHtml = addCopyButtonsToHtml(contentHtml);
-    
+
+    // Wrap tables in scrollable containers (Vercel-style)
+    contentHtml = wrapTablesInScrollContainer(contentHtml);
+
+    // Wrap images in styled figure containers
+    contentHtml = wrapImagesInFigure(contentHtml);
+
     // Transform asset references in markdown to use our authenticated API
     contentHtml = transformAssetReferences(contentHtml);
 
-    // Transform the heroImage if it exists
+    // Transform the heroImage if it exists, and validate it
     const transformedData = { ...(matterResult.data as { title: string; date: string; author: string; summary: string; heroImage?: string; }) };
     if (transformedData.heroImage && transformedData.heroImage.startsWith('/assets/')) {
-      transformedData.heroImage = transformedData.heroImage.replace('/assets/', '/api/assets/');
+      // Check if the asset actually exists in the GitHub repo before exposing the path
+      const assetPath = transformedData.heroImage.replace(/^\//, '').replace(/\?.*$/, '');
+      try {
+        await githubService.getAssetContent(assetPath);
+        transformedData.heroImage = transformedData.heroImage.replace('/assets/', '/api/assets/');
+      } catch {
+        // Asset doesn't exist in the repo — clear heroImage so we don't render a broken img
+        console.warn(`Hero image not found in repo: ${assetPath}`);
+        transformedData.heroImage = undefined;
+      }
     }
 
     return {
@@ -203,6 +220,21 @@ function transformAssetReferences(html: string): string {
   return html.replace(
     /<img([^>]*?)src="\/assets\/([^"]*?)"([^>]*?)>/g,
     '<img$1src="/api/assets/$2"$3>'
+  );
+}
+
+function wrapTablesInScrollContainer(html: string): string {
+  return html.replace(
+    /<table([\s\S]*?)<\/table>/g,
+    '<div class="table-container"><table$1</table></div>'
+  );
+}
+
+function wrapImagesInFigure(html: string): string {
+  // Wrap standalone <img> tags (not already inside a figure) in a styled figure
+  return html.replace(
+    /(<p>)\s*(<img([^>]*?)>)\s*(<\/p>)/g,
+    '<figure class="blog-image-figure">$2</figure>'
   );
 }
 

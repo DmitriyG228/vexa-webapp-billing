@@ -135,7 +135,7 @@ export function TerminalAnimation() {
   const ghost = words.slice(wordIndex).join(" ");
 
   return (
-    <div className="relative rounded-[16px] border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+    <div className="relative rounded-[16px] border border-gray-200/80 dark:border-neutral-800/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
       {/* Chrome */}
       <div className="relative flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
         <div className="flex gap-[6px] flex-shrink-0">

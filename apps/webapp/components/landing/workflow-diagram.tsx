@@ -6,7 +6,7 @@ import Image from "next/image";
 // SVG icon components for output nodes
 function OpenAIIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="#000">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-black dark:text-white">
       <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073z" />
     </svg>
   );
@@ -153,7 +153,7 @@ export function WorkflowDiagram() {
 
   return (
     <div
-      className="rounded-2xl border border-gray-200 bg-white px-8 py-10 lg:px-12 lg:py-12"
+      className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-8 py-10 lg:px-12 lg:py-12"
       style={{
         boxShadow:
           "0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)",
@@ -179,12 +179,12 @@ export function WorkflowDiagram() {
           >
             <div className="flex flex-col items-center">
               <div
-                className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white overflow-hidden"
+                className="flex flex-col items-center rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               >
                 <div
                   id="node-teams"
-                  className="w-[56px] h-[56px] flex items-center justify-center border-b border-gray-100"
+                  className="w-[56px] h-[56px] flex items-center justify-center border-b border-gray-100 dark:border-neutral-800"
                 >
                   <Image
                     src="/microsoft-teams-logo.png"
@@ -196,7 +196,7 @@ export function WorkflowDiagram() {
                 </div>
                 <div
                   id="node-meet"
-                  className="w-[56px] h-[56px] flex items-center justify-center border-b border-gray-100"
+                  className="w-[56px] h-[56px] flex items-center justify-center border-b border-gray-100 dark:border-neutral-800"
                 >
                   <Image
                     src="/google-meet-logo.png"
@@ -213,7 +213,7 @@ export function WorkflowDiagram() {
                   <ZoomIcon />
                 </div>
               </div>
-              <span className="text-[10px] text-gray-400 mt-1.5">
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5">
                 Meetings
               </span>
             </div>
@@ -232,7 +232,7 @@ export function WorkflowDiagram() {
             <div className="flex flex-col items-center">
               <div
                 id="node-vexa"
-                className="w-[76px] h-[76px] rounded-2xl border border-gray-200 bg-white flex items-center justify-center"
+                className="w-[76px] h-[76px] rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center justify-center"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}
               >
                 <Image
@@ -243,7 +243,7 @@ export function WorkflowDiagram() {
                   className="w-10 h-10 rounded-[8px]"
                 />
               </div>
-              <span className="text-[11px] font-medium text-gray-500 mt-1.5">
+              <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 mt-1.5">
                 Vexa API
               </span>
             </div>
@@ -262,42 +262,42 @@ export function WorkflowDiagram() {
             <div className="flex flex-col items-center">
               <div
                 id="node-openai"
-                className="w-[48px] h-[48px] rounded-xl border border-gray-200 bg-white flex items-center justify-center"
+                className="w-[48px] h-[48px] rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center justify-center"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               >
                 <OpenAIIcon />
               </div>
-              <span className="text-[10px] text-gray-400 mt-1">OpenAI</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">OpenAI</span>
             </div>
             <div className="flex flex-col items-center">
               <div
                 id="node-claude"
-                className="w-[48px] h-[48px] rounded-xl border border-gray-200 bg-white flex items-center justify-center"
+                className="w-[48px] h-[48px] rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center justify-center"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               >
                 <ClaudeIcon />
               </div>
-              <span className="text-[10px] text-gray-400 mt-1">Claude</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Claude</span>
             </div>
             <div className="flex flex-col items-center">
               <div
                 id="node-n8n"
-                className="w-[48px] h-[48px] rounded-xl border border-gray-200 bg-white flex items-center justify-center"
+                className="w-[48px] h-[48px] rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center justify-center"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               >
                 <N8nIcon />
               </div>
-              <span className="text-[10px] text-gray-400 mt-1">n8n</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">n8n</span>
             </div>
             <div className="flex flex-col items-center">
               <div
                 id="node-openclaw"
-                className="w-[48px] h-[48px] rounded-xl border border-gray-200 bg-white flex items-center justify-center"
+                className="w-[48px] h-[48px] rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center justify-center"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               >
                 <OpenClawIcon />
               </div>
-              <span className="text-[10px] text-gray-400 mt-1">OpenClaw</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">OpenClaw</span>
             </div>
           </div>
         </div>
@@ -331,10 +331,11 @@ export function WorkflowDiagram() {
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#d1d5db"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="text-gray-300 dark:text-gray-600"
           >
             <path d="M12 5v14M5 12l7 7 7-7" />
           </svg>
@@ -353,10 +354,11 @@ export function WorkflowDiagram() {
             height="16"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#d1d5db"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="text-gray-300 dark:text-gray-600"
           >
             <path d="M12 5v14M5 12l7 7 7-7" />
           </svg>
@@ -385,22 +387,23 @@ export function WorkflowDiagram() {
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#6b7280"
+              stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="text-gray-500 dark:text-gray-400"
             >
               <circle cx="12" cy="12" r="3" />
               <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
             </svg>
-            <span className="text-[13px] text-gray-400 font-medium">
+            <span className="text-[13px] text-gray-400 dark:text-gray-500 font-medium">
               Meeting-Defined Infrastructure
             </span>
           </div>
-          <h2 className="text-[28px] sm:text-[32px] font-semibold leading-[1.15] tracking-[-0.02em] text-gray-950 mb-3">
+          <h2 className="text-[28px] sm:text-[32px] font-semibold leading-[1.15] tracking-[-0.02em] text-gray-950 dark:text-gray-50 mb-3">
             From meeting URL to intelligence in one API call.
           </h2>
-          <p className="text-[16px] text-gray-400 leading-[1.7]">
+          <p className="text-[16px] text-gray-400 dark:text-gray-500 leading-[1.7]">
             Vexa connects to any meeting platform and routes transcripts,
             recordings, and live audio to your AI stack. Open source,
             self-hostable, and built for developers who need full control.

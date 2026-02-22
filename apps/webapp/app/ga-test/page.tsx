@@ -71,7 +71,7 @@ export default function GoogleAnalyticsTestPage() {
           
           <div className="flex items-center gap-2">
             <span className="font-medium">Measurement ID:</span>
-            <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{measurementId}</code>
+            <code className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">{measurementId}</code>
           </div>
         </div>
       </div>
@@ -89,10 +89,10 @@ export default function GoogleAnalyticsTestPage() {
         <h2 className="text-xl font-semibold mb-4">Troubleshooting</h2>
         
         <ul className="list-disc pl-5 space-y-2">
-          <li>Make sure <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">NEXT_PUBLIC_GA_MEASUREMENT_ID</code> is set in your .env file</li>
+          <li>Make sure <code className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">NEXT_PUBLIC_GA_MEASUREMENT_ID</code> is set in your .env file</li>
           <li>Ensure your Google Analytics property is set up correctly</li>
           <li>Check if any ad blockers are preventing Google Analytics from loading</li>
-          <li>Open browser devtools and check the network tab for requests to <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">google-analytics.com</code></li>
+          <li>Open browser devtools and check the network tab for requests to <code className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">google-analytics.com</code></li>
           <li>Ensure the site is being loaded over HTTPS</li>
         </ul>
       </div>
