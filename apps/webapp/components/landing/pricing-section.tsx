@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { GetStartedButton } from '@/app/pricing/components/GetStartedButton';
 
 const CheckIcon = ({ className = 'text-gray-400 dark:text-gray-500' }: { className?: string }) => (
   <svg
@@ -147,13 +148,9 @@ export function PricingSection() {
               </p>
             </div>
 
-            <Link
-              href="#"
-              className="flex items-center justify-center gap-1 h-[40px] rounded-full bg-gray-950 text-white dark:bg-white dark:text-gray-950 text-[13px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors mb-6"
-            >
-              Start here
-              <ArrowIcon />
-            </Link>
+            <div className="mb-6">
+              <GetStartedButton buttonText="Start here" planType="mvp" botCount={1} />
+            </div>
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />

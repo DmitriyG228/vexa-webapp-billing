@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     if (!origin) {
       return NextResponse.json({ error: 'Missing Origin header to construct return URL' }, { status: 400 })
     }
-    const returnUrl = `${origin}/dashboard`
+    const returnUrl = `${origin}/account`
     const billingEndpoint = `${BILLING_URL}/v1/portal/session`
     
     console.log(`[DEBUG] Calling billing endpoint: ${billingEndpoint}`)

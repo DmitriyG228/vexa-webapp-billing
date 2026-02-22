@@ -402,126 +402,45 @@ class PortalRequest(BaseModel):
 
 @app.post("/v1/portal/session")
 async def create_portal_session(req: PortalRequest):
-    customers = stripe.Customer.list(email=req.email, limit=1)
-    if not customers.data:
-        raise HTTPException(status_code=404, detail="No customer found for this email")
-    customer = customers.data[0]
-    
+    customer = _ensure_customer(req.email)
+    return_url = req.returnUrl or PORTAL_RETURN_URL
+
     print(f"🔧 [PORTAL] Creating portal for customer {customer.id} ({req.email})")
-    
-    # Get the Bot subscription product and Startup price
-    products = stripe.Product.list(active=True, limit=100)
-    bot_product = next((p for p in products.data if p.name == "Bot subscription"), None)
-    if not bot_product:
-        raise HTTPException(status_code=400, detail="Product 'Bot subscription' not found. Run stripe_sync script.")
-    
-    prices = stripe.Price.list(product=bot_product.id, active=True, limit=100)
-    startup_price = next((p for p in prices.data if getattr(p, "nickname", None) == "Startup"), None)
-    if not startup_price:
-        raise HTTPException(status_code=400, detail="Price 'Startup' not found. Run stripe_sync script.")
-    
-    print(f"✅ [PORTAL] Found product {bot_product.id} and price {startup_price.id}")
-    
-    # Try to reuse existing portal configuration or create new one
+
     try:
-        # Check for existing configurations
-        existing_configs = stripe.billing_portal.Configuration.list(limit=10)
-        portal_config = None
-        
-        # for config in existing_configs.data:
-        #     if (config.features.subscription_update.enabled and 
-        #         config.features.subscription_cancel.enabled):
-        #         portal_config = config
-        #         print(f"♻️ [PORTAL] Reusing existing configuration {config.id}")
-        #         break
-        
-        if not portal_config:
-            print(f"➕ [PORTAL] Creating new portal configuration")
-            # Create portal configuration with full subscription management
-            portal_config = stripe.billing_portal.Configuration.create(
-                features={
-                    "subscription_update": {
-                        "enabled": True,
-                        "default_allowed_updates": ["price", "quantity"],
-                        "products": [{"product": bot_product.id, "prices": [startup_price.id]}],
-                        "proration_behavior": "always_invoice",
-                    },
-                    "subscription_cancel": {"enabled": True},
-                    "payment_method_update": {"enabled": True},
-                    "invoice_history": {"enabled": True},
-                    # "customer_update": {
-                    #     "enabled": True,
-                    #     "allowed_updates": ["email", "address", "phone", "tax_id"]
-                    # },
-                },
-                default_return_url=PORTAL_RETURN_URL,
-            )
-            print(f"✅ [PORTAL] Created configuration {portal_config.id}")
-        
-        # Determine customer's payment method and subscription state
-        payment_methods = stripe.PaymentMethod.list(customer=customer.id, type="card", limit=1)
-        has_payment_method = bool(payment_methods.data)
-        subs = stripe.Subscription.list(customer=customer.id, status="all", limit=50)
-        active_subscription = next((s for s in subs.data if s.status == "active"), None)
-        has_active_subscription = active_subscription is not None
+        bot_product, startup_price = _get_bot_product_and_price()
 
-        print(
-            f"🔎 [PORTAL] has_payment_method={has_payment_method}, "
-            f"has_active_subscription={has_active_subscription} (ignoring trials)"
+        portal_config = stripe.billing_portal.Configuration.create(
+            features={
+                "subscription_update": {
+                    "enabled": True,
+                    "default_allowed_updates": ["quantity"],
+                    "products": [{"product": bot_product.id, "prices": [startup_price.id]}],
+                    "proration_behavior": "always_invoice",
+                },
+                "subscription_cancel": {"enabled": True},
+                "payment_method_update": {"enabled": True},
+                "invoice_history": {"enabled": True},
+            },
+            default_return_url=return_url,
         )
 
-        # Branch flows based on state:
-        # 1) If no payment method, send them directly to add one, then back to portal homepage
-        if not has_payment_method:
-            print("➡️  [PORTAL] Starting payment_method_update flow (no default PM found)")
-            session = stripe.billing_portal.Session.create(
-                customer=customer.id,
-                return_url=req.returnUrl or PORTAL_RETURN_URL,
-                configuration=portal_config.id,
-                flow={
-                    "type": "payment_method_update",
-                    "after_completion": {"type": "portal_homepage"},
-                },
-            )
-        # 2) If no active subscription, open portal homepage where Subscribe button will appear
-        elif not has_active_subscription:
-            print("➡️  [PORTAL] Opening portal homepage (no active subscription)")
-            session = stripe.billing_portal.Session.create(
-                customer=customer.id,
-                return_url=req.returnUrl or PORTAL_RETURN_URL,
-                configuration=portal_config.id,
-            )
-        # 3) If there is an active subscription, open portal homepage for manage/cancel
-        else:
-            print(
-                f"➡️  [PORTAL] Opening portal homepage (active subscription {active_subscription.id})"
-            )
-            session = stripe.billing_portal.Session.create(
-                customer=customer.id,
-                return_url=req.returnUrl or PORTAL_RETURN_URL,
-                configuration=portal_config.id,
-            )
-
-        print(f"✅ [PORTAL] Created session {session.id} with config {portal_config.id}")
+        # Always open portal homepage — let Stripe show all relevant sections
+        session = stripe.billing_portal.Session.create(
+            customer=customer.id,
+            return_url=return_url,
+            configuration=portal_config.id,
+        )
+        print(f"✅ [PORTAL] Created session {session.id}")
         return {"url": session.url}
-        
+
     except stripe.error.StripeError as e:
-        print(f"❌ [PORTAL] Stripe error creating portal: {e}")
-        # Fallback to default portal if configuration creation fails
+        print(f"❌ [PORTAL] Stripe error: {e}")
+        # Fallback to default portal
         session = stripe.billing_portal.Session.create(
             customer=customer.id,
-            return_url=req.returnUrl or PORTAL_RETURN_URL,
+            return_url=return_url,
         )
-        print(f"⚠️ [PORTAL] Fallback to default portal: {session.id}")
-        return {"url": session.url}
-    except Exception as e:
-        print(f"❌ [PORTAL] Unexpected error creating portal: {e}")
-        # Fallback to default portal if anything fails
-        session = stripe.billing_portal.Session.create(
-            customer=customer.id,
-            return_url=req.returnUrl or PORTAL_RETURN_URL,
-        )
-        print(f"⚠️ [PORTAL] Fallback to default portal: {session.id}")
         return {"url": session.url}
 
 

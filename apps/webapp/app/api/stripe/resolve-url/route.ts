@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       context,
       quantity,
       origin,
-      returnUrl: `${origin}/dashboard`,
-      successUrl: `${origin}/dashboard`,
+      returnUrl: `${origin}/account`,
+      successUrl: `${origin}/account`,
       cancelUrl: `${origin}/pricing`,
     }
 
