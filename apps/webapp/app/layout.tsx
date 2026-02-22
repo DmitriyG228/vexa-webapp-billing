@@ -60,6 +60,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Vexa Blog RSS Feed"
+          href="/feed.xml"
+        />
         {GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-MEASUREMENT_ID' && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />

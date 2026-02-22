@@ -1,8 +1,30 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { getSortedPostsData, PostData } from '@/lib/posts';
 import { formatDate } from '@/lib/utils';
 import { BlogRefreshButton } from './blog-refresh-button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+export const metadata: Metadata = {
+  title: 'Blog | Vexa',
+  description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source. Tutorials, comparisons, and product updates.',
+  alternates: {
+    canonical: 'https://vexa.ai/blog',
+  },
+  openGraph: {
+    title: 'Blog | Vexa',
+    description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.',
+    url: 'https://vexa.ai/blog',
+    siteName: 'Vexa',
+    images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog | Vexa',
+    description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.',
+  },
+};
 
 function getInitials(name: string) {
   return name

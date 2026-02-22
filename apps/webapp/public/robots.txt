@@ -9,4 +9,3 @@ Disallow: /ga-test/
 Disallow: /test-cover/
 
 Sitemap: https://vexa.ai/sitemap.xml
-Sitemap: https://vexa.ai/feed.xml

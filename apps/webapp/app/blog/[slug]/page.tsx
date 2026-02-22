@@ -29,6 +29,9 @@ export async function generateMetadata(
     return {
       title: post.title,
       description: post.summary,
+      alternates: {
+        canonical: absoluteUrl(`/blog/${post.slug}`),
+      },
       openGraph: {
         title: post.title,
         description: post.summary,
@@ -99,7 +102,7 @@ export default async function Post({ params }: PostProps) {
       '@type': 'Person',
       name: post.author,
       url: post.authorLinkedIn,
-      image: post.authorImage,
+      image: post.authorImage ? absoluteUrl(post.authorImage) : undefined,
     },
     publisher: {
       '@type': 'Organization',
