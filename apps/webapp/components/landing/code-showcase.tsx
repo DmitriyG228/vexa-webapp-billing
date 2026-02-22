@@ -82,42 +82,6 @@ const PythonCode = () => (
     <span className="text-gray-500">{'}'}</span>
     {'\n'}
     <span className="text-gray-500">)</span>
-    {'\n\n'}
-    <span className="text-gray-600"># 3. Run through your AI</span>
-    {'\n'}
-    <span className="text-gray-300">summary</span>{' '}
-    <span className="text-gray-500">=</span>{' '}
-    <span className="text-gray-300">openai</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">chat</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">completions</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">create</span>
-    <span className="text-gray-500">(</span>
-    {'\n'}
-    {'    '}
-    <span className="text-gray-300">model</span>
-    <span className="text-gray-500">=</span>
-    <span className="text-[#6ee7b7]">&quot;gpt-4o&quot;</span>
-    <span className="text-gray-500">,</span>
-    {'\n'}
-    {'    '}
-    <span className="text-gray-300">messages</span>
-    <span className="text-gray-500">=[{'{'}</span>
-    <span className="text-[#6ee7b7]">&quot;role&quot;</span>
-    <span className="text-gray-500">:</span>{' '}
-    <span className="text-[#6ee7b7]">&quot;user&quot;</span>
-    <span className="text-gray-500">,</span>{' '}
-    <span className="text-[#6ee7b7]">&quot;content&quot;</span>
-    <span className="text-gray-500">:</span>{' '}
-    <span className="text-gray-300">transcript</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">text</span>
-    <span className="text-gray-500">()</span>
-    <span className="text-gray-500">{'}]'}</span>
-    {'\n'}
-    <span className="text-gray-500">)</span>
   </code>
 );
 
@@ -276,41 +240,6 @@ const TypeScriptCode = () => (
     <span className="text-gray-500">.</span>
     <span className="text-gray-300">json</span>
     <span className="text-gray-500">());</span>
-    {'\n\n'}
-    <span className="text-gray-600">// 3. Process with AI</span>
-    {'\n'}
-    <span className="text-gray-500">const</span>{' '}
-    <span className="text-gray-300">result</span>{' '}
-    <span className="text-gray-500">=</span>{' '}
-    <span className="text-gray-500">await</span>{' '}
-    <span className="text-gray-300">anthropic</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">messages</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">create</span>
-    <span className="text-gray-500">({'{'}</span>
-    {'\n'}
-    {'  '}
-    <span className="text-gray-300">model</span>
-    <span className="text-gray-500">:</span>{' '}
-    <span className="text-[#6ee7b7]">&quot;claude-sonnet-4-20250514&quot;</span>
-    <span className="text-gray-500">,</span>
-    {'\n'}
-    {'  '}
-    <span className="text-gray-300">messages</span>
-    <span className="text-gray-500">: [{'{'}</span>{' '}
-    <span className="text-gray-300">role</span>
-    <span className="text-gray-500">:</span>{' '}
-    <span className="text-[#6ee7b7]">&quot;user&quot;</span>
-    <span className="text-gray-500">,</span>{' '}
-    <span className="text-gray-300">content</span>
-    <span className="text-gray-500">:</span>{' '}
-    <span className="text-gray-300">transcript</span>
-    <span className="text-gray-500">.</span>
-    <span className="text-gray-300">text</span>{' '}
-    <span className="text-gray-500">{'}]'}</span>
-    {'\n'}
-    <span className="text-gray-500">{'}'});</span>
   </code>
 );
 
@@ -334,12 +263,12 @@ export function CodeShowcase() {
             Developer Experience
           </span>
           <h2 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-            Three API calls to
+            Two API calls to
             <br />
             <em className="not-italic font-light text-gray-400 dark:text-gray-500">meeting intelligence</em>
           </h2>
           <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-lg mx-auto">
-            Join a meeting, get the transcript, run it through your AI. That&apos;s it.
+            Send a bot to any meeting and get the transcript. That&apos;s it.
           </p>
         </div>
 

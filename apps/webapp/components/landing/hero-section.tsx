@@ -18,7 +18,7 @@ export function HeroSection() {
             <div className="animate-fade-up d1">
               <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[11.5px] text-gray-500 dark:text-gray-400 font-medium shadow-sm">
                 <span className="w-[7px] h-[7px] rounded-full bg-emerald-400 flex-shrink-0" />
-                Open Source &middot; Developer-first &middot; API-first
+                API-first &middot; Developer-centric &middot; Open Source
               </span>
             </div>
 
@@ -128,7 +128,7 @@ export function HeroSection() {
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 Starred by{" "}
-                <span className="text-gray-700 dark:text-gray-300 font-semibold">1.3k+</span>{" "}
+                <span className="text-gray-700 dark:text-gray-300 font-semibold">1.7k+</span>{" "}
                 developers
               </div>
             </div>

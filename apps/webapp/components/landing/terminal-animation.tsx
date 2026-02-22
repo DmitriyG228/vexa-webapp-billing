@@ -19,19 +19,27 @@ const speakers: Speaker[] = [
   { name: "Bob Rodriguez", color: "#c4b5fd" },
   { name: "Carol Kim", color: "#6ee7b7" },
   { name: "David Wilson", color: "#fca5a5" },
+  { name: "Priya Sharma", color: "#f9a8d4" },
+  { name: "Marcus Johnson", color: "#fbbf24" },
 ];
 
 const phrases: string[] = [
   "We need to ship the new API before the end of Q3.",
   "Let's target June 15th as the hard deadline for the release.",
-  "I can own the integration tests — Carol, can you handle docs?",
+  "I can own the integration tests — Priya, can you handle docs?",
   "The performance improvements we made last sprint are solid.",
-  "We should loop in the design team before the next sprint review.",
+  "Can we get the WebSocket reconnection logic reviewed by Friday?",
   "I think we're aligned on the roadmap for meeting intelligence.",
   "Can we confirm the self-hosted deployment strategy today?",
-  "The OpenAI integration works, n8n pipeline looks good too.",
-  "Let's prioritize the real-time transcript endpoint first.",
+  "The n8n pipeline is working well with the transcript endpoint.",
   "We should open source the core SDK as part of the launch.",
+  "I'll set up the staging environment for the demo next week.",
+  "The latency numbers on real-time transcription look great.",
+  "Let's add rate limiting before we open the API to beta users.",
+  "Has anyone tested the Teams bot on the new Chromium build?",
+  "We got positive feedback from the design team on the dashboard.",
+  "The compliance review is done — we're clear for the EU launch.",
+  "Can we schedule a retro for the recording feature rollout?",
 ];
 
 function formatTime(): string {
@@ -58,6 +66,8 @@ export function TerminalAnimation() {
     currentPhrase: "",
     currentSpeaker: null as Speaker | null,
     wordIndex: 0,
+    lastSpeakerIndex: -1,
+    phraseIndex: 0,
   });
 
   // Clock interval — set initial value on mount to avoid hydration mismatch
@@ -81,8 +91,18 @@ export function TerminalAnimation() {
 
     if (!s.speaking) {
       if (Math.random() < 0.3) {
-        const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-        const spkr = speakers[Math.floor(Math.random() * speakers.length)];
+        // Cycle through phrases in order, loop back when exhausted
+        const phrase = phrases[s.phraseIndex % phrases.length];
+        s.phraseIndex++;
+
+        // Pick a different speaker than the last one
+        let idx = Math.floor(Math.random() * speakers.length);
+        while (idx === s.lastSpeakerIndex) {
+          idx = Math.floor(Math.random() * speakers.length);
+        }
+        const spkr = speakers[idx];
+        s.lastSpeakerIndex = idx;
+
         s.currentPhrase = phrase;
         s.currentSpeaker = spkr;
         s.wordIndex = 0;
