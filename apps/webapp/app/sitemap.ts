@@ -1,6 +1,11 @@
 import { MetadataRoute } from 'next'
 import { getSortedPostsData } from '@/lib/posts'
 
+// Force dynamic rendering so blog posts are fetched at request time
+// (GITHUB_TOKEN is only available at runtime, not during Docker build)
+export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // Cache for 1 hour
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://vexa.ai'
 
