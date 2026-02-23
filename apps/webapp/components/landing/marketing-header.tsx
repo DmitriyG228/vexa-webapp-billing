@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { getDashboardUrl } from "@/lib/utils";
 import {
   Sheet,
   SheetContent,
@@ -86,7 +87,7 @@ export function MarketingHeader() {
                   <Link href="/account">Account</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001"}>
+                  <Link href={getDashboardUrl()}>
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
@@ -194,7 +195,7 @@ export function MarketingHeader() {
                       Account
                     </Link>
                     <Link
-                      href={process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001"}
+                      href={getDashboardUrl()}
                       className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                       onClick={() => setOpen(false)}
                     >

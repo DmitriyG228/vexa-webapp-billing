@@ -20,6 +20,19 @@ export function formatDate(dateString: string | undefined): string {
   }
 }
 
+// Dashboard URL — derive from current hostname at runtime so it works
+// across localhost, green staging, and production without env var at build time
+export function getDashboardUrl(): string {
+  if (process.env.NEXT_PUBLIC_DASHBOARD_URL) {
+    return process.env.NEXT_PUBLIC_DASHBOARD_URL;
+  }
+  if (typeof window === "undefined") return "http://localhost:3001";
+  const host = window.location.hostname;
+  if (host === "green.vexa.ai") return "https://dashboard-green.vexa.ai";
+  if (host === "vexa.ai") return "https://app.vexa.ai";
+  return "http://localhost:3001";
+}
+
 // Function to generate absolute URLs
 export const absoluteUrl = (path: string) => {
   // Use NEXT_PUBLIC_APP_URL if set, otherwise fall back to production URL

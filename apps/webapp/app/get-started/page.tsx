@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { getDashboardUrl } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -145,8 +146,7 @@ function GetStartedContent() {
   const [error, setError] = useState("");
   const { status } = useSession();
   const router = useRouter();
-  const dashboardUrl =
-    process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001";
+  const dashboardUrl = getDashboardUrl();
 
   const parsed = url.trim() ? parseMeetingInput(url) : null;
 
