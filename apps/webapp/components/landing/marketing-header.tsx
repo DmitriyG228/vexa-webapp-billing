@@ -50,6 +50,12 @@ export function MarketingHeader() {
             Docs
           </Link>
           <Link
+            href="/blog"
+            className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all"
+          >
+            Blog
+          </Link>
+          <Link
             href="#pricing"
             className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all"
           >
@@ -154,6 +160,13 @@ export function MarketingHeader() {
                   onClick={() => setOpen(false)}
                 >
                   Docs
+                </Link>
+                <Link
+                  href="/blog"
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  Blog
                 </Link>
                 <Link
                   href="#pricing"
