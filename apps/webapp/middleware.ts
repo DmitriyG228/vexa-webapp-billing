@@ -1,7 +1,16 @@
-export { default } from "next-auth/middleware";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-// This config specifies that the middleware applies
-// to all routes starting with /dashboard or /account
+export default async function middleware(req: NextRequest) {
+  const token = await getToken({ req });
+  if (!token) {
+    const signInUrl = new URL("/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", req.url);
+    return NextResponse.redirect(signInUrl);
+  }
+  return NextResponse.next();
+}
+
 export const config = {
   matcher: [
     '/dashboard/:path*',
