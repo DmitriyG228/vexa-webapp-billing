@@ -6,7 +6,7 @@ const cardShadow =
 function ArrowButton() {
   return (
     <Link
-      href="#"
+      href="https://docs.vexa.ai"
       className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600 transition-colors mb-4"
     >
       <svg

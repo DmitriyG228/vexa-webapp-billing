@@ -10,7 +10,7 @@ import { MenuIcon, XIcon } from "lucide-react";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/get-started", label: "Get Started" },
-  { href: "https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md", label: "API Docs", target: "_blank", rel: "noopener noreferrer" },
+  { href: "https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.mdx", label: "API Docs", target: "_blank", rel: "noopener noreferrer" },
   { href: "/public-beta", label: "Public Beta" },
   { href: "/blog", label: "Blog" },
 ];

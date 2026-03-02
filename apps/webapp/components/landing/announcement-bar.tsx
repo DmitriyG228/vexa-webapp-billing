@@ -8,7 +8,7 @@ export function AnnouncementBar() {
         <span className="mx-2 text-gray-700">&middot;</span>
         Microsoft Teams bot support has arrived
         <Link
-          href="#"
+          href="/blog/vexa-v0-6-microsoft-teams-support"
           className="ml-3 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white underline underline-offset-2 transition-colors"
         >
           Read more &rarr;

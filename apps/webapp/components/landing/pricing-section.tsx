@@ -252,7 +252,8 @@ export function PricingSection() {
               </p>
             </div>
             <Link
-              href="#"
+              href={process.env.NEXT_PUBLIC_CAL_URL || "https://cal.com/dmitrygrankin/30-min"}
+              target="_blank"
               className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-6"
             >
               Book a call
