@@ -142,9 +142,10 @@ export function PricingSection() {
               </p>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-1">
               <GetStartedButton buttonText="Start here" planType="mvp" botCount={1} />
             </div>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
@@ -196,10 +197,11 @@ export function PricingSection() {
             </div>
             <Link
               href="/get-started"
-              className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-6"
+              className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-1"
             >
               Get started
             </Link>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -349,6 +351,111 @@ export function PricingSection() {
             </span>
           </div>
         </div>
+
+        {/* ── FAQ ────────────────────────────────────── */}
+        <div className="mt-16 max-w-2xl mx-auto">
+          <h3 className="text-[24px] sm:text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 text-center mb-8">
+            Frequently asked questions
+          </h3>
+          <div className="divide-y divide-gray-100 dark:divide-neutral-800">
+            <div className="py-5">
+              <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
+                What&apos;s included in the $0.45/hr Bot Service?
+              </h4>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
+                The Bot Service includes a meeting bot, post-meeting transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for $0.05/hr.
+              </p>
+            </div>
+            <div className="py-5">
+              <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
+                How does the free trial work?
+              </h4>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
+                Every new account gets 1 hour of free bot time&mdash;no credit card required. The trial includes all features: transcription, recording, real-time data, and full API access. The clock starts on your first API call, not on signup.
+              </p>
+            </div>
+            <div className="py-5">
+              <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
+                Can I self-host Vexa?
+              </h4>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
+                Yes. Vexa is Apache 2.0 licensed and fully self-hostable. Deploy with Docker Compose, Kubernetes, or OpenShift on your own infrastructure with complete data sovereignty.
+              </p>
+            </div>
+            <div className="py-5">
+              <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
+                How does Vexa compare to Recall.ai?
+              </h4>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
+                Vexa is open source, self-hostable, and 30% cheaper. Full-service Vexa costs $0.50/hr vs Recall.ai&apos;s ~$0.72/hr at scale. See our{' '}
+                <Link href="/compare/recall-ai" className="text-gray-700 dark:text-gray-300 underline underline-offset-2">
+                  detailed comparison
+                </Link>.
+              </p>
+            </div>
+            <div className="py-5">
+              <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
+                What&apos;s the Individual plan for?
+              </h4>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
+                The Individual plan ($12/mo) is for single users who need 1 concurrent bot with unlimited meetings. It includes transcription, recording, storage, REST API, WebSockets, and the UI Dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: [
+                {
+                  '@type': 'Question',
+                  name: "What's included in the $0.45/hr Bot Service?",
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'The Bot Service includes a meeting bot, post-meeting transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for $0.05/hr.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How does the free trial work?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Every new account gets 1 hour of free bot time — no credit card required. The trial includes all features: transcription, recording, real-time data, and full API access. The clock starts on your first API call, not on signup.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Can I self-host Vexa?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes. Vexa is Apache 2.0 licensed and fully self-hostable. Deploy with Docker Compose, Kubernetes, or OpenShift on your own infrastructure with complete data sovereignty.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How does Vexa compare to Recall.ai?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: "Vexa is open source, self-hostable, and 30% cheaper. Full-service Vexa costs $0.50/hr vs Recall.ai's approximately $0.72/hr at scale. See the detailed comparison at vexa.ai/compare/recall-ai.",
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: "What's the Individual plan for?",
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'The Individual plan ($12/mo) is for single users who need 1 concurrent bot with unlimited meetings. It includes transcription, recording, storage, REST API, WebSockets, and the UI Dashboard.',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </div>
     </section>
   );

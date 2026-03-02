@@ -26,7 +26,7 @@ export function MarketingFooter() {
             <Link href="#pricing" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               Pricing
             </Link>
-            <Link href={process.env.NEXT_PUBLIC_CAL_URL || "https://cal.com/dmitrygrankin/30-min"} target="_blank" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <Link href="/contact" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               Contact
             </Link>
           </div>

@@ -1,6 +1,7 @@
 import { HeroSection } from '@/components/landing/hero-section'
 import { BentoGrid } from '@/components/landing/bento-grid'
 import { AgenticSection } from '@/components/landing/agentic-section'
+import { EnterpriseSection } from '@/components/landing/enterprise-section'
 import { MeetingBotsSection } from '@/components/landing/meeting-bots-section'
 import { UseCaseTabs } from '@/components/landing/use-case-tabs'
 import { CodeShowcase } from '@/components/landing/code-showcase'
@@ -12,6 +13,7 @@ export default function LandingPage() {
       <HeroSection />
       <BentoGrid />
       <AgenticSection />
+      <EnterpriseSection />
       <MeetingBotsSection />
       <UseCaseTabs />
       <CodeShowcase />
