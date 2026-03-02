@@ -81,15 +81,15 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"]
 
-// ─── Bot pricing tiers (graduated) ─────────────────────────────────────────
+// ─── Pricing plans ──────────────────────────────────────────────────────────
 
-const BOT_TIERS = [
-  { up_to: 1, unit_amount: 1200, label: "1 bot" },
-  { up_to: 2, unit_amount: 3600, label: "2 bots" },
-  { up_to: 5, unit_amount: 2400, label: "3–5 bots" },
-  { up_to: 50, unit_amount: 2000, label: "6–50 bots" },
-  { up_to: 200, unit_amount: 1500, label: "51–200 bots" },
-  { up_to: Infinity, unit_amount: 1000, label: "200+ bots" },
+const PRICING_PLANS = [
+  { id: "individual", name: "Individual", price: "$12/mo", detail: "1 bot included" },
+  { id: "bot_service", name: "Bot Service", price: "$0.45/hr", detail: "Usage-based" },
+  { id: "realtime", name: "+ Real-time", price: "+$0.05/hr", detail: "Add-on" },
+  { id: "transcription_api", name: "Transcription API", price: "$0.0015/min", detail: "Self-hosted users" },
+  { id: "consultation", name: "Consultation", price: "$240/hr", detail: "Expert help" },
+  { id: "enterprise", name: "Enterprise", price: "Custom", detail: "On-premises" },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -127,15 +127,9 @@ function formatRelativeTime(dateString: string | null | undefined) {
   return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }
 
-function formatUsd(cents: number) {
-  return `$${(cents / 100).toFixed(0)}`
-}
-
-function getCurrentTierIndex(botCount: number): number {
-  for (let i = 0; i < BOT_TIERS.length; i++) {
-    if (botCount <= BOT_TIERS[i].up_to) return i
-  }
-  return BOT_TIERS.length - 1
+function getPlanLabel(tier?: string): string {
+  const plan = PRICING_PLANS.find(p => p.id === tier)
+  return plan ? `${plan.name} (${plan.price})` : "Free Plan"
 }
 
 const cardShadow = "0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)"
@@ -493,7 +487,6 @@ function BotsTab({
   const subTier = userData?.data?.subscription_tier
   const periodEnd = userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date
   const botCount = userData?.max_concurrent_bots ?? 0
-  const currentTierIdx = getCurrentTierIndex(botCount)
 
   return (
     <div className="space-y-6">
@@ -505,16 +498,16 @@ function BotsTab({
             <StatusBadge status={subStatus} />
           </div>
           <div className="space-y-3 text-[14px]">
-            {subTier && (
+            <div className="flex justify-between">
+              <span className="text-gray-400">Plan</span>
+              <span className="text-gray-950 font-medium">{getPlanLabel(subTier)}</span>
+            </div>
+            {botCount > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-400">Plan</span>
-                <span className="text-gray-950 font-medium capitalize">{subTier}</span>
+                <span className="text-gray-400">Bot limit</span>
+                <span className="text-gray-700">{botCount} concurrent</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span className="text-gray-400">Bot limit</span>
-              <span className="text-gray-700">{botCount} concurrent</span>
-            </div>
             {periodEnd && (
               <div className="flex justify-between">
                 <span className="text-gray-400">Period ends</span>
@@ -587,23 +580,22 @@ function BotsTab({
         </div>
       </div>
 
-      {/* Pricing tiers */}
+      {/* Available plans */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[17px] font-semibold text-gray-950">Your Pricing Tier</h3>
+            <h3 className="text-[17px] font-semibold text-gray-950">Available Plans</h3>
             <p className="text-[13px] text-gray-400 mt-0.5">
-              Graduated pricing — each tier applies to bots in that range
+              Usage-based pricing — pay only for what you use
             </p>
           </div>
         </div>
         <div className="space-y-2">
-          {BOT_TIERS.map((tier, i) => {
-            const isCurrent = i === currentTierIdx && botCount > 0
-            const isNext = i === currentTierIdx + 1 && botCount > 0
+          {PRICING_PLANS.map((plan) => {
+            const isCurrent = plan.id === subTier
             return (
               <div
-                key={i}
+                key={plan.id}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
                   isCurrent
                     ? "border-gray-950 bg-gray-950/[0.02]"
@@ -612,21 +604,17 @@ function BotsTab({
               >
                 <div className="flex items-center gap-3">
                   <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950" : "text-gray-600"}`}>
-                    {tier.label}
+                    {plan.name}
                   </span>
+                  <span className="text-[12px] text-gray-400">{plan.detail}</span>
                   {isCurrent && (
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 text-white">
                       Current
                     </span>
                   )}
-                  {isNext && (
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                      Next tier
-                    </span>
-                  )}
                 </div>
                 <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950" : "text-gray-500"}`}>
-                  {formatUsd(tier.unit_amount)}/bot/mo
+                  {plan.price}
                 </span>
               </div>
             )
