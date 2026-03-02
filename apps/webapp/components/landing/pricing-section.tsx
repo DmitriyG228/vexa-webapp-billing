@@ -221,10 +221,12 @@ export function PricingSection() {
                 <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] text-gray-400 dark:text-gray-500 pl-[21px]">
-                  + Real-time: <span className="font-medium text-gray-600 dark:text-gray-300">$0.05/hr</span>
-                </span>
+              <div className="mt-3 rounded-lg border border-gray-200 dark:border-neutral-800 px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400">+ Real-time</span>
+                  <span className="text-[12px] font-semibold text-gray-950 dark:text-gray-50">$0.05<span className="font-normal text-gray-400 dark:text-gray-500">/hr</span></span>
+                </div>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Live transcription &lt;5s latency</p>
               </div>
             </div>
           </div>
@@ -285,29 +287,7 @@ export function PricingSection() {
         </div>
 
         {/* ── Add-ons & Usage-Based ─────────────────── */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Real-time add-on */}
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
-            <div className="flex-shrink-0 mt-0.5">
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
-                + Real-time transcription
-              </div>
-              <div className="text-[20px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 mt-0.5">
-                +$0.05<span className="text-[13px] font-normal text-gray-400 dark:text-gray-500">/hr</span>
-              </div>
-              <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
-                Live transcription with &lt;5s latency. Add to Bot Service.
-              </p>
-            </div>
-          </div>
-
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {/* Transcription API */}
           <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
             <div className="flex-shrink-0 mt-0.5">
