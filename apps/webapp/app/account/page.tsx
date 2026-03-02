@@ -590,30 +590,26 @@ function BotsTab({
             </p>
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="divide-y divide-gray-100 dark:divide-neutral-800">
           {PRICING_PLANS.map((plan) => {
             const isCurrent = plan.id === subTier
             return (
               <div
                 key={plan.id}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
-                  isCurrent
-                    ? "border-gray-950 dark:border-gray-200 bg-gray-950/[0.02] dark:bg-gray-200/[0.05]"
-                    : "border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900"
-                }`}
+                className="flex items-center justify-between py-3"
               >
                 <div className="flex items-center gap-3">
-                  <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-600 dark:text-gray-300"}`}>
+                  <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
                     {plan.name}
                   </span>
-                  <span className="text-[12px] text-gray-400">{plan.detail}</span>
+                  <span className="text-[12px] text-gray-400 dark:text-gray-500">{plan.detail}</span>
                   {isCurrent && (
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 text-white">
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950">
                       Current
                     </span>
                   )}
                 </div>
-                <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
+                <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"}`}>
                   {plan.price}
                 </span>
               </div>
@@ -843,7 +839,7 @@ function ApiKeysTab({
           {activeKeys.map((key) => (
             <div
               key={key.id}
-              className="rounded-2xl border border-gray-200 bg-white p-5"
+              className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5"
               style={{ boxShadow: cardShadow }}
             >
               <div className="flex items-start justify-between mb-3">
