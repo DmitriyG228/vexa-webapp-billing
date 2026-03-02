@@ -400,7 +400,7 @@ function AccountPage() {
       <div className="max-w-5xl mx-auto px-6">
         {/* Page heading */}
         <div className="mb-8">
-          <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950">Account</h1>
+          <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">Account</h1>
           <p className="mt-1 text-[14px] text-gray-500">
             Manage your services, usage, and billing.
           </p>
@@ -414,8 +414,8 @@ function AccountPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-full text-[13.5px] font-medium transition-all whitespace-nowrap ${
                 activeTab === tab.id
-                  ? "bg-white text-gray-950 border border-gray-200 shadow-sm"
-                  : "bg-transparent text-gray-400 border border-transparent hover:text-gray-600"
+                  ? "bg-white dark:bg-neutral-900 text-gray-950 dark:text-gray-50 border border-gray-200 dark:border-neutral-700 shadow-sm"
+                  : "bg-transparent text-gray-400 dark:text-gray-500 border border-transparent hover:text-gray-600 dark:hover:text-gray-300"
               }`}
             >
               {tab.label}
@@ -425,7 +425,7 @@ function AccountPage() {
 
         {/* Error banner */}
         {error && (
-          <div className="mb-6 p-4 rounded-xl border border-red-200 bg-red-50 text-[14px] text-red-700">
+          <div className="mb-6 p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 text-[14px] text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
@@ -492,15 +492,15 @@ function BotsTab({
     <div className="space-y-6">
       {/* Subscription + Bot limit row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[17px] font-semibold text-gray-950">Subscription</h3>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Subscription</h3>
             <StatusBadge status={subStatus} />
           </div>
           <div className="space-y-3 text-[14px]">
             <div className="flex justify-between">
               <span className="text-gray-400">Plan</span>
-              <span className="text-gray-950 font-medium">{getPlanLabel(subTier)}</span>
+              <span className="text-gray-950 dark:text-gray-50 font-medium">{getPlanLabel(subTier)}</span>
             </div>
             {botCount > 0 && (
               <div className="flex justify-between">
@@ -526,7 +526,7 @@ function BotsTab({
           <button
             onClick={onOpenPortal}
             disabled={isOpeningPortal}
-            className="mt-5 w-full h-10 rounded-full bg-gray-950 text-white text-[14px] font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            className="mt-5 w-full h-10 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
             {isOpeningPortal ? (
               <>
@@ -540,8 +540,8 @@ function BotsTab({
         </div>
 
         {/* Meeting stats card */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
-          <h3 className="text-[17px] font-semibold text-gray-950 mb-4">Meeting Stats</h3>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Meeting Stats</h3>
           {meetingsData?.meeting_stats ? (
             <>
               <div className="grid grid-cols-3 gap-4">
@@ -552,18 +552,18 @@ function BotsTab({
                 ].map(({ label, value }) => (
                   <div key={label}>
                     <p className="text-[12px] text-gray-400 mb-0.5">{label}</p>
-                    <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950">{value}</p>
+                    <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
                   </div>
                 ))}
               </div>
               {meetingsData.usage_patterns?.platforms && Object.keys(meetingsData.usage_patterns.platforms).length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
                   <p className="text-[12px] text-gray-400 mb-2">Platforms</p>
                   <div className="flex gap-2 flex-wrap">
                     {Object.entries(meetingsData.usage_patterns.platforms).map(([platform, count]) => (
                       <span
                         key={platform}
-                        className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 text-gray-700 border border-gray-200"
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700"
                       >
                         {platform} ({count})
                       </span>
@@ -581,10 +581,10 @@ function BotsTab({
       </div>
 
       {/* Available plans */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[17px] font-semibold text-gray-950">Available Plans</h3>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Available Plans</h3>
             <p className="text-[13px] text-gray-400 mt-0.5">
               Usage-based pricing — pay only for what you use
             </p>
@@ -598,12 +598,12 @@ function BotsTab({
                 key={plan.id}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-colors ${
                   isCurrent
-                    ? "border-gray-950 bg-gray-950/[0.02]"
-                    : "border-gray-100 bg-white"
+                    ? "border-gray-950 dark:border-gray-200 bg-gray-950/[0.02] dark:bg-gray-200/[0.05]"
+                    : "border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950" : "text-gray-600"}`}>
+                  <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-600 dark:text-gray-300"}`}>
                     {plan.name}
                   </span>
                   <span className="text-[12px] text-gray-400">{plan.detail}</span>
@@ -613,7 +613,7 @@ function BotsTab({
                     </span>
                   )}
                 </div>
-                <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950" : "text-gray-500"}`}>
+                <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
                   {plan.price}
                 </span>
               </div>
@@ -624,7 +624,7 @@ function BotsTab({
 
       {/* Subscription ID */}
       {userData?.data?.stripe_subscription_id && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5" style={{ boxShadow: cardShadow }}>
           <div className="flex justify-between text-[13px]">
             <span className="text-gray-400">Subscription ID</span>
             <span className="text-gray-500 font-mono text-[12px]">{userData.data.stripe_subscription_id}</span>
@@ -654,25 +654,25 @@ function TranscriptionTab({
     <div className="space-y-6">
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">Balance</p>
-          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950">
+          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
             {balanceData?.balance_minutes != null ? `${Math.round(balanceData.balance_minutes)}` : "--"}
           </p>
           <p className="text-[13px] text-gray-400">minutes remaining</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">Total Purchased</p>
-          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950">
+          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
             {balanceData?.total_purchased_minutes != null ? `${Math.round(balanceData.total_purchased_minutes)}` : "--"}
           </p>
           <p className="text-[13px] text-gray-400">minutes all time</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">Total Used</p>
-          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950">
+          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
             {balanceData?.total_used_minutes != null ? `${Math.round(balanceData.total_used_minutes)}` : "--"}
           </p>
           <p className="text-[13px] text-gray-400">minutes all time</p>
@@ -681,16 +681,16 @@ function TranscriptionTab({
 
       {/* Balance bar */}
       {balanceData?.total_purchased_minutes != null && balanceData.total_purchased_minutes > 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[15px] font-semibold text-gray-950">Balance</h3>
+            <h3 className="text-[15px] font-semibold text-gray-950 dark:text-gray-50">Balance</h3>
             <span className="text-[13px] text-gray-400">
               {Math.round(((balanceData.remaining_minutes ?? 0) / balanceData.total_purchased_minutes) * 100)}% remaining
             </span>
           </div>
-          <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+          <div className="h-3 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gray-950 transition-all"
+              className="h-full rounded-full bg-gray-950 dark:bg-gray-200 transition-all"
               style={{
                 width: `${Math.min(((balanceData.remaining_minutes ?? 0) / balanceData.total_purchased_minutes) * 100, 100)}%`,
               }}
@@ -700,15 +700,15 @@ function TranscriptionTab({
       )}
 
       {/* Usage chart (last 30 days) */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[15px] font-semibold text-gray-950 mb-1">Daily Usage</h3>
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[15px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Daily Usage</h3>
         <p className="text-[13px] text-gray-400 mb-4">Minutes transcribed per day</p>
         {history.length > 0 ? (
           <div className="flex items-end gap-[3px] h-48">
             {history.map((day, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div
-                  className="w-full rounded-sm bg-gray-950 min-h-[2px] transition-all hover:bg-gray-700"
+                  className="w-full rounded-sm bg-gray-950 dark:bg-gray-200 min-h-[2px] transition-all hover:bg-gray-700 dark:hover:bg-gray-400"
                   style={{ height: `${Math.max((day.minutes / maxMinutes) * 100, 1)}%` }}
                   title={`${day.date}: ${day.minutes.toFixed(1)} min`}
                 />
@@ -736,21 +736,21 @@ function TranscriptionTab({
             { label: "Active Days", value: stats.days_with_usage != null ? `${stats.days_with_usage}` : "--" },
             { label: "Period", value: stats.period_days != null ? `${stats.period_days} days` : "--" },
           ].map(({ label, value }) => (
-            <div key={label} className="rounded-2xl border border-gray-200 bg-white p-5" style={{ boxShadow: cardShadow }}>
+            <div key={label} className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5" style={{ boxShadow: cardShadow }}>
               <p className="text-[12px] text-gray-400 mb-1">{label}</p>
-              <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950">{value}</p>
+              <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Pricing info */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[17px] font-semibold text-gray-950 mb-4">Pricing</h3>
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Pricing</h3>
         <div className="space-y-3 text-[14px]">
           <div className="flex justify-between">
             <span className="text-gray-400">Rate</span>
-            <span className="text-gray-950 font-semibold">$0.0015 / minute</span>
+            <span className="text-gray-950 dark:text-gray-50 font-semibold">$0.0015 / minute</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Minimum purchase</span>
@@ -804,12 +804,12 @@ function ApiKeysTab({
       {/* Header + Create */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[17px] font-semibold text-gray-950">API Keys</h2>
+          <h2 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">API Keys</h2>
           <p className="text-[14px] text-gray-500">Your API keys work across all Vexa services.</p>
         </div>
         <button
           onClick={() => onShowCreateDialog(true)}
-          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors"
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
           Create Key
@@ -817,8 +817,8 @@ function ApiKeysTab({
       </div>
 
       {/* Trial banner */}
-      <div className="p-5 rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-white" style={{ boxShadow: cardShadow }}>
-        <p className="text-[14px] font-medium text-gray-950">Start 1-hour trial by issuing a new API key</p>
+      <div className="p-5 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-r from-gray-50 dark:from-neutral-800 to-white dark:to-neutral-900" style={{ boxShadow: cardShadow }}>
+        <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Start 1-hour trial by issuing a new API key</p>
         <p className="text-[13px] text-gray-400 mt-1">
           Each new API key includes a fresh 1-hour trial with 1 bot access. Create another key anytime for a new trial.
         </p>
@@ -826,13 +826,13 @@ function ApiKeysTab({
 
       {/* Key list */}
       {activeKeys.length === 0 ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center" style={{ boxShadow: cardShadow }}>
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-10 text-center" style={{ boxShadow: cardShadow }}>
           <Key className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-[15px] font-medium text-gray-950 mb-1">No active API keys</p>
+          <p className="text-[15px] font-medium text-gray-950 dark:text-gray-50 mb-1">No active API keys</p>
           <p className="text-[13px] text-gray-400 mb-4">Create your first API key to get started.</p>
           <button
             onClick={() => onShowCreateDialog(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
             Create API Key
@@ -848,7 +848,7 @@ function ApiKeysTab({
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="text-[15px] font-medium text-gray-950">
+                  <p className="text-[15px] font-medium text-gray-950 dark:text-gray-50">
                     {key.name || `API Key ${key.id}`}
                   </p>
                   <p className="text-[13px] text-gray-400 font-mono">
@@ -871,7 +871,7 @@ function ApiKeysTab({
                     type={visibleKeys[key.id] ? "text" : "password"}
                     value={key.token}
                     readOnly
-                    className="w-full h-10 px-3 pr-10 rounded-lg border border-gray-200 bg-gray-50 font-mono text-[13px] text-gray-700 outline-none focus:border-gray-300"
+                    className="w-full h-10 px-3 pr-10 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 font-mono text-[13px] text-gray-700 dark:text-gray-300 outline-none focus:border-gray-300"
                   />
                   <button
                     onClick={() => onToggleVisibility(key.id)}
@@ -882,7 +882,7 @@ function ApiKeysTab({
                 </div>
                 <button
                   onClick={() => onCopy(key.id, key.token)}
-                  className="h-10 w-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="h-10 w-10 rounded-lg border border-gray-200 dark:border-neutral-700 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   {copiedKey === key.id ? (
                     <Check className="h-4 w-4 text-emerald-500" />
@@ -903,7 +903,7 @@ function ApiKeysTab({
               )}
 
               {/* Footer */}
-              <div className="flex justify-between mt-3 pt-3 border-t border-gray-100">
+              <div className="flex justify-between mt-3 pt-3 border-t border-gray-100 dark:border-neutral-800">
                 <span className="text-[12px] text-gray-400">Created {formatDate(key.created_at)}</span>
                 <span className="text-[12px] text-gray-400">
                   Last used {formatRelativeTime(key.last_used_at || key.lastUsed)}
@@ -917,22 +917,22 @@ function ApiKeysTab({
       {/* Create dialog */}
       {showCreateDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">Create new API key</h3>
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Create new API key</h3>
             <p className="text-[14px] text-gray-500 mb-6">
               Click create to generate a new API key. You will only be able to view the key once.
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => onShowCreateDialog(false)}
-                className="h-9 px-4 rounded-full border border-gray-200 text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={onCreate}
                 disabled={isCreatingKey}
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 {isCreatingKey && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Create API key
@@ -945,15 +945,15 @@ function ApiKeysTab({
       {/* Revoke confirmation dialog */}
       {showRevokeDialog !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-[17px] font-semibold text-gray-950 mb-1">Revoke API key</h3>
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Revoke API key</h3>
             <p className="text-[14px] text-gray-500 mb-6">
               Are you sure? This action cannot be undone, and any applications using this key will lose access.
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => onShowRevokeDialog(null)}
-                className="h-9 px-4 rounded-full border border-gray-200 text-[13.5px] font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Cancel
               </button>
