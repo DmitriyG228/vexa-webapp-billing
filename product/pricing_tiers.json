@@ -1,33 +1,109 @@
 {
-  "product": {
-    "name": "Bot subscription",
-    "type": "service"
-  },
-  "prices": [
+  "products": [
     {
-      "nickname": "Startup",
+      "id": "open_source",
+      "name": "Open Source",
+      "type": "free",
+      "tagline": "Apache 2.0 · Self-host forever",
+      "price_display": "Free",
+      "features": [
+        "Full platform — no limits",
+        "Your infrastructure",
+        "Community support",
+        "Docker Compose deploy"
+      ],
+      "cta": { "text": "View on GitHub", "href": "https://github.com/Vexa-ai/vexa" }
+    },
+    {
+      "id": "individual",
+      "name": "Individual",
+      "type": "subscription",
+      "tagline": "1 bot · Transcription + storage included",
+      "price_display": "$12",
+      "price_unit": "/mo",
+      "price_cents": 1200,
       "currency": "usd",
-      "recurring": {
-        "interval": "month"
-      },
-      "billing_scheme": "tiered",
-      "tiers_mode": "graduated",
-      "tiers": [
-        {"up_to": 1, "unit_amount": 1200},
-        {"up_to": 2, "unit_amount": 3600},
-        {"up_to": 5, "unit_amount": 2400},
-        {"up_to": 50, "unit_amount": 2000},
-        {"up_to": 200, "unit_amount": 1500},
-        {"up_to": "inf", "unit_amount": 1000}
-      ]
+      "interval": "month",
+      "featured": true,
+      "features": [
+        "1 concurrent bot",
+        "Google Meet + Teams",
+        "Real-time transcription",
+        "Recording + Bot API",
+        "REST API + WebSockets",
+        "UI Dashboard"
+      ],
+      "cta": { "text": "Start here", "plan_type": "mvp" }
+    },
+    {
+      "id": "bot_service",
+      "name": "Bot Service",
+      "type": "metered",
+      "tagline": "Bot + transcription + 12mo audio storage",
+      "price_display": "$0.45",
+      "price_unit": "/hr",
+      "price_cents_per_hour": 45,
+      "currency": "usd",
+      "features": [
+        "Post-meeting transcription",
+        "12-month audio storage",
+        "Google Meet + Teams + Zoom",
+        "Recording + Bot API",
+        "REST API + WebSockets"
+      ],
+      "cta": { "text": "Get started", "plan_type": "bot_service" },
+      "comparison": {
+        "vexa": "$0.50/hr (with real-time)",
+        "competitor": "Recall.ai $0.72/hr",
+        "savings": "30% cheaper"
+      }
+    },
+    {
+      "id": "realtime",
+      "name": "+ Real-time",
+      "type": "metered_addon",
+      "tagline": "Live transcription (<5s latency)",
+      "price_display": "+$0.05",
+      "price_unit": "/hr",
+      "price_cents_per_hour": 5,
+      "currency": "usd",
+      "parent": "bot_service"
+    },
+    {
+      "id": "transcription_api",
+      "name": "Transcription API",
+      "type": "metered",
+      "tagline": "For self-hosted Vexa bot users",
+      "price_display": "$0.0015",
+      "price_unit": "/min",
+      "price_per_min_cents": 0.15,
+      "currency": "usd"
+    },
+    {
+      "id": "consultation",
+      "name": "Consultation",
+      "type": "one_time",
+      "tagline": "Expert consultation",
+      "price_display": "$240",
+      "price_unit": "/hr",
+      "price_cents_per_hour": 24000,
+      "currency": "usd"
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "type": "custom",
+      "tagline": "On-premises · Your cloud",
+      "price_display": "Custom",
+      "features": [
+        "Everything in Bot Service",
+        "OpenShift + Kubernetes",
+        "On-premises deployment",
+        "Dedicated support engineer",
+        "Full data sovereignty",
+        "SLA + monthly review"
+      ],
+      "cta": { "text": "Book a call", "href": "#" }
     }
-  ],
-  "pricing_slider": {
-    "min_users": 1,
-    "max_users": 50,
-    "step": 1,
-    "default_value": 1,
-    "currency": "USD",
-    "display_format": "monthly"
-  }
+  ]
 }

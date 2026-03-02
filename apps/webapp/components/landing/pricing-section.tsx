@@ -56,16 +56,16 @@ export function PricingSection() {
             Pricing
           </span>
           <h2 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-            From open source to
+            Pay only for
             <br />
-            <em className="not-italic font-light text-gray-400 dark:text-gray-500">enterprise scale</em>
+            <em className="not-italic font-light text-gray-400 dark:text-gray-500">what you use</em>
           </h2>
           <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-lg mx-auto">
-            Self-host for free, or let us run it for you. Pay only for what you use.
+            Self-host for free, or let us run it for you. Simple usage-based pricing&mdash;no per-seat tax.
           </p>
         </div>
 
-        {/* Pricing cards */}
+        {/* Main pricing cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* ── Open Source ───────────────────────────── */}
           <div
@@ -138,13 +138,7 @@ export function PricingSection() {
                 <span className="text-[14px] text-gray-400 dark:text-gray-500">/mo</span>
               </div>
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
-                Test free &middot; No credit card
-              </p>
-            </div>
-
-            <div className="mb-3 pb-3 border-b border-gray-100 dark:border-neutral-800">
-              <p className="text-[13px] text-gray-500 dark:text-gray-400">
-                One bot &middot; Unlimited transcription
+                1 bot &middot; Transcription + storage included
               </p>
             </div>
 
@@ -152,6 +146,10 @@ export function PricingSection() {
               <GetStartedButton buttonText="Start here" planType="mvp" botCount={1} />
             </div>
             <div className="space-y-2.5 mt-auto">
+              <div className="flex items-center gap-2">
+                <CheckIcon className="text-gray-900 dark:text-gray-100" />
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">1 concurrent bot</span>
+              </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
                 <span className="text-[13px] text-gray-600 dark:text-gray-300">Google Meet + Teams</span>
@@ -175,7 +173,7 @@ export function PricingSection() {
             </div>
           </div>
 
-          {/* ── Startup ───────────────────────────────── */}
+          {/* ── Bot Service ────────────────────────────── */}
           <div
             className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex flex-col"
             style={{
@@ -184,51 +182,49 @@ export function PricingSection() {
           >
             <div className="mb-5">
               <div className="text-[13px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-[0.06em] mb-2">
-                Startup
+                Bot Service
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-[14px] text-gray-400 dark:text-gray-500">from</span>
                 <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-                  $150
+                  $0.45
                 </span>
-                <span className="text-[14px] text-gray-400 dark:text-gray-500">/mo</span>
+                <span className="text-[14px] text-gray-400 dark:text-gray-500">/hr</span>
               </div>
-              <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">Managed cloud deployment</p>
+              <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
+                Bot + transcription + 12mo storage
+              </p>
             </div>
             <Link
-              href="#"
+              href="/get-started"
               className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-6"
             >
-              Talk to us
+              Get started
             </Link>
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Everything in Individual</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Post-meeting transcription</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">+ Zoom support</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">12-month audio storage</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Multi-tenant deployment</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Google Meet + Teams + Zoom</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Speaking bot (TTS)</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Recording + Bot API</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Real-time AI insights</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Custom workflows</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">White-label customization</span>
+                <span className="text-[13px] text-gray-400 dark:text-gray-500 pl-[21px]">
+                  + Real-time: <span className="font-medium text-gray-600 dark:text-gray-300">$0.05/hr</span>
+                </span>
               </div>
             </div>
           </div>
@@ -257,12 +253,12 @@ export function PricingSection() {
               href="#"
               className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-6"
             >
-              Contact team
+              Book a call
             </Link>
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Everything in Startup</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Everything in Bot Service</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -285,6 +281,91 @@ export function PricingSection() {
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">SLA + monthly review</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ── Add-ons & Usage-Based ─────────────────── */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Real-time add-on */}
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 px-5 py-4 flex items-start gap-4">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                + Real-time transcription
+              </div>
+              <div className="text-[20px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 mt-0.5">
+                +$0.05<span className="text-[13px] font-normal text-gray-400 dark:text-gray-500">/hr</span>
+              </div>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                Live transcription with &lt;5s latency. Add to Bot Service.
+              </p>
+            </div>
+          </div>
+
+          {/* Transcription API */}
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 px-5 py-4 flex items-start gap-4">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
+                  <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" />
+                  <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                Transcription API
+              </div>
+              <div className="text-[20px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 mt-0.5">
+                $0.0015<span className="text-[13px] font-normal text-gray-400 dark:text-gray-500">/min</span>
+              </div>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                For self-hosted Vexa bot users. Transcription only.
+              </p>
+            </div>
+          </div>
+
+          {/* Consultation */}
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900/50 px-5 py-4 flex items-start gap-4">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                Consultation
+              </div>
+              <div className="text-[20px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 mt-0.5">
+                $240<span className="text-[13px] font-normal text-gray-400 dark:text-gray-500">/hr</span>
+              </div>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                Expert consultation. Deployment, integration, custom workflows.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Competitive comparison ────────────────── */}
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30">
+            <span className="text-[13px] text-green-700 dark:text-green-400 font-medium">
+              Vexa full-service: $0.50/hr vs Recall.ai $0.72/hr &mdash;
+            </span>
+            <span className="text-[13px] text-green-800 dark:text-green-300 font-semibold">
+              30% cheaper
+            </span>
           </div>
         </div>
       </div>

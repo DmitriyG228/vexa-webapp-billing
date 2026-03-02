@@ -3,20 +3,20 @@ import { PricingSection } from '@/components/landing/pricing-section'
 
 export const metadata: Metadata = {
   title: 'Pricing | Vexa — Meeting Intelligence API',
-  description: 'From open source to enterprise scale. Self-host for free, or let us run it for you. Pay only for what you use.',
+  description: 'Usage-based pricing from $0.45/hr. Self-host free, or use our managed cloud. 30% cheaper than Recall.ai.',
   alternates: {
     canonical: 'https://vexa.ai/pricing',
   },
   openGraph: {
     title: 'Vexa Pricing — Meeting Intelligence API',
-    description: 'Open source free forever. Individual $12/mo. Startup from $150/mo. Enterprise custom.',
+    description: 'Open source free forever. Individual $12/mo. Bot Service from $0.45/hr. 30% cheaper than alternatives.',
     url: 'https://vexa.ai/pricing',
     images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Vexa Pricing — Meeting Intelligence API',
-    description: 'From open source to enterprise. Self-host free or use our managed cloud.',
+    description: 'Usage-based pricing from $0.45/hr. Self-host free or use our managed cloud.',
   },
 }
 
