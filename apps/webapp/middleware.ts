@@ -4,8 +4,9 @@ import { getToken } from "next-auth/jwt";
 export default async function middleware(req: NextRequest) {
   const token = await getToken({ req });
   if (!token) {
-    const signInUrl = new URL("/signin", req.url);
-    signInUrl.searchParams.set("callbackUrl", req.url);
+    const baseUrl = process.env.NEXTAUTH_URL || req.nextUrl.origin;
+    const signInUrl = new URL("/signin", baseUrl);
+    signInUrl.searchParams.set("callbackUrl", `${baseUrl}${req.nextUrl.pathname}`);
     return NextResponse.redirect(signInUrl);
   }
   return NextResponse.next();
