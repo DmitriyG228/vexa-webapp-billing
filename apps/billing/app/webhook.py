@@ -271,8 +271,47 @@ async def stripe_webhook(request: Request):
         await _sync_entitlements(email, sub)
         return {"received": True}
 
-    # Bug fix #6: Remove checkout.session.completed handler — redundant with subscription.created
-    # Stripe fires subscription.created for every new checkout, so handling both causes duplicate work.
+    # Handle one-time topup checkout sessions (not subscriptions — those are handled by subscription.created)
+    if event_type == "checkout.session.completed":
+        session = data_object
+        metadata = session.get("metadata") or {}
+        topup_product = metadata.get("topup_product")
+        if topup_product:
+            # This is a balance top-up checkout, not a subscription
+            topup_email = metadata.get("userEmail")
+            topup_cents = int(metadata.get("topup_amount_cents", 0))
+            if topup_email and topup_cents > 0:
+                if DATABASE_URL:
+                    from .db import get_user_data, merge_user_data
+                    data = await get_user_data(topup_email)
+                    if topup_product == "bot":
+                        field = "bot_balance_cents"
+                        current = data.get(field, 0) or 0
+                        new_balance = current + topup_cents
+                    else:
+                        field = "tx_balance_minutes"
+                        current = data.get(field, 0) or 0
+                        minutes_per_cent = 1 / 0.15
+                        new_balance = current + (topup_cents * minutes_per_cent)
+                    # Also save the payment method for future off-session charges
+                    patch = {field: new_balance}
+                    cust_id = session.get("customer")
+                    if cust_id:
+                        try:
+                            customer = stripe.Customer.retrieve(cust_id)
+                            pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
+                            if not pm_id:
+                                pm_id = customer.get("default_source")
+                            if pm_id:
+                                patch["stripe_payment_method_id"] = pm_id
+                        except stripe.error.StripeError:
+                            pass
+                        patch["stripe_customer_id"] = cust_id
+                    await merge_user_data(topup_email, patch)
+                    print(f"[WEBHOOK] Topup {topup_product} for {topup_email}: +{topup_cents}c → {field}={new_balance}")
+            return {"received": True}
+        # Non-topup checkout sessions (subscriptions) — handled by subscription.created, skip here
+        return {"received": True, "note": "checkout handled by subscription events"}
 
     if event_type == "invoice.paid":
         invoice = data_object

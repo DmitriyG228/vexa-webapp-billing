@@ -15,10 +15,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    // Pass origin so billing service can build Checkout redirect URLs
+    const origin = request.headers.get('x-forwarded-host')
+      ? `${request.headers.get('x-forwarded-proto') || 'https'}://${request.headers.get('x-forwarded-host')}`
+      : request.nextUrl.origin
     const resp = await fetch(`${BILLING_URL}/v1/balance/topup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...body, email: session.user.email }),
+      body: JSON.stringify({ ...body, email: session.user.email, origin }),
     })
 
     const data = await resp.json().catch(() => ({}))

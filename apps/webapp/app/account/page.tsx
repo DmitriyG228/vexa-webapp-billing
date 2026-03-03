@@ -587,12 +587,10 @@ function BotsTab({
         body: JSON.stringify({ product: "bot" }),
       })
       const data = await resp.json()
-      if (!resp.ok) {
-        if (data.detail?.includes("No saved payment method")) {
-          alert("No payment method on file. Add a card via Manage Subscription first.")
-        } else {
-          throw new Error(data.detail || data.error || "Failed to add funds")
-        }
+      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
+      // If billing returns a checkout URL, redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url
         return
       }
       alert(`Added $${(data.charged_cents / 100).toFixed(2)} to your bot balance.`)
@@ -973,12 +971,10 @@ function TranscriptionTab({
         body: JSON.stringify({ product: "tx" }),
       })
       const data = await resp.json()
-      if (!resp.ok) {
-        if (data.detail?.includes("No saved payment method")) {
-          alert("No payment method on file. Subscribe to a bot plan first, or contact support to add funds.")
-        } else {
-          throw new Error(data.detail || data.error || "Failed to add funds")
-        }
+      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
+      // If billing returns a checkout URL, redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url
         return
       }
       alert(`Added ${Math.round(data.new_balance)} minutes to your transcription balance.`)

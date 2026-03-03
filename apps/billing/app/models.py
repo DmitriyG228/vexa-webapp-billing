@@ -73,6 +73,8 @@ class TopupSettingsRequest(BaseModel):
 class TopupRequest(BaseModel):
     product: str  # "bot" | "tx"
     email: EmailStr
+    amount_cents: Optional[int] = None  # override topup amount
+    origin: Optional[str] = None  # for Checkout redirect URLs
 
 
 class PaymentMethodRequest(BaseModel):

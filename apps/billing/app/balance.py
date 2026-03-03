@@ -5,7 +5,7 @@ from typing import Any, Dict
 import stripe
 from fastapi import APIRouter, HTTPException
 
-from .config import INITIAL_BOT_CREDIT_CENTS, TX_FREE_CREDIT_MINUTES
+from .config import INITIAL_BOT_CREDIT_CENTS, TX_FREE_CREDIT_MINUTES, PORTAL_RETURN_URL
 from .context import _ensure_customer
 from .db import get_user_data, merge_user_data
 from .models import (
@@ -142,11 +142,47 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
         except stripe.error.StripeError:
             pass
 
+    amount_cents = req.amount_cents or data.get(f["topup_amount"], 500) or 500
+
+    # If no saved payment method, create a Stripe Checkout session for one-time payment
     if not pm_id or not cust_id:
-        raise HTTPException(status_code=400, detail="No saved payment method. Add a card first.")
+        if not cust_id:
+            customer = _ensure_customer(req.email)
+            cust_id = customer.id
+            await merge_user_data(req.email, {"stripe_customer_id": cust_id})
 
-    amount_cents = data.get(f["topup_amount"], 500) or 500
+        origin = req.origin or PORTAL_RETURN_URL.rstrip("/")
+        product_label = "Bot" if req.product == "bot" else "Transcription"
+        try:
+            session = stripe.checkout.Session.create(
+                mode="payment",
+                customer=cust_id,
+                payment_method_types=["card"],
+                payment_intent_data={
+                    "setup_future_usage": "off_session",  # saves card for future use
+                },
+                line_items=[{
+                    "price_data": {
+                        "currency": "usd",
+                        "unit_amount": amount_cents,
+                        "product_data": {"name": f"{product_label} Balance Top-up"},
+                    },
+                    "quantity": 1,
+                }],
+                metadata={
+                    "userEmail": req.email,
+                    "topup_product": req.product,
+                    "topup_amount_cents": str(amount_cents),
+                },
+                success_url=f"{origin}/account?topup=success",
+                cancel_url=f"{origin}/account?topup=cancelled",
+            )
+        except stripe.error.StripeError as e:
+            raise HTTPException(status_code=400, detail=f"Checkout failed: {str(e)}")
 
+        return {"url": session.url, "product": req.product}
+
+    # Charge saved payment method off-session
     try:
         pi = stripe.PaymentIntent.create(
             amount=amount_cents,
