@@ -165,6 +165,21 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
             sub_id_field: sub.get("id"),
             **entitlements,
         }
+
+        # Save customer's default payment method (needed for off-session topups)
+        if sub.get("status") in ("active", "trialing"):
+            cust_id = sub.get("customer")
+            if cust_id:
+                try:
+                    customer = stripe.Customer.retrieve(cust_id)
+                    pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
+                    if not pm_id:
+                        pm_id = customer.get("default_source")
+                    if pm_id:
+                        db_patch["stripe_payment_method_id"] = pm_id
+                except stripe.error.StripeError:
+                    pass
+
         await merge_user_data(email, db_patch)
 
     # Apply welcome credit for new bot_service subscriptions

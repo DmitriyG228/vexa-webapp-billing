@@ -129,6 +129,19 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
 
     pm_id = data.get("stripe_payment_method_id")
     cust_id = data.get("stripe_customer_id")
+
+    # Try to find payment method from Stripe if not saved locally
+    if not pm_id and cust_id:
+        try:
+            customer = stripe.Customer.retrieve(cust_id)
+            pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
+            if not pm_id:
+                pm_id = customer.get("default_source")
+            if pm_id:
+                await merge_user_data(req.email, {"stripe_payment_method_id": pm_id})
+        except stripe.error.StripeError:
+            pass
+
     if not pm_id or not cust_id:
         raise HTTPException(status_code=400, detail="No saved payment method. Add a card first.")
 
