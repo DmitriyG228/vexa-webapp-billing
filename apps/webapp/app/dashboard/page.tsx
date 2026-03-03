@@ -29,6 +29,7 @@ import { PageContainer, Section } from "@/components/ui/page-container"
 import { Metric } from "@/components/ui/metric"
 import { SubscriptionPopup } from "./components/SubscriptionPopup"
 import { UsageWarning } from "./components/UsageWarning"
+import { TrialStatus } from "./components/TrialStatus"
 
 interface UserData {
   id: number
@@ -55,6 +56,7 @@ export default function DashboardPage() {
   const [balanceMinutes, setBalanceMinutes] = useState<number | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [subscriptionRequired, setSubscriptionRequired] = useState(false)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
 
 
@@ -79,6 +81,11 @@ export default function DashboardPage() {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
           console.error("Dashboard API error:", response.status, errorData);
+          if (response.status === 402) {
+            setSubscriptionRequired(true)
+            setIsLoading(false)
+            return
+          }
           throw new Error(errorData.detail || errorData.error || 'Failed to fetch user data')
         }
         
@@ -266,6 +273,44 @@ export default function DashboardPage() {
     )
   }
 
+  if (subscriptionRequired) {
+    return (
+      <PageContainer>
+        <Section>
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
+            <p className="text-muted-foreground">Your current plan and usage</p>
+          </div>
+
+          <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                <AlertCircle className="h-5 w-5" />
+                Subscribe to Continue
+              </CardTitle>
+              <CardDescription className="text-amber-700 dark:text-amber-300">
+                Your trial has ended. Subscribe to a plan to continue using Vexa.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Choose a plan that fits your needs. Your existing data is preserved and will be accessible once you subscribe.
+                </p>
+                <Button
+                  onClick={() => window.location.href = '/pricing'}
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  View Plans
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </Section>
+      </PageContainer>
+    )
+  }
+
   if (error) {
     return (
       <PageContainer>
@@ -274,7 +319,7 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
             <p className="text-muted-foreground">Your current plan and usage</p>
           </div>
-          
+
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -295,6 +340,11 @@ export default function DashboardPage() {
           subscriptionTier={userData?.data?.subscription_tier}
           subscriptionStatus={userData?.data?.subscription_status}
           transcriptionBalanceMinutes={balanceMinutes}
+        />
+        <TrialStatus
+          status={userData?.data?.subscription_status}
+          trialEnd={userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end}
+          subscriptionId={userData?.data?.stripe_subscription_id}
         />
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
