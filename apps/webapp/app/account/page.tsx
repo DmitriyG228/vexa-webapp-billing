@@ -552,6 +552,10 @@ function BotsTab({
   }, [botBalanceData])
 
   const handleSaveSettings = async () => {
+    if (autoTopup && topupAmount < 2) {
+      alert("Top-up amount must be at least $2.")
+      return
+    }
     setIsSavingSettings(true)
     setSettingsSaved(false)
     try {
@@ -728,8 +732,7 @@ function BotsTab({
                   min={2}
                   value={topupAmount}
                   onChange={(e) => {
-                    const v = parseInt(e.target.value, 10)
-                    if (!isNaN(v) && v >= 2) setTopupAmount(v)
+                    setTopupAmount(e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)
                   }}
                   className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
@@ -936,6 +939,14 @@ function TranscriptionTab({
   }, [balanceData])
 
   const handleSaveSettings = async () => {
+    if (autoTopup && threshold < 1) {
+      alert("Threshold must be at least 1 minute.")
+      return
+    }
+    if (autoTopup && topupAmount < 2) {
+      alert("Top-up amount must be at least $2.")
+      return
+    }
     setIsSavingSettings(true)
     setSettingsSaved(false)
     try {
@@ -1072,8 +1083,7 @@ function TranscriptionTab({
                 min={10}
                 value={threshold}
                 onChange={(e) => {
-                  const v = parseInt(e.target.value, 10)
-                  if (!isNaN(v) && v >= 10) setThreshold(v)
+                  setThreshold(e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)
                 }}
                 className="w-32 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
@@ -1087,8 +1097,7 @@ function TranscriptionTab({
                   min={2}
                   value={topupAmount}
                   onChange={(e) => {
-                    const v = parseInt(e.target.value, 10)
-                    if (!isNaN(v) && v >= 2) setTopupAmount(v)
+                    setTopupAmount(e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)
                   }}
                   className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
