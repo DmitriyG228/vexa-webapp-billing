@@ -87,7 +87,21 @@ export function HeroSection() {
             </div>
 
             {/* Social proof */}
-            <div className="animate-fade-up d5 flex items-center gap-1.5 text-[13px] text-gray-400 dark:text-gray-500 pt-1">
+            <div className="animate-fade-up d5 flex items-center gap-3 pt-1">
+              <div className="flex items-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://i.pravatar.cc/64?img=45" alt="" className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://i.pravatar.cc/64?img=23" alt="" className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://i.pravatar.cc/64?img=67" alt="" className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://i.pravatar.cc/64?img=12" alt="" className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://i.pravatar.cc/64?img=34" alt="" className="av h-6 w-6 rounded-full ring-[2px] ring-white dark:ring-black object-cover" />
+              </div>
+              <div className="h-4 w-px bg-gray-200 dark:bg-neutral-800" />
+              <div className="flex items-center gap-1.5 text-[13px] text-gray-400 dark:text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -101,6 +115,7 @@ export function HeroSection() {
               Starred by{" "}
               <span className="text-gray-700 dark:text-gray-300 font-semibold">1.7k+</span>{" "}
               developers on GitHub
+              </div>
             </div>
           </div>
 
