@@ -18,7 +18,7 @@ export default function MockLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    await signIn("mock", { email, callbackUrl: "/dashboard" })
+    await signIn("mock", { email, callbackUrl: "/account" })
   }
 
   return (

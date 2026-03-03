@@ -107,7 +107,7 @@ export function GetStartedButton({
     if (!session) {
       signIn('google', { callbackUrl: '/pricing' })
     } else {
-      window.location.href = '/dashboard'
+      window.location.href = '/account'
     }
   }
 
