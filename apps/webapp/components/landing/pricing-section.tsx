@@ -71,6 +71,9 @@ export function PricingSection() {
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
                 Apache 2.0 &middot; Self-host forever
               </p>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 italic mt-1">
+                Best for teams who need full control
+              </p>
             </div>
             <Link
               href="https://github.com/Vexa-ai/vexa"
@@ -87,15 +90,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Your infrastructure</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Community support</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Docker Compose deploy</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Your infrastructure, your data</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -103,7 +98,15 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Docker Compose / K8s deploy</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Community support</span>
               </div>
             </div>
           </div>
@@ -131,7 +134,10 @@ export function PricingSection() {
                 <span className="text-[14px] text-gray-400 dark:text-gray-500">/mo</span>
               </div>
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
-                1 bot &middot; Transcription + storage included
+                1 bot &middot; Flat monthly &middot; Everything included
+              </p>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 italic mt-1">
+                Best for personal use &mdash; 1 meeting at a time
               </p>
             </div>
 
@@ -142,15 +148,22 @@ export function PricingSection() {
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">1 concurrent bot</span>
+                <span className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">1 concurrent bot</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">Google Meet + Teams + Zoom</span>
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">
+                  Google Meet + Teams
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500 ml-1">&middot; Zoom coming soon</span>
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">Real-time transcription</span>
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">Real-time transcription included</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon className="text-gray-900 dark:text-gray-100" />
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">Recording + storage included</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
@@ -158,11 +171,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">REST API + WebSockets</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon className="text-gray-900 dark:text-gray-100" />
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">UI Dashboard</span>
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">REST API + WebSockets + Dashboard</span>
               </div>
             </div>
           </div>
@@ -185,7 +194,10 @@ export function PricingSection() {
                 <span className="text-[14px] text-gray-400 dark:text-gray-500">/hr</span>
               </div>
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
-                Bot + transcription + 12mo storage
+                Per bot hour &middot; Scale without limits
+              </p>
+              <p className="text-[12px] text-gray-400 dark:text-gray-500 italic mt-1">
+                Best for teams &amp; API builders
               </p>
             </div>
             <div className="mb-1">
@@ -195,11 +207,14 @@ export function PricingSection() {
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Unlimited concurrent bots</span>
+                <span className="text-[13px] font-semibold text-gray-500 dark:text-gray-400">Unlimited concurrent bots</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Google Meet + Teams + Zoom</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">
+                  Google Meet + Teams
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500 ml-1">&middot; Zoom coming soon</span>
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -212,6 +227,10 @@ export function PricingSection() {
               <div className="flex items-center gap-2">
                 <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">Recording + Bot API</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
               </div>
               <div className="mt-3 rounded-lg border border-gray-200 dark:border-neutral-800 px-3 py-2">
                 <div className="flex items-center justify-between">
@@ -317,6 +336,14 @@ export function PricingSection() {
             </div>
             <div className="py-5">
               <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
+                Which plan is right for me?
+              </h4>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
+                Choose Individual ($12/mo) if you need one bot for personal use&mdash;it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.45/hr) if you need multiple simultaneous bots or want to pay only for what you use&mdash;ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.
+              </p>
+            </div>
+            <div className="py-5">
+              <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
                 How does the free trial work?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
@@ -347,7 +374,7 @@ export function PricingSection() {
                 What&apos;s the Individual plan for?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                The Individual plan ($12/mo) is for single users who need 1 concurrent bot with unlimited meetings. It includes transcription, recording, storage, REST API, WebSockets, and the UI Dashboard.
+                The Individual plan ($12/mo) is for single users who need one concurrent bot with unlimited meetings. It includes real-time transcription, recording, storage, REST API, WebSockets, and the UI Dashboard&mdash;everything you need for personal meeting intelligence. It supports Google Meet and Microsoft Teams, with Zoom coming soon.
               </p>
             </div>
           </div>
@@ -367,6 +394,14 @@ export function PricingSection() {
                   acceptedAnswer: {
                     '@type': 'Answer',
                     text: 'The Bot Service includes a meeting bot, post-meeting transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for $0.05/hr.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Which plan is right for me?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Choose Individual ($12/mo) if you need one bot for personal use — it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.45/hr) if you need multiple simultaneous bots or want to pay only for what you use — ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.',
                   },
                 },
                 {
@@ -398,7 +433,7 @@ export function PricingSection() {
                   name: "What's the Individual plan for?",
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'The Individual plan ($12/mo) is for single users who need 1 concurrent bot with unlimited meetings. It includes transcription, recording, storage, REST API, WebSockets, and the UI Dashboard.',
+                    text: 'The Individual plan ($12/mo) is for single users who need one concurrent bot with unlimited meetings. It includes real-time transcription, recording, storage, REST API, WebSockets, and the UI Dashboard — everything you need for personal meeting intelligence. It supports Google Meet and Microsoft Teams, with Zoom coming soon.',
                   },
                 },
               ],

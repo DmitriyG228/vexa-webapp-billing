@@ -34,6 +34,14 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
+      name: 'Which plan is right for me?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Choose Individual ($12/mo) if you need one bot for personal use — it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.45/hr) if you need multiple simultaneous bots or want to pay only for what you use — ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.',
+      },
+    },
+    {
+      '@type': 'Question',
       name: 'Is Vexa cheaper than Recall.ai?',
       acceptedAnswer: {
         '@type': 'Answer',

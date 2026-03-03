@@ -66,10 +66,9 @@
           mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 55%, transparent 100%);
 }
 
-/* Terminal scrollbar */
-.t-scroll::-webkit-scrollbar { width: 3px; }
-.t-scroll::-webkit-scrollbar-track { background: transparent; }
-.t-scroll::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+/* Terminal scrollbar — hidden for clean terminal look */
+.t-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.t-scroll::-webkit-scrollbar { display: none; }
 
 /* Avatar stack overlap */
 .av + .av { margin-left: -7px; }
