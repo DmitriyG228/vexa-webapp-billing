@@ -828,19 +828,22 @@ function TranscriptionTab({
   const handleAddFunds = async () => {
     setIsAddingFunds(true)
     try {
-      const resp = await fetch("/api/stripe/resolve-url", {
+      const resp = await fetch("/api/billing/topup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          context: "pricing",
-          plan_type: "transcription_api",
-          quantity: 1,
-        }),
+        body: JSON.stringify({ product: "tx" }),
       })
       const data = await resp.json()
-      if (!resp.ok) throw new Error(data.error || "Failed to start checkout")
-      if (data.url) window.location.href = data.url
-      else throw new Error("No checkout URL returned")
+      if (!resp.ok) {
+        if (data.detail?.includes("No saved payment method")) {
+          alert("No payment method on file. Subscribe to a bot plan first, or contact support to add funds.")
+        } else {
+          throw new Error(data.detail || data.error || "Failed to add funds")
+        }
+        return
+      }
+      alert(`Added ${Math.round(data.new_balance)} minutes to your transcription balance.`)
+      window.location.reload()
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to add funds")
     } finally {

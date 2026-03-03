@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Set
 import stripe
 from fastapi import APIRouter, HTTPException, Request, status
 
-from .config import STRIPE_WEBHOOK_SECRET, STRIPE_IDS, BOT_PLANS, DATABASE_URL, INITIAL_BOT_CREDIT_CENTS, TX_FREE_CREDIT_MINUTES
+from .config import STRIPE_WEBHOOK_SECRET, STRIPE_IDS, BOT_PLANS, ADDON, DATABASE_URL, INITIAL_BOT_CREDIT_CENTS, TX_FREE_CREDIT_MINUTES
 from .admin import admin_request
 
 router = APIRouter()
@@ -42,56 +42,72 @@ def _identify_plan(sub: Dict[str, Any]) -> str:
     return tier or "standard"
 
 
+def _sub_fields(plan_type: str) -> str:
+    """Return JSONB field prefix: bot plans use 'subscription_*', addons use 'tx_subscription_*'."""
+    return "tx_subscription" if plan_type in ADDON else "subscription"
+
+
 def _compute_entitlements(sub: Dict[str, Any]) -> Dict[str, Any]:
     status_val = sub.get("status") or "inactive"
     plan_type = _identify_plan(sub)
+    is_addon = plan_type in ADDON
+    prefix = _sub_fields(plan_type)
 
     scheduled_to_cancel = bool(sub.get("cancel_at_period_end"))
     normalized_status = (
         "scheduled_to_cancel" if scheduled_to_cancel and status_val == "active" else status_val
     )
 
-    # Entitlement logic inline — no PLAN_ENTITLEMENTS dict
-    if normalized_status in ("canceled", "incomplete_expired", "unpaid"):
-        max_bots = 0
-    elif normalized_status in ("active", "trialing", "scheduled_to_cancel"):
-        if plan_type == "individual":
-            max_bots = 1
-        elif plan_type == "bot_service":
-            max_bots = 1  # default 1, auto-scaling bumps it later
+    # Bot entitlements — addons never touch max_bots
+    max_bots = None  # None = don't change
+    if not is_addon:
+        if normalized_status in ("canceled", "incomplete_expired", "unpaid"):
+            max_bots = 0
+        elif normalized_status in ("active", "trialing", "scheduled_to_cancel"):
+            if plan_type == "individual":
+                max_bots = 1
+            elif plan_type == "bot_service":
+                max_bots = 1  # default 1, auto-scaling bumps it later
         else:
-            max_bots = 0  # transcription_api: don't touch bots
-    else:
-        max_bots = 0
+            max_bots = 0
 
     return {
-        "subscription_status": normalized_status,
-        "subscription_tier": plan_type,
-        "subscription_cancel_at_period_end": scheduled_to_cancel,
-        "subscription_cancellation_date": (
+        f"{prefix}_status": normalized_status,
+        f"{prefix}_tier": plan_type,
+        f"{prefix}_cancel_at_period_end": scheduled_to_cancel,
+        f"{prefix}_cancellation_date": (
             (sub.get("cancel_at") or sub.get("current_period_end")) if scheduled_to_cancel
             else sub.get("canceled_at")
         ),
-        "subscription_current_period_end": sub.get("current_period_end"),
-        "subscription_current_period_start": sub.get("current_period_start"),
-        "subscription_trial_end": sub.get("trial_end"),
-        "subscription_trial_start": sub.get("trial_start"),
+        f"{prefix}_current_period_end": sub.get("current_period_end"),
+        f"{prefix}_current_period_start": sub.get("current_period_start"),
+        f"{prefix}_trial_end": sub.get("trial_end"),
+        f"{prefix}_trial_start": sub.get("trial_start"),
         "max_concurrent_bots": max_bots,
+        "_plan_type": plan_type,
+        "_is_addon": is_addon,
     }
 
 
 async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
-    """Reconcile subscription → Admin API user patch."""
+    """Reconcile subscription → Admin API user patch.
+    Bot plans write to subscription_* fields. Addons write to tx_subscription_* fields.
+    They never overwrite each other.
+    """
     entitlements = _compute_entitlements(sub)
-    plan_type = entitlements["subscription_tier"]
+    plan_type = entitlements.pop("_plan_type")
+    is_addon = entitlements.pop("_is_addon")
+    max_bots = entitlements.pop("max_concurrent_bots")
+    prefix = _sub_fields(plan_type)
+    sub_id_field = f"stripe_{prefix}_id" if is_addon else "stripe_subscription_id"
 
     # Guard: if this is a cancellation, don't overwrite a newer active subscription.
-    # Race condition: switch() creates new sub then cancels old → deleted event for old sub
-    # arrives after created event for new sub, overwriting "active" with "canceled".
-    if entitlements["subscription_status"] in ("canceled", "incomplete_expired") and DATABASE_URL:
+    status_field = f"{prefix}_status"
+    cancel_statuses = ("canceled", "incomplete_expired")
+    if entitlements.get(status_field) in cancel_statuses and DATABASE_URL:
         from .db import get_user_data
         current_data = await get_user_data(email)
-        current_sub_id = current_data.get("stripe_subscription_id")
+        current_sub_id = current_data.get(sub_id_field)
         if current_sub_id and current_sub_id != sub.get("id"):
             print(f"[WEBHOOK] Ignoring canceled sub {sub.get('id')} — user has newer sub {current_sub_id}")
             return
@@ -99,7 +115,6 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
     # Upsert user
     resp = await admin_request("POST", "/admin/users", {"email": email})
     if resp.status_code not in (200, 201):
-        # Bug fix #5: Return 500 so Stripe retries
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Admin API user upsert failed: {resp.text}",
@@ -108,25 +123,25 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
     user_id = user_data.get("id") or (user_data.get("data") or {}).get("id")
 
     # For bot_service, preserve current max_concurrent_bots if higher than default
-    max_bots = entitlements["max_concurrent_bots"]
-    if plan_type == "bot_service":
+    if max_bots is not None and plan_type == "bot_service":
         current_max = user_data.get("max_concurrent_bots", 0)
         if current_max > max_bots:
             max_bots = current_max
 
-    patch = {
-        "max_concurrent_bots": max_bots,
+    # Build Admin API patch — only include max_bots for bot plans
+    patch: Dict[str, Any] = {
         "data": {
             "updated_by_webhook": int(time.time()),
             "stripe_customer_id": sub.get("customer"),
-            "stripe_subscription_id": sub.get("id"),
-            **{k: v for k, v in entitlements.items() if k != "max_concurrent_bots"},
+            sub_id_field: sub.get("id"),
+            **entitlements,
         },
     }
+    if max_bots is not None:
+        patch["max_concurrent_bots"] = max_bots
 
     resp2 = await admin_request("PATCH", f"/admin/users/{user_id}", patch)
     if resp2.status_code not in (200, 201):
-        # Bug fix #5: 500 on Admin API failure → Stripe retries
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Admin API patch failed: {resp2.text}",
@@ -138,14 +153,14 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
         db_patch = {
             "updated_by_webhook": int(time.time()),
             "stripe_customer_id": sub.get("customer"),
-            "stripe_subscription_id": sub.get("id"),
-            **{k: v for k, v in entitlements.items() if k != "max_concurrent_bots"},
+            sub_id_field: sub.get("id"),
+            **entitlements,
         }
         await merge_user_data(email, db_patch)
 
     # Apply welcome credit for new bot_service subscriptions
     if DATABASE_URL and plan_type == "bot_service" and sub.get("status") in ("active", "trialing"):
-        from .db import get_user_data
+        from .db import get_user_data, merge_user_data
         data = await get_user_data(email)
         if not data.get("bot_welcome_credit_given"):
             try:
