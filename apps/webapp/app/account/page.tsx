@@ -501,12 +501,12 @@ function BotsTab({
               <span className="text-gray-400">Plan</span>
               <span className="text-gray-950 dark:text-gray-50 font-medium">{getPlanLabel(subTier)}</span>
             </div>
-            {botCount > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-400">Bot limit</span>
-                <span className="text-gray-700">{botCount} concurrent</span>
-              </div>
-            )}
+            <div className="flex justify-between">
+              <span className="text-gray-400">Bot limit</span>
+              <span className="text-gray-700">
+                {subTier === 'bot_service' ? 'Usage-based' : botCount > 0 ? `${botCount} concurrent` : 'None'}
+              </span>
+            </div>
             {periodEnd && (
               <div className="flex justify-between">
                 <span className="text-gray-400">Period ends</span>

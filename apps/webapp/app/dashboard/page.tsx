@@ -42,6 +42,8 @@ interface UserData {
     subscription_scheduled_to_cancel?: boolean
     subscription_cancellation_date?: number | string
     subscription_current_period_end?: number | string
+    subscription_trial_end?: number | string
+    subscription_trial_start?: number | string
   }
 }
 
@@ -94,54 +96,36 @@ export default function DashboardPage() {
 
 
 
-  // Pricing calculation functions (same as in DynamicPricingCard)
-  const calculatePrice = (bots: number): number => {
-    const perBotCost = 10 + 14 * Math.exp(-bots / 100);
-    let basePrice = Math.round(bots * Math.max(10, perBotCost));
-    basePrice = Math.max(120, basePrice);
-    
-    if (bots >= 180) {
-      basePrice = Math.round(basePrice * 0.85);
-    } else if (bots >= 30) {
-      basePrice = Math.round(basePrice * 0.90);
-    } else if (bots >= 5) {
-      basePrice = Math.round(basePrice * 0.95);
-    }
-    
-    return Math.max(120, Math.max(bots * 10, basePrice));
-  }
-
-  const getPricingTier = (bots: number): 'startup' | 'growth' | 'scale' => {
-    if (bots < 30) return 'startup'
-    if (bots < 180) return 'growth'
-    return 'scale'
-  }
 
 
 
   const handleOpenStripePortal = async () => {
-    console.log('[Dashboard] Opening Stripe portal...')
     setIsOpeningPortal(true)
     try {
-      const response = await fetch('/api/stripe/resolve-url', {
+      // Active subscribers go straight to the Stripe Customer Portal;
+      // everyone else goes through the resolve-url flow (→ pricing / checkout).
+      const hasActiveSub = userData?.data?.subscription_status &&
+        ["active", "trialing", "scheduled_to_cancel"].includes(userData.data.subscription_status)
+
+      const endpoint = hasActiveSub
+        ? "/api/stripe/create-portal-session"
+        : "/api/stripe/resolve-url"
+
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ context: 'dashboard' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(hasActiveSub ? {} : { context: 'dashboard' }),
       })
 
       const data = await response.json()
-      console.log('[Dashboard] Portal response:', data)
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resolve billing URL')
+        throw new Error(data.error || 'Failed to open billing portal')
       }
 
-      console.log('[Dashboard] Redirecting to:', data.url)
       window.location.href = data.url
     } catch (error) {
-      console.error('Error resolving billing URL:', error)
+      console.error('Error opening billing portal:', error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to continue. Please try again.',
@@ -309,15 +293,15 @@ export default function DashboardPage() {
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="p-6 pt-0">
-            <Metric 
-              value={(() => {
-                const count = (userData?.max_concurrent_bots ?? 0)
-                console.log(`[Dashboard] Bot count display: max_concurrent=${userData?.max_concurrent_bots}, status=${userData?.data?.subscription_status}, final=${count}`)
-                return count
-              })()} 
-              unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
-              size="lg"
-            />
+            {userData?.data?.subscription_tier === 'bot_service' && userData?.data?.subscription_status && ['active', 'trialing', 'scheduled_to_cancel'].includes(userData.data.subscription_status) ? (
+              <div className="text-2xl font-bold tracking-tight">Usage-based</div>
+            ) : (
+              <Metric
+                value={userData?.max_concurrent_bots ?? 0}
+                unit={`bot${((userData?.max_concurrent_bots ?? 0) > 1) ? 's' : ''}`}
+                size="lg"
+              />
+            )}
             <p className="text-xs text-muted-foreground">
               {userData?.data?.subscription_status === 'cancelling' ? (
                 <>
@@ -325,7 +309,7 @@ export default function DashboardPage() {
                 </>
               ) : userData?.data?.subscription_status === 'trialing' ? (
                 <>
-                  Trial ends on {formatDateTime((userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end) as any)}
+                  Trial ends on {formatDateTime(userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end)}
                 </>
               ) : userData?.data?.subscription_tier ? (
                 `${userData.data.subscription_tier.charAt(0).toUpperCase() + userData.data.subscription_tier.slice(1)} Plan`
@@ -357,7 +341,7 @@ export default function DashboardPage() {
                     )}
                   </>
                 ) : userData?.data?.subscription_status === 'trialing' ? (
-                  <>Trial ends on {formatDateTime((userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end) as any)}</>
+                  <>Trial ends on {formatDateTime(userData?.data?.subscription_trial_end ?? userData?.data?.subscription_current_period_end)}</>
                 ) : userData?.data?.subscription_status === 'canceled' ? (
                   "Subscription canceled"
                 ) : (

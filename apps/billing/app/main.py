@@ -202,7 +202,7 @@ def _ensure_customer(email: str) -> Any:
 
 def _has_any_subscription(customer_id: str) -> bool:
     subs = stripe.Subscription.list(customer=customer_id, status="all", limit=50)
-    has = next((s for s in subs.data if s.status in ("active", "scheduled")), None) is not None
+    has = next((s for s in subs.data if s.status in ("active", "trialing", "past_due")), None) is not None
     return has
 
 
