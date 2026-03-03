@@ -15,11 +15,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://vexa.ai'),
-  title: 'Vexa — Meeting Intelligence API',
-  description: 'The developer toolkit for meeting intelligence. Real-time transcription, bot control, and open APIs for Google Meet and Microsoft Teams. Open source, self-hostable, REST + MCP.',
+  title: 'Vexa — Open-Source Meeting Transcription API',
+  description: 'Open-source meeting bot infrastructure for Google Meet, Microsoft Teams, and Zoom. Real-time transcription, bot control, and meeting data via REST API, WebSocket, and MCP. Self-host or use our cloud. From $0.45/hr.',
   openGraph: {
-    title: 'Vexa — Meeting Intelligence API',
-    description: 'Real-time transcription, bot control, and open APIs for Google Meet and Microsoft Teams. Open source, self-hostable.',
+    title: 'Vexa — Open-Source Meeting Transcription API',
+    description: 'Deploy meeting bots that record, transcribe, and deliver real-time data. Open source, self-hostable, 30% cheaper than Recall.ai.',
     url: 'https://vexa.ai',
     siteName: 'Vexa',
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         url: '/images/og-default.png',
         width: 1200,
         height: 630,
-        alt: 'Vexa — Meeting Intelligence API',
+        alt: 'Vexa — Open-Source Meeting Transcription API',
       },
     ],
     locale: 'en_US',
@@ -35,10 +35,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vexa — Meeting Intelligence API',
-    description: 'Real-time transcription, bot control, and open APIs for Meet & Teams. Open source.',
+    title: 'Vexa — Open-Source Meeting Transcription API',
+    description: 'Meeting bots for Google Meet, Teams & Zoom. Open source, self-hostable, from $0.45/hr.',
     images: ['/images/og-default.png'],
-    creator: '@grankin_d',
+    site: '@veaborhq',
   },
   alternates: {
     canonical: 'https://vexa.ai',

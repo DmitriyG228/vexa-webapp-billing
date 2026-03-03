@@ -1,21 +1,21 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Get Started | Vexa — Meeting Intelligence API',
-  description: 'Send a bot to any Google Meet or Microsoft Teams meeting in seconds. Paste a meeting link and get real-time transcription via API.',
+  title: 'Get Started | Vexa — Send Your First Meeting Bot in 5 Minutes',
+  description: 'Sign up, get an API key, and send a meeting bot to Google Meet, Teams, or Zoom. 1-hour free trial, no credit card required. Start transcribing in 5 minutes.',
   alternates: {
     canonical: 'https://vexa.ai/get-started',
   },
   openGraph: {
-    title: 'Get Started with Vexa',
-    description: 'Send a meeting bot in seconds. Paste a Google Meet or Teams link and get real-time transcription.',
+    title: 'Get Started with Vexa — Free Meeting Bot Trial',
+    description: 'Send a meeting bot in 5 minutes. Real-time transcription for Google Meet, Teams & Zoom. No credit card required.',
     url: 'https://vexa.ai/get-started',
     images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Get Started with Vexa',
-    description: 'Send a meeting bot in seconds. Paste a Google Meet or Teams link and get real-time transcription.',
+    title: 'Get Started with Vexa — Free Meeting Bot Trial',
+    description: 'Send a meeting bot in 5 minutes. Real-time transcription for Google Meet, Teams & Zoom. No credit card required.',
   },
 }
 
