@@ -557,7 +557,12 @@ async def resolve_billing_url(req: ResolveUrlRequest):
     success_url = req.successUrl or f"{default_origin}/account"
     cancel_url = req.cancelUrl or f"{default_origin}/pricing"
 
-    if has_subscription:
+    # Add-on products (transcription_api) can be purchased alongside existing
+    # subscriptions — always go to checkout, never Portal.
+    ADDON_PLAN_TYPES = {"transcription_api"}
+    is_addon = req.plan_type in ADDON_PLAN_TYPES
+
+    if has_subscription and not is_addon:
         portal_return_url = f"{default_origin}/account"
         try:
             session = stripe.billing_portal.Session.create(
