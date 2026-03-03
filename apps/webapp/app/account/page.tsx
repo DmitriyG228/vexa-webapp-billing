@@ -536,9 +536,9 @@ function BotsTab({
     }
   }
 
-  // Auto-topup state — initialized from server data
+  // Auto-topup state — initialized from server data (string for free-form editing)
   const [autoTopup, setAutoTopup] = useState(botBalanceData?.topup_enabled ?? false)
-  const [topupAmount, setTopupAmount] = useState(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100))
+  const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100)))
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [isAddingFunds, setIsAddingFunds] = useState(false)
@@ -547,12 +547,13 @@ function BotsTab({
   useEffect(() => {
     if (botBalanceData) {
       setAutoTopup(botBalanceData.topup_enabled ?? false)
-      setTopupAmount(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100))
+      setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
     }
   }, [botBalanceData])
 
   const handleSaveSettings = async () => {
-    if (autoTopup && topupAmount < 2) {
+    const amount = parseInt(topupAmountStr, 10) || 0
+    if (autoTopup && amount < 2) {
       alert("Top-up amount must be at least $2.")
       return
     }
@@ -566,7 +567,7 @@ function BotsTab({
           product: "bot",
           enabled: autoTopup,
           threshold: (botBalanceData?.topup_threshold_cents ?? 100),
-          amount_cents: topupAmount * 100,
+          amount_cents: amount * 100,
         }),
       })
       if (!resp.ok) {
@@ -728,13 +729,12 @@ function BotsTab({
               <div className="flex items-center gap-3">
                 <span className="text-[14px] text-gray-400">$</span>
                 <input
-                  type="number"
-                  min={2}
-                  value={topupAmount}
-                  onChange={(e) => {
-                    setTopupAmount(e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)
-                  }}
-                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  value={topupAmountStr}
+                  onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="5"
+                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
                 />
                 <span className="text-[13px] text-gray-400">min $2</span>
               </div>
@@ -921,10 +921,10 @@ function TranscriptionTab({
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics
 
-  // Auto-topup state — initialized from server data
+  // Auto-topup state — initialized from server data (string for free-form editing)
   const [autoTopup, setAutoTopup] = useState(balanceData?.topup_enabled ?? false)
-  const [threshold, setThreshold] = useState(Math.round(balanceData?.topup_threshold_min ?? 100))
-  const [topupAmount, setTopupAmount] = useState(Math.round((balanceData?.topup_amount_cents ?? 500) / 100))
+  const [thresholdStr, setThresholdStr] = useState(String(Math.round(balanceData?.topup_threshold_min ?? 100)))
+  const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((balanceData?.topup_amount_cents ?? 500) / 100)))
   const [isAddingFunds, setIsAddingFunds] = useState(false)
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
@@ -933,17 +933,19 @@ function TranscriptionTab({
   useEffect(() => {
     if (balanceData) {
       setAutoTopup(balanceData.topup_enabled ?? false)
-      setThreshold(Math.round(balanceData.topup_threshold_min ?? 100))
-      setTopupAmount(Math.round((balanceData.topup_amount_cents ?? 500) / 100))
+      setThresholdStr(String(Math.round(balanceData.topup_threshold_min ?? 100)))
+      setTopupAmountStr(String(Math.round((balanceData.topup_amount_cents ?? 500) / 100)))
     }
   }, [balanceData])
 
   const handleSaveSettings = async () => {
+    const threshold = parseInt(thresholdStr, 10) || 0
+    const amount = parseInt(topupAmountStr, 10) || 0
     if (autoTopup && threshold < 1) {
       alert("Threshold must be at least 1 minute.")
       return
     }
-    if (autoTopup && topupAmount < 2) {
+    if (autoTopup && amount < 2) {
       alert("Top-up amount must be at least $2.")
       return
     }
@@ -957,7 +959,7 @@ function TranscriptionTab({
           product: "tx",
           enabled: autoTopup,
           threshold: threshold,
-          amount_cents: topupAmount * 100,
+          amount_cents: amount * 100,
         }),
       })
       if (!resp.ok) {
@@ -1079,13 +1081,12 @@ function TranscriptionTab({
             <div>
               <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when below (minutes)</label>
               <input
-                type="number"
-                min={10}
-                value={threshold}
-                onChange={(e) => {
-                  setThreshold(e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)
-                }}
-                className="w-32 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                type="text"
+                inputMode="numeric"
+                value={thresholdStr}
+                onChange={(e) => setThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="100"
+                className="w-32 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
               />
             </div>
             <div>
@@ -1093,13 +1094,12 @@ function TranscriptionTab({
               <div className="flex items-center gap-2">
                 <span className="text-[14px] text-gray-400">$</span>
                 <input
-                  type="number"
-                  min={2}
-                  value={topupAmount}
-                  onChange={(e) => {
-                    setTopupAmount(e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)
-                  }}
-                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  type="text"
+                  inputMode="numeric"
+                  value={topupAmountStr}
+                  onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="5"
+                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
                 />
                 <span className="text-[13px] text-gray-400">min $2</span>
               </div>
