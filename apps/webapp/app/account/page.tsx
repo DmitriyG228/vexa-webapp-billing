@@ -624,7 +624,7 @@ function BotsTab({
             <div className="flex justify-between">
               <span className="text-gray-400">Bot limit</span>
               <span className="text-gray-700">
-                {subTier === 'bot_service' ? 'Usage-based' : botCount > 0 ? `${botCount} concurrent` : 'None'}
+                {subTier === 'bot_service' ? 'Usage-based' : subTier === 'individual' ? `${botCount} concurrent` : `${botCount} with API key`}
               </span>
             </div>
             {periodEnd && (
