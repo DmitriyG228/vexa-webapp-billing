@@ -224,6 +224,14 @@ async def stripe_webhook(request: Request):
         "customer.subscription.deleted",
     }:
         sub = data_object
+
+        # Skip "incomplete" status — transient state during checkout.
+        # Stripe sends subscription.created (incomplete) + subscription.updated (active)
+        # simultaneously; processing "incomplete" races with "active" and can overwrite it.
+        if sub.get("status") == "incomplete":
+            print(f"[WEBHOOK] Skipping {event_type} — status is 'incomplete' (transient)")
+            return {"received": True, "note": "skipped incomplete"}
+
         email = _extract_email(sub)
         if not email:
             cust_id = sub.get("customer")
