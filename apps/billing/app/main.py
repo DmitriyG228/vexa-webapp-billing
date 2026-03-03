@@ -701,7 +701,6 @@ async def resolve_billing_url(req: ResolveUrlRequest):
                     success_url=success_url,
                     cancel_url=cancel_url,
                     allow_promotion_codes=True,
-                    payment_method_collection="if_required",
                     metadata={
                         "userEmail": customer.email,
                         "tier": "consultation",
