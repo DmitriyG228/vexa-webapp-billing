@@ -642,20 +642,16 @@ function BotsTab({
               </div>
             )}
           </div>
-          <button
-            onClick={onOpenPortal}
-            disabled={isOpeningPortal}
-            className="mt-5 w-full h-10 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-          >
-            {isOpeningPortal ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Opening...
-              </>
-            ) : (
-              "Manage Subscription"
-            )}
-          </button>
+          {/* Cancel link — only when active and not already cancelling */}
+          {subStatus && ["active", "trialing"].includes(subStatus) && !userData?.data?.subscription_scheduled_to_cancel && (
+            <button
+              onClick={onOpenPortal}
+              disabled={isOpeningPortal}
+              className="mt-4 text-[13px] text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors underline underline-offset-2 disabled:opacity-50"
+            >
+              {isOpeningPortal ? "Opening..." : "Cancel subscription"}
+            </button>
+          )}
         </div>
 
         {/* Meeting stats card — only show when there's actual data */}
