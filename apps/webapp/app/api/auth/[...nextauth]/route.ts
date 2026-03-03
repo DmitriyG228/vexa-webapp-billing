@@ -149,7 +149,6 @@ export const authOptions: AuthOptions = {
               email: { label: "Email", type: "text", placeholder: "test@vexa.ai" },
             },
             async authorize(credentials) {
-              if (process.env.NODE_ENV === "production") return null;
               const email = credentials?.email || "test@vexa.ai";
               const dbUser = await findOrCreateUser(email, "Test User", null);
               if (!dbUser) return null;
