@@ -80,10 +80,9 @@ export function GetStartedButton({
       return
     }
 
-    // If user has active sub on DIFFERENT plan → use resolve-url to switch
-    // (Stripe Portal can't switch between metered and licensed prices,
-    // so we go through checkout which the billing service handles)
-    // Falls through to the checkout flow below, same as new subscription
+    // If user has active sub on DIFFERENT plan → resolve-url sends to Portal
+    // where they can cancel current plan, then subscribe to the new one.
+    // Same flow as new subscription (resolve-url handles the routing).
     setIsSubscribing(true)
     try {
       const stripePlanType = planType === 'mvp' ? 'individual' : planType
