@@ -507,19 +507,22 @@ function BotsTab({
   const handleSwitchPlan = async (targetPlanType: string) => {
     setIsSwitching(true)
     try {
-      // Send user to Stripe Portal where they can manage/cancel current plan,
-      // then subscribe to the new one from /pricing
-      const resp = await fetch("/api/stripe/create-portal-session", {
+      // resolve-url detects plan switch: cancels old sub, creates checkout for new one
+      const resp = await fetch("/api/stripe/resolve-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          context: "pricing",
+          plan_type: targetPlanType,
+          quantity: 1,
+        }),
       })
       const data = await resp.json()
-      if (!resp.ok) throw new Error(data.error || "Failed to open billing portal")
+      if (!resp.ok) throw new Error(data.error || data.detail || "Failed to start plan switch")
       if (data.url) window.location.href = data.url
-      else throw new Error("No portal URL returned")
+      else throw new Error("No URL returned")
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to open billing portal")
+      alert(err instanceof Error ? err.message : "Failed to switch plan")
     } finally {
       setIsSwitching(false)
     }

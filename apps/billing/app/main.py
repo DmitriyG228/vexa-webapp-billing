@@ -557,12 +557,30 @@ async def resolve_billing_url(req: ResolveUrlRequest):
     success_url = req.successUrl or f"{default_origin}/account"
     cancel_url = req.cancelUrl or f"{default_origin}/pricing"
 
-    # Add-on products (transcription_api) can be purchased alongside existing
-    # subscriptions — always go to checkout, never Portal.
+    # Add-on products (transcription_api) → always checkout alongside existing sub.
+    # Bot plans (individual, bot_service) are mutually exclusive → switch cancels old.
     ADDON_PLAN_TYPES = {"transcription_api"}
-    is_addon = req.plan_type in ADDON_PLAN_TYPES
+    BOT_PLAN_TYPES = {"individual", "bot_service"}
+    go_to_checkout = False
 
-    if has_subscription and not is_addon:
+    if req.plan_type in ADDON_PLAN_TYPES:
+        # Add-ons can stack alongside any subscription
+        go_to_checkout = True
+    elif has_subscription and req.plan_type in BOT_PLAN_TYPES:
+        # Check if this is a plan switch (different bot plan)
+        subs = stripe.Subscription.list(customer=customer.id, status="all", limit=50)
+        active_sub = next((s for s in subs.data if s.status in ("active", "trialing", "past_due")), None)
+        if active_sub:
+            current_tier = active_sub.metadata.get("tier", "")
+            if current_tier != req.plan_type:
+                # Switch: cancel old subscription, then create checkout for new one
+                print(f"[RESOLVE] Switching {customer.email} from '{current_tier}' to '{req.plan_type}', canceling {active_sub.id}")
+                stripe.Subscription.cancel(active_sub.id)
+                go_to_checkout = True
+            # else: same plan → fall through to Portal
+
+    if has_subscription and not go_to_checkout:
+        # Manage existing subscription via Stripe Portal
         portal_return_url = f"{default_origin}/account"
         try:
             session = stripe.billing_portal.Session.create(
