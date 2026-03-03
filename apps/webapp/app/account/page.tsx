@@ -490,6 +490,32 @@ function BotsTab({
   const periodEnd = userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date
   const botCount = userData?.max_concurrent_bots ?? 0
 
+  // Plan switching state
+  const [isSwitching, setIsSwitching] = useState(false)
+
+  const handleSwitchPlan = async (targetPlanType: string) => {
+    setIsSwitching(true)
+    try {
+      const resp = await fetch("/api/stripe/resolve-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: "account",
+          plan_type: targetPlanType,
+          quantity: 1,
+        }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error || "Failed to start plan switch")
+      if (data.url) window.location.href = data.url
+      else throw new Error("No checkout URL returned")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to switch plan")
+    } finally {
+      setIsSwitching(false)
+    }
+  }
+
   // Auto-topup state (UI-only — backend storage TBD)
   const [autoTopup, setAutoTopup] = useState(true)
   const [spendingLimit, setSpendingLimit] = useState(5)
@@ -683,11 +709,11 @@ function BotsTab({
                   </span>
                   {canSwitch && (
                     <button
-                      onClick={onOpenPortal}
-                      disabled={isOpeningPortal}
+                      onClick={() => handleSwitchPlan(plan.id)}
+                      disabled={isSwitching}
                       className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
                     >
-                      Switch
+                      {isSwitching ? "Switching..." : "Switch"}
                     </button>
                   )}
                 </div>

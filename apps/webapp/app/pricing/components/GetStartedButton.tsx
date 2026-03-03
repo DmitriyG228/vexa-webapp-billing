@@ -59,29 +59,7 @@ export function GetStartedButton({
       return
     }
 
-    // If user already has an active subscription on a DIFFERENT plan,
-    // send them to Stripe Portal to switch (not a new checkout)
-    if (hasActiveSub && currentTier && currentTier !== planType) {
-      setIsSubscribing(true)
-      try {
-        const resp = await fetch('/api/stripe/create-portal-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        })
-        const data = await resp.json()
-        if (!resp.ok) throw new Error(data.error || 'Failed to open billing portal')
-        window.location.href = data.url
-      } catch (error) {
-        console.error('Error opening portal:', error)
-        alert('Failed to open billing portal. Please try again.')
-      } finally {
-        setIsSubscribing(false)
-      }
-      return
-    }
-
-    // If user is on the SAME plan already, also go to portal (manage)
+    // If user is on the SAME plan already, go to Stripe Portal (manage)
     if (hasActiveSub && currentTier === planType) {
       setIsSubscribing(true)
       try {
@@ -102,7 +80,10 @@ export function GetStartedButton({
       return
     }
 
-    // No active subscription → new checkout
+    // If user has active sub on DIFFERENT plan → use resolve-url to switch
+    // (Stripe Portal can't switch between metered and licensed prices,
+    // so we go through checkout which the billing service handles)
+    // Falls through to the checkout flow below, same as new subscription
     setIsSubscribing(true)
     try {
       const stripePlanType = planType === 'mvp' ? 'individual' : planType
