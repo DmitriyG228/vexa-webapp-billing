@@ -85,7 +85,6 @@ async def _auto_topup_loop():
 
     while True:
         try:
-            print("[AUTO-TOPUP] Loop tick — checking balances...")
             from sqlalchemy import text
             async with get_session() as db:
                 # ── 1. Bot auto-topup ────────────────────────────────────
