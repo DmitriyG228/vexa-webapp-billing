@@ -31,7 +31,7 @@ export function MobileNav() {
   const links = [...navLinks];
   if (session) {
     links.push({ href: "/dashboard/api-keys", label: "API Keys" });
-    links.push({ href: "/dashboard", label: "Dashboard" });
+    links.push({ href: "/dashboard", label: "App" });
   }
 
   return (

@@ -22,7 +22,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 export function MarketingHeader() {
   const [open, setOpen] = useState(false);
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
 
   return (
@@ -77,7 +77,15 @@ export function MarketingHeader() {
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800">
+                <button className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-neutral-800">
+                  {session?.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      className="w-5 h-5 rounded-full"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : null}
                   Account
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
@@ -88,7 +96,7 @@ export function MarketingHeader() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={getDashboardUrl()}>
-                    Dashboard
+                    App
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -199,7 +207,7 @@ export function MarketingHeader() {
                       className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                       onClick={() => setOpen(false)}
                     >
-                      Dashboard
+                      App
                     </Link>
                     <button
                       className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors text-left"
