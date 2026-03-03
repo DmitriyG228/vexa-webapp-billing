@@ -84,11 +84,22 @@ type TabId = (typeof TABS)[number]["id"]
 
 // ─── Pricing plans ──────────────────────────────────────────────────────────
 
-const PRICING_PLANS = [
+// Bot plans — mutually exclusive (switch between)
+const BOT_PLANS = [
   { id: "individual", name: "Individual", price: "$12/mo", detail: "1 bot included" },
-  { id: "bot_service", name: "Pay-as-you-go", price: "$0.45/hr", detail: "Usage-based" },
-  { id: "realtime", name: "+ Real-time", price: "+$0.05/hr", detail: "Add-on" },
-  { id: "transcription_api", name: "Transcription API", price: "$0.0015/min", detail: "Self-hosted users" },
+  { id: "bot_service", name: "Pay-as-you-go", price: "$0.45/hr", detail: "Usage-based, unlimited bots" },
+]
+
+// Add-on products — can be added alongside any bot plan
+const ADDON_PRODUCTS = [
+  { id: "transcription_api", name: "Transcription API", price: "$0.0015/min", detail: "For self-hosted bot users" },
+  { id: "realtime", name: "+ Real-time transcription", price: "+$0.05/hr", detail: "Add-on to Pay-as-you-go" },
+]
+
+// All plans for display in getPlanLabel
+const PRICING_PLANS = [
+  ...BOT_PLANS,
+  ...ADDON_PRODUCTS,
   { id: "enterprise", name: "Enterprise", price: "Custom", detail: "On-premises" },
 ]
 
@@ -669,29 +680,21 @@ function BotsTab({
         </div>
       )}
 
-      {/* Available plans */}
+      {/* Bot plans — mutually exclusive */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Available Plans</h3>
-            <p className="text-[13px] text-gray-400 mt-0.5">
-              Usage-based pricing — pay only for what you use
-            </p>
-          </div>
+        <div className="mb-4">
+          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Bot Plans</h3>
+          <p className="text-[13px] text-gray-400 mt-0.5">
+            Choose one — switch anytime
+          </p>
         </div>
         <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-          {PRICING_PLANS.map((plan) => {
+          {BOT_PLANS.map((plan) => {
             const isCurrent = plan.id === subTier
-            // Show "Switch" button for switchable plans (individual, bot_service)
-            // when user has an active subscription on a different plan
-            const isSwitchable = ["individual", "bot_service"].includes(plan.id)
             const hasActiveSub = subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus)
-            const canSwitch = isSwitchable && hasActiveSub && !isCurrent && subTier && subTier !== plan.id
+            const canSwitch = hasActiveSub && !isCurrent
             return (
-              <div
-                key={plan.id}
-                className="flex items-center justify-between py-3"
-              >
+              <div key={plan.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
                     {plan.name}
@@ -720,6 +723,27 @@ function BotsTab({
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* Add-on products — can be added alongside bot plan */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <div className="mb-4">
+          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Add-ons</h3>
+          <p className="text-[13px] text-gray-400 mt-0.5">
+            Use alongside any bot plan
+          </p>
+        </div>
+        <div className="divide-y divide-gray-100 dark:divide-neutral-800">
+          {ADDON_PRODUCTS.map((product) => (
+            <div key={product.id} className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] font-medium text-gray-500 dark:text-gray-400">{product.name}</span>
+                <span className="text-[12px] text-gray-400 dark:text-gray-500">{product.detail}</span>
+              </div>
+              <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
+            </div>
+          ))}
         </div>
       </div>
 
