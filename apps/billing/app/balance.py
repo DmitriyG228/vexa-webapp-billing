@@ -95,6 +95,8 @@ async def get_balances(email: str) -> Dict[str, Any]:
             "topup_threshold_cents": data.get("bot_topup_threshold_cents", 100),
             "topup_amount_cents": data.get("bot_topup_amount_cents", 500),
             "welcome_credit_given": data.get("bot_welcome_credit_given", False),
+            "monthly_cap_cents": data.get("bot_monthly_cap_cents"),
+            "monthly_spent_cents": data.get("bot_monthly_spent_cents", 0) or 0,
         },
         "tx": {
             "balance_minutes": data.get("tx_balance_minutes", 0) or 0,
@@ -116,6 +118,12 @@ async def topup_settings(req: TopupSettingsRequest) -> Dict[str, Any]:
         patch[f["topup_threshold"]] = req.threshold
     if req.amount_cents is not None:
         patch[f["topup_amount"]] = req.amount_cents
+    if req.monthly_cap_cents is not None and req.product == "bot":
+        # 0 means unlimited (remove cap), positive means cap
+        if req.monthly_cap_cents == 0:
+            patch["bot_monthly_cap_cents"] = None
+        else:
+            patch["bot_monthly_cap_cents"] = req.monthly_cap_cents
     await merge_user_data(req.email, patch)
     return {"saved": True, "product": req.product}
 

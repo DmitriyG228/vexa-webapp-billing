@@ -68,6 +68,7 @@ class TopupSettingsRequest(BaseModel):
     enabled: bool
     threshold: Optional[float] = None
     amount_cents: Optional[int] = None
+    monthly_cap_cents: Optional[int] = None  # max monthly spend (null = unlimited)
 
 
 class TopupRequest(BaseModel):
