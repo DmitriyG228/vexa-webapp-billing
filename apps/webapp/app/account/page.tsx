@@ -450,6 +450,7 @@ function AccountPage() {
           <BotsTab
             userData={userData}
             meetingsData={meetingsData}
+            botBalanceData={botBalanceData}
             onOpenPortal={handleOpenStripePortal}
             isOpeningPortal={isOpeningPortal}
           />
@@ -490,11 +491,13 @@ function AccountPage() {
 function BotsTab({
   userData,
   meetingsData,
+  botBalanceData,
   onOpenPortal,
   isOpeningPortal,
 }: {
   userData: UserData | null
   meetingsData: MeetingsData | null
+  botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean } | null
   onOpenPortal: () => void
   isOpeningPortal: boolean
 }) {

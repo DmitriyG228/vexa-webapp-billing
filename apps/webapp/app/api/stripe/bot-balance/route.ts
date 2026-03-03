@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 
 const BILLING_URL = process.env.BILLING_URL
+const INITIAL_CREDIT_CENTS = 500 // $5 welcome credit
+
+function formatUsd(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`
+}
 
 export async function GET() {
   try {
@@ -23,7 +28,22 @@ export async function GET() {
     if (!resp.ok) {
       return NextResponse.json(data, { status: resp.status })
     }
-    return NextResponse.json(data)
+
+    // Transform billing API response to frontend-expected shape
+    const bot = data.bot || {}
+    const balanceCents = bot.balance_cents || 0
+    const initialCreditCents = bot.welcome_credit_given ? INITIAL_CREDIT_CENTS : 0
+    const usageCents = Math.max(initialCreditCents - balanceCents, 0)
+
+    return NextResponse.json({
+      balance_cents: balanceCents,
+      initial_credit_cents: initialCreditCents,
+      usage_cents: usageCents,
+      balance_usd: formatUsd(balanceCents),
+      usage_usd: formatUsd(usageCents),
+      initial_credit_usd: formatUsd(initialCreditCents),
+      has_subscription: bot.welcome_credit_given || balanceCents > 0,
+    })
   } catch (error) {
     console.error('Error fetching bot balance:', error)
     return NextResponse.json({ error: 'Failed to fetch bot balance' }, { status: 500 })
