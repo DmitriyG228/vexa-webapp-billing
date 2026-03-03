@@ -205,6 +205,7 @@ function AccountPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [balanceData, setBalanceData] = useState<BalanceData | null>(null)
+  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean } | null>(null)
   const [meetingsData, setMeetingsData] = useState<MeetingsData | null>(null)
 
   // Loading states
@@ -284,6 +285,15 @@ function AccountPage() {
     }
   }, [])
 
+  const fetchBotBalance = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/stripe/bot-balance", { cache: "no-store" })
+      if (resp.ok) setBotBalanceData(await resp.json())
+    } catch (err) {
+      console.error("Error fetching bot balance:", err)
+    }
+  }, [])
+
   const fetchMeetings = useCallback(async () => {
     try {
       const resp = await fetch("/api/account/meetings", { cache: "no-store" })
@@ -300,11 +310,11 @@ function AccountPage() {
     }
     const loadAll = async () => {
       setIsLoading(true)
-      await Promise.all([fetchUserData(), fetchUsage(), fetchBalance(), fetchMeetings()])
+      await Promise.all([fetchUserData(), fetchUsage(), fetchBalance(), fetchBotBalance(), fetchMeetings()])
       setIsLoading(false)
     }
     loadAll()
-  }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBalance, fetchMeetings])
+  }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBalance, fetchBotBalance, fetchMeetings])
 
   // ─── API Key actions ─────────────────────────────────────────────────────
 
@@ -666,24 +676,31 @@ function BotsTab({
             </div>
           </div>
 
-          {/* Current usage display (placeholder) */}
+          {/* Balance & usage display */}
           <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mt-5">
-            <div className="flex items-center justify-between text-[14px]">
-              <span className="text-gray-400">Current usage this period</span>
-              <span className="text-gray-950 dark:text-gray-50 font-medium">$0.00</span>
+            <div className="flex items-center justify-between text-[14px] mb-2">
+              <span className="text-gray-400">Balance</span>
+              <span className="text-gray-950 dark:text-gray-50 font-semibold text-[16px]">
+                {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
+              </span>
             </div>
-            <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
-              <div className="h-full rounded-full bg-gray-950 dark:bg-gray-200" style={{ width: "0%" }} />
+            <div className="flex items-center justify-between text-[13px] mb-1">
+              <span className="text-gray-400">Initial credit</span>
+              <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.initial_credit_usd : "$5.00"}</span>
             </div>
-            <div className="flex justify-between text-[12px] text-gray-400 mt-1">
-              <span>$0</span>
-              <span>${spendingLimit}</span>
+            <div className="flex items-center justify-between text-[13px]">
+              <span className="text-gray-400">Usage this period</span>
+              <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
             </div>
+            {botBalanceData?.has_subscription && (
+              <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gray-950 dark:bg-gray-200"
+                  style={{ width: `${botBalanceData.initial_credit_cents > 0 ? Math.min((botBalanceData.usage_cents / botBalanceData.initial_credit_cents) * 100, 100) : 0}%` }}
+                />
+              </div>
+            )}
           </div>
-
-          <p className="text-[12px] text-gray-400 mt-4 italic">
-            Settings will be saved once the backend is available. Changes are local for now.
-          </p>
         </div>
       )}
 

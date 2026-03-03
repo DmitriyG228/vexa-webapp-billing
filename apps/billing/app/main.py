@@ -559,28 +559,101 @@ async def resolve_billing_url(req: ResolveUrlRequest):
 
     # Add-on products (transcription_api) → always checkout alongside existing sub.
     # Bot plans (individual, bot_service) are mutually exclusive → switch cancels old.
-    ADDON_PLAN_TYPES = {"transcription_api"}
+    ADDON_PLAN_TYPES = {"transcription_api", "consultation"}
     BOT_PLAN_TYPES = {"individual", "bot_service"}
-    go_to_checkout = False
+    INITIAL_CREDIT_CENTS = 500  # $5 initial credit for bot_service
 
-    if req.plan_type in ADDON_PLAN_TYPES:
-        # Add-ons can stack alongside any subscription
-        go_to_checkout = True
-    elif has_subscription and req.plan_type in BOT_PLAN_TYPES:
-        # Check if this is a plan switch (different bot plan)
+    # ── Plan switch: customer already has a payment method ──────────────
+    if has_subscription and req.plan_type in BOT_PLAN_TYPES:
         subs = stripe.Subscription.list(customer=customer.id, status="all", limit=50)
         active_sub = next((s for s in subs.data if s.status in ("active", "trialing", "past_due")), None)
         if active_sub:
             current_tier = active_sub.metadata.get("tier", "")
             if current_tier != req.plan_type:
-                # Switch: cancel old subscription, then create checkout for new one
-                print(f"[RESOLVE] Switching {customer.email} from '{current_tier}' to '{req.plan_type}', canceling {active_sub.id}")
-                stripe.Subscription.cancel(active_sub.id)
-                go_to_checkout = True
-            # else: same plan → fall through to Portal
+                # Switch plan: cancel old (with proration credit) → create new directly
+                print(f"[RESOLVE] Switching {customer.email} from '{current_tier}' to '{req.plan_type}'")
 
-    if has_subscription and not go_to_checkout:
-        # Manage existing subscription via Stripe Portal
+                # Get customer's payment method
+                payment_methods = stripe.PaymentMethod.list(customer=customer.id, type="card")
+                if not payment_methods.data:
+                    raise HTTPException(status_code=400, detail="No payment method on file. Please add a card first.")
+
+                # Cancel old subscription — prorate unused time as credit
+                stripe.Subscription.cancel(active_sub.id, prorate=True, invoice_now=True)
+                print(f"[RESOLVE] Canceled {active_sub.id} with proration")
+
+                # Create new subscription directly — no Checkout, no card re-entry
+                new_price_id = _get_price_id(req.plan_type)
+                sub_params: Dict[str, Any] = {
+                    "customer": customer.id,
+                    "items": [{"price": new_price_id}],
+                    "default_payment_method": payment_methods.data[0].id,
+                    "metadata": {
+                        "userEmail": customer.email,
+                        "tier": req.plan_type,
+                        "initial_credit_cents": str(INITIAL_CREDIT_CENTS) if req.plan_type == "bot_service" else "0",
+                    },
+                }
+
+                # For bot_service, add $5 initial credit charge on first invoice
+                if req.plan_type == "bot_service":
+                    sub_params["add_invoice_items"] = [{
+                        "price_data": {
+                            "product": _get_product_id("bot_service"),
+                            "unit_amount": INITIAL_CREDIT_CENTS,
+                            "currency": "usd",
+                        },
+                        "quantity": 1,
+                        "description": "Initial credit — Pay-as-you-go ($5)",
+                    }]
+
+                # For individual, add quantity
+                if req.plan_type == "individual":
+                    sub_params["items"] = [{"price": new_price_id, "quantity": 1}]
+
+                try:
+                    new_sub = stripe.Subscription.create(**sub_params)
+                    print(f"[RESOLVE] Created new subscription {new_sub.id} for {req.plan_type}")
+                    return {"url": f"{success_url}?switched={req.plan_type}"}
+                except stripe.error.StripeError as e:
+                    raise HTTPException(status_code=400, detail=f"Subscription creation error: {str(e)}")
+
+            # Same plan → Portal (manage)
+            portal_return_url = f"{default_origin}/account"
+            try:
+                session = stripe.billing_portal.Session.create(
+                    customer=customer.id,
+                    return_url=portal_return_url,
+                )
+                return {"url": session.url}
+            except stripe.error.StripeError as e:
+                raise HTTPException(status_code=400, detail=f"Portal error: {str(e)}")
+
+    # ── Add-on products: always create checkout alongside existing sub ──
+    if has_subscription and req.plan_type in ADDON_PLAN_TYPES:
+        plan_type = req.plan_type
+        price_id = _get_price_id(plan_type)
+        try:
+            checkout = stripe.checkout.Session.create(
+                mode="subscription",
+                customer=customer.id,
+                line_items=[{"price": price_id}],
+                success_url=success_url,
+                cancel_url=cancel_url,
+                payment_method_collection="if_required",
+                subscription_data={
+                    "metadata": {
+                        "userEmail": customer.email,
+                        "tier": plan_type,
+                    }
+                },
+            )
+            return {"url": checkout.url}
+        except stripe.error.StripeError as e:
+            raise HTTPException(status_code=400, detail=f"Checkout error: {str(e)}")
+
+    # ── Existing subscriber, no plan_type or same plan → Portal ─────────
+    if has_subscription and req.plan_type not in ADDON_PLAN_TYPES:
         portal_return_url = f"{default_origin}/account"
         try:
             session = stripe.billing_portal.Session.create(
@@ -590,46 +663,114 @@ async def resolve_billing_url(req: ResolveUrlRequest):
             return {"url": session.url}
         except stripe.error.StripeError as e:
             raise HTTPException(status_code=400, detail=f"Portal error: {str(e)}")
-    else:
-        if req.context == "pricing":
-            plan_type = req.plan_type or "individual"
 
-            # Build line items based on plan
-            line_items: List[Dict[str, Any]] = []
+    # ── New subscriber: Checkout session ────────────────────────────────
+    if req.context == "pricing":
+        plan_type = req.plan_type or "individual"
 
-            if plan_type == "individual":
-                price_id = _get_price_id("individual")
-                line_items.append({"price": price_id, "quantity": 1})
-            elif plan_type == "bot_service":
-                price_id = _get_price_id("bot_service")
-                line_items.append({"price": price_id})
-                # Optionally add real-time add-on
-            elif plan_type == "transcription_api":
-                price_id = _get_price_id("transcription_api")
-                line_items.append({"price": price_id})
-            else:
-                raise HTTPException(status_code=400, detail=f"Unknown plan_type '{plan_type}'")
+        # Build line items based on plan
+        line_items: List[Dict[str, Any]] = []
 
-            try:
-                checkout = stripe.checkout.Session.create(
-                    mode="subscription",
-                    customer=customer.id,
-                    line_items=line_items,
-                    success_url=success_url,
-                    cancel_url=cancel_url,
-                    allow_promotion_codes=True,
-                    subscription_data={
-                        "metadata": {
-                            "userEmail": customer.email,
-                            "tier": plan_type,
-                        }
-                    },
-                )
-                return {"url": checkout.url}
-            except stripe.error.StripeError as e:
-                raise HTTPException(status_code=400, detail=f"Checkout error: {str(e)}")
+        if plan_type == "individual":
+            price_id = _get_price_id("individual")
+            line_items.append({"price": price_id, "quantity": 1})
+        elif plan_type == "bot_service":
+            price_id = _get_price_id("bot_service")
+            line_items.append({"price": price_id})
+            # Add $5 initial credit as one-time charge on first invoice
+            line_items.append({
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {"name": "Initial Credit — Pay-as-you-go"},
+                    "unit_amount": INITIAL_CREDIT_CENTS,
+                },
+                "quantity": 1,
+            })
+        elif plan_type == "transcription_api":
+            price_id = _get_price_id("transcription_api")
+            line_items.append({"price": price_id})
+        elif plan_type == "consultation":
+            price_id = _get_price_id("consultation")
+            quantity = req.quantity or 1
+            line_items.append({"price": price_id, "quantity": quantity})
         else:
-            return {"url": f"{default_origin}/pricing"}
+            raise HTTPException(status_code=400, detail=f"Unknown plan_type '{plan_type}'")
+
+        sub_data: Dict[str, Any] = {
+            "metadata": {
+                "userEmail": customer.email,
+                "tier": plan_type,
+                "initial_credit_cents": str(INITIAL_CREDIT_CENTS) if plan_type == "bot_service" else "0",
+            }
+        }
+
+        try:
+            checkout = stripe.checkout.Session.create(
+                mode="subscription",
+                customer=customer.id,
+                line_items=line_items,
+                success_url=success_url,
+                cancel_url=cancel_url,
+                allow_promotion_codes=True,
+                subscription_data=sub_data,
+            )
+            return {"url": checkout.url}
+        except stripe.error.StripeError as e:
+            raise HTTPException(status_code=400, detail=f"Checkout error: {str(e)}")
+    else:
+        return {"url": f"{default_origin}/pricing"}
+
+
+# ── Bot service balance ──────────────────────────────────────────────────────
+
+class BotBalanceRequest(BaseModel):
+    email: EmailStr
+
+
+@app.post("/v1/stripe/bot-balance")
+async def get_bot_balance(req: BotBalanceRequest):
+    """Return prepaid balance for bot_service (pay-as-you-go) subscriptions.
+    balance = initial_credit - current_period_usage
+    """
+    customers = stripe.Customer.list(email=req.email, limit=1)
+    if not customers.data:
+        return {"balance_cents": 0, "initial_credit_cents": 0, "usage_cents": 0, "has_subscription": False}
+
+    customer = customers.data[0]
+    subs = stripe.Subscription.list(customer=customer.id, status="all", limit=50)
+    active_sub = next(
+        (s for s in subs.data if s.status in ("active", "trialing", "past_due") and s.metadata.get("tier") == "bot_service"),
+        None,
+    )
+    if not active_sub:
+        return {"balance_cents": 0, "initial_credit_cents": 0, "usage_cents": 0, "has_subscription": False}
+
+    initial_credit = int(active_sub.metadata.get("initial_credit_cents", "500"))
+
+    # Get current period metered usage
+    usage_cents = 0
+    for item in active_sub["items"]["data"]:
+        try:
+            summaries = stripe.SubscriptionItem.list_usage_record_summaries(item.id, limit=1)
+            if summaries.data:
+                total_usage = summaries.data[0].total_usage  # in seconds or units
+                # bot_service is $0.45/hr = 0.75 cents/min
+                # Price is per hour, usage is reported in hours
+                usage_cents = int(total_usage * 45)  # $0.45/hr in cents
+        except Exception as e:
+            print(f"[BOT-BALANCE] Error getting usage for {item.id}: {e}")
+
+    balance_cents = max(initial_credit - usage_cents, 0)
+
+    return {
+        "balance_cents": balance_cents,
+        "initial_credit_cents": initial_credit,
+        "usage_cents": usage_cents,
+        "has_subscription": True,
+        "balance_usd": f"${balance_cents / 100:.2f}",
+        "usage_usd": f"${usage_cents / 100:.2f}",
+        "initial_credit_usd": f"${initial_credit / 100:.2f}",
+    }
 
 
 # ── Stats ─────────────────────────────────────────────────────────────────────
