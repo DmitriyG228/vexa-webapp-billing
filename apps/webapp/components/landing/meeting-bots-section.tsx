@@ -1,15 +1,12 @@
-import Image from "next/image";
-
-const cardShadow =
-  "0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)";
+import { TerminalAnimation } from "./terminal-animation";
 
 export function MeetingBotsSection() {
   return (
     <section className="py-16 lg:py-20 border-t border-gray-200 dark:border-neutral-800">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-          {/* Left: copy */}
-          <div>
+        <div className="flex flex-col gap-10">
+          {/* Top: copy */}
+          <div className="max-w-2xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-[11.5px] text-gray-500 dark:text-gray-400 font-medium shadow-sm mb-3">
               Meeting Bots
             </span>
@@ -108,37 +105,9 @@ export function MeetingBotsSection() {
             </div>
           </div>
 
-          {/* Right: platform logos */}
-          <div
-            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 h-[320px] flex items-center justify-center"
-            style={{ boxShadow: cardShadow }}
-          >
-            <div className="flex items-center justify-center gap-6">
-              <Image
-                src="/microsoft-teams-logo.png"
-                alt="Teams"
-                width={56}
-                height={56}
-                className="w-14 h-14 object-contain"
-              />
-              <div className="w-px h-12 bg-gray-200 dark:bg-neutral-800" />
-              <Image
-                src="/google-meet-logo.png"
-                alt="Meet"
-                width={56}
-                height={56}
-                className="w-14 h-14 object-contain"
-              />
-              <div className="w-px h-12 bg-gray-200 dark:bg-neutral-800" />
-              <svg
-                width="56"
-                height="56"
-                viewBox="0 0 24 24"
-                fill="#0B5CFF"
-              >
-                <path d="M5.033 14.649H.743a.74.74 0 0 1-.686-.458.74.74 0 0 1 .16-.808L3.19 10.41H1.06A1.06 1.06 0 0 1 0 9.35h3.957c.301 0 .57.18.686.458a.74.74 0 0 1-.161.808L1.51 13.59h2.464c.585 0 1.06.475 1.06 1.06zM24 11.338c0-1.14-.927-2.066-2.066-2.066-.61 0-1.158.265-1.537.686a2.061 2.061 0 0 0-1.536-.686c-1.14 0-2.066.926-2.066 2.066v3.311a1.06 1.06 0 0 0 1.06-1.06v-2.251a1.004 1.004 0 0 1 2.013 0v2.251c0 .586.474 1.06 1.06 1.06v-3.311a1.004 1.004 0 0 1 2.012 0v2.251c0 .586.475 1.06 1.06 1.06zM16.265 12a2.728 2.728 0 1 1-5.457 0 2.728 2.728 0 0 1 5.457 0zm-1.06 0a1.669 1.669 0 1 0-3.338 0 1.669 1.669 0 0 0 3.338 0zm-4.82 0a2.728 2.728 0 1 1-5.458 0 2.728 2.728 0 0 1 5.457 0zm-1.06 0a1.669 1.669 0 1 0-3.338 0 1.669 1.669 0 0 0 3.338 0z" />
-              </svg>
-            </div>
+          {/* Bottom: terminal */}
+          <div className="w-full">
+            <TerminalAnimation />
           </div>
         </div>
       </div>

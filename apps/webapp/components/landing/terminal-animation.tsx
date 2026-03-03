@@ -224,7 +224,6 @@ export function TerminalAnimation() {
                 {typed ? " " : ""}
                 {ghost}
               </span>
-              <span className="animate-blink text-gray-400">{"\u258C"}</span>
             </p>
           </div>
         )}
