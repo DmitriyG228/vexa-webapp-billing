@@ -805,7 +805,7 @@ function TranscriptionTab({
   const stats = usageData?.statistics
 
   // Auto-topup state (UI-only — backend storage TBD)
-  const [autoTopup, setAutoTopup] = useState(false)
+  const [autoTopup, setAutoTopup] = useState(true)
   const [threshold, setThreshold] = useState(100)
   const [topupAmount, setTopupAmount] = useState(5)
   const [isAddingFunds, setIsAddingFunds] = useState(false)
