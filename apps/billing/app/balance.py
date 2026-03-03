@@ -99,7 +99,7 @@ async def get_balances(email: str) -> Dict[str, Any]:
         "tx": {
             "balance_minutes": data.get("tx_balance_minutes", 0) or 0,
             "topup_enabled": data.get("tx_topup_enabled", False),
-            "topup_threshold_min": data.get("tx_topup_threshold_min", 1333.0),
+            "topup_threshold_min": data.get("tx_topup_threshold_min", 60),
             "topup_amount_cents": data.get("tx_topup_amount_cents", 500),
             "free_credit_given": data.get("tx_free_credit_given", False),
         },
@@ -137,7 +137,17 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
             pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
             if not pm_id:
                 pm_id = customer.get("default_source")
+            # Fallback: list all attached cards and use the most recent one
+            if not pm_id:
+                pms = stripe.PaymentMethod.list(customer=cust_id, type="card", limit=1)
+                if pms.data:
+                    pm_id = pms.data[0].id
             if pm_id:
+                # Set as default on Stripe customer so it's found faster next time
+                try:
+                    stripe.Customer.modify(cust_id, invoice_settings={"default_payment_method": pm_id})
+                except stripe.error.StripeError:
+                    pass
                 await merge_user_data(req.email, {"stripe_payment_method_id": pm_id})
         except stripe.error.StripeError:
             pass

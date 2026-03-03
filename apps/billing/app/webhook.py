@@ -175,6 +175,16 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
                     pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
                     if not pm_id:
                         pm_id = customer.get("default_source")
+                    # Fallback: list attached cards
+                    if not pm_id:
+                        pms = stripe.PaymentMethod.list(customer=cust_id, type="card", limit=1)
+                        if pms.data:
+                            pm_id = pms.data[0].id
+                            # Set as default on Stripe customer
+                            try:
+                                stripe.Customer.modify(cust_id, invoice_settings={"default_payment_method": pm_id})
+                            except stripe.error.StripeError:
+                                pass
                     if pm_id:
                         db_patch["stripe_payment_method_id"] = pm_id
                 except stripe.error.StripeError:
