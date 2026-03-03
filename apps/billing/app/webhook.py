@@ -85,6 +85,17 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
     entitlements = _compute_entitlements(sub)
     plan_type = entitlements["subscription_tier"]
 
+    # Guard: if this is a cancellation, don't overwrite a newer active subscription.
+    # Race condition: switch() creates new sub then cancels old → deleted event for old sub
+    # arrives after created event for new sub, overwriting "active" with "canceled".
+    if entitlements["subscription_status"] in ("canceled", "incomplete_expired") and DATABASE_URL:
+        from .db import get_user_data
+        current_data = await get_user_data(email)
+        current_sub_id = current_data.get("stripe_subscription_id")
+        if current_sub_id and current_sub_id != sub.get("id"):
+            print(f"[WEBHOOK] Ignoring canceled sub {sub.get('id')} — user has newer sub {current_sub_id}")
+            return
+
     # Upsert user
     resp = await admin_request("POST", "/admin/users", {"email": email})
     if resp.status_code not in (200, 201):
