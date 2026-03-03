@@ -298,7 +298,7 @@ export function PricingSection() {
                   </p>
                 </div>
                 <Link
-                  href="/get-started"
+                  href="/account?tab=transcription"
                   className="flex-shrink-0 ml-4 inline-flex items-center h-[32px] px-4 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[12px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
                 >
                   Get started

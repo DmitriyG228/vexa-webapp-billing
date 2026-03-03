@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2 } from "lucide-react"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -184,7 +185,9 @@ export default function AccountPageWrapper() {
 function AccountPage() {
   const { data: session, status: sessionStatus } = useSession()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState<TabId>("bots")
+  const tabParam = searchParams?.get("tab")
+  const initialTab: TabId = tabParam && TABS.some(t => t.id === tabParam) ? tabParam as TabId : "bots"
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab)
 
   // Data states
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -487,6 +490,10 @@ function BotsTab({
   const periodEnd = userData?.data?.subscription_current_period_end ?? userData?.data?.subscription_end_date
   const botCount = userData?.max_concurrent_bots ?? 0
 
+  // Auto-topup state (UI-only — backend storage TBD)
+  const [autoTopup, setAutoTopup] = useState(true)
+  const [spendingLimit, setSpendingLimit] = useState(5)
+
   return (
     <div className="space-y-6">
       {/* Subscription + Bot limit row */}
@@ -571,6 +578,71 @@ function BotsTab({
         </div>
       </div>
 
+      {/* Auto-topup & spending limit (pay-as-you-go only) */}
+      {subTier === "bot_service" && subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus) && (
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Usage Controls</h3>
+          <p className="text-[13px] text-gray-400 mb-5">Manage spending limits and auto-topup for usage-based billing.</p>
+
+          {/* Auto-topup toggle */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
+              <p className="text-[13px] text-gray-400">Automatically charge your payment method as usage accrues.</p>
+            </div>
+            <button
+              onClick={() => setAutoTopup(!autoTopup)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
+            </button>
+          </div>
+
+          {/* Spending limit */}
+          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Spending limit</p>
+                <p className="text-[13px] text-gray-400">Maximum monthly spend before bots are paused.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[14px] text-gray-400">$</span>
+              <input
+                type="number"
+                min={2}
+                value={spendingLimit}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10)
+                  if (!isNaN(v) && v >= 2) setSpendingLimit(v)
+                }}
+                className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span className="text-[13px] text-gray-400">min $2</span>
+            </div>
+          </div>
+
+          {/* Current usage display (placeholder) */}
+          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mt-5">
+            <div className="flex items-center justify-between text-[14px]">
+              <span className="text-gray-400">Current usage this period</span>
+              <span className="text-gray-950 dark:text-gray-50 font-medium">$0.00</span>
+            </div>
+            <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
+              <div className="h-full rounded-full bg-gray-950 dark:bg-gray-200" style={{ width: "0%" }} />
+            </div>
+            <div className="flex justify-between text-[12px] text-gray-400 mt-1">
+              <span>$0</span>
+              <span>${spendingLimit}</span>
+            </div>
+          </div>
+
+          <p className="text-[12px] text-gray-400 mt-4 italic">
+            Settings will be saved once the backend is available. Changes are local for now.
+          </p>
+        </div>
+      )}
+
       {/* Available plans */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
         <div className="flex items-center justify-between mb-4">
@@ -609,6 +681,31 @@ function BotsTab({
         </div>
       </div>
 
+      {/* Priority Support upsell */}
+      <Link
+        href="/support"
+        className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors group"
+        style={{ boxShadow: cardShadow }}
+      >
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <line x1="19" x2="19" y1="8" y2="14" />
+            <line x1="22" x2="16" y1="11" y2="11" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <p className="text-[14px] font-semibold text-gray-950 dark:text-gray-50">Priority Support</p>
+          <p className="text-[13px] text-gray-400 dark:text-gray-500">
+            Get dedicated help building with Vexa — $240/hr
+          </p>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </Link>
+
       {/* Subscription ID */}
       {userData?.data?.stripe_subscription_id && (
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5" style={{ boxShadow: cardShadow }}>
@@ -636,6 +733,35 @@ function TranscriptionTab({
   const history = usageData?.usage_history || []
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics
+
+  // Auto-topup state (UI-only — backend storage TBD)
+  const [autoTopup, setAutoTopup] = useState(false)
+  const [threshold, setThreshold] = useState(100)
+  const [topupAmount, setTopupAmount] = useState(5)
+  const [isAddingFunds, setIsAddingFunds] = useState(false)
+
+  const handleAddFunds = async () => {
+    setIsAddingFunds(true)
+    try {
+      const resp = await fetch("/api/stripe/resolve-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: "pricing",
+          plan_type: "transcription_api",
+          quantity: 1,
+        }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error || "Failed to start checkout")
+      if (data.url) window.location.href = data.url
+      else throw new Error("No checkout URL returned")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to add funds")
+    } finally {
+      setIsAddingFunds(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -685,6 +811,85 @@ function TranscriptionTab({
           </div>
         </div>
       )}
+
+      {/* Auto-topup & Add funds */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Balance Management</h3>
+        <p className="text-[13px] text-gray-400 mb-5">Manage auto-topup and add funds manually.</p>
+
+        {/* Auto-topup toggle */}
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
+            <p className="text-[13px] text-gray-400">Automatically add funds when balance is low.</p>
+          </div>
+          <button
+            onClick={() => setAutoTopup(!autoTopup)}
+            className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
+          </button>
+        </div>
+
+        {/* Auto-topup settings (shown when enabled) */}
+        {autoTopup && (
+          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5 space-y-4">
+            <div>
+              <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when below (minutes)</label>
+              <input
+                type="number"
+                min={10}
+                value={threshold}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10)
+                  if (!isNaN(v) && v >= 10) setThreshold(v)
+                }}
+                className="w-32 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+            <div>
+              <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] text-gray-400">$</span>
+                <input
+                  type="number"
+                  min={2}
+                  value={topupAmount}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10)
+                    if (!isNaN(v) && v >= 2) setTopupAmount(v)
+                  }}
+                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-[13px] text-gray-400">min $2</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add funds button */}
+        <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
+          <button
+            onClick={handleAddFunds}
+            disabled={isAddingFunds}
+            className="w-full sm:w-auto h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+          >
+            {isAddingFunds ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              "Add Funds"
+            )}
+          </button>
+          <p className="text-[12px] text-gray-400 mt-2">Default: $5, minimum: $2. Charges your saved payment method or prompts for a new one.</p>
+        </div>
+
+        <p className="text-[12px] text-gray-400 mt-4 italic">
+          Auto-topup settings will be saved once the backend is available. Changes are local for now.
+        </p>
+      </div>
 
       {/* Usage chart (last 30 days) */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>

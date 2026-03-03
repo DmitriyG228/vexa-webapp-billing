@@ -27,6 +27,8 @@ import {
 import { Bot, Calendar, AlertCircle, Key, ArrowRight, Settings, Loader2, Shield, Mail, BarChart3 } from "lucide-react"
 import { PageContainer, Section } from "@/components/ui/page-container"
 import { Metric } from "@/components/ui/metric"
+import { SubscriptionPopup } from "./components/SubscriptionPopup"
+import { UsageWarning } from "./components/UsageWarning"
 
 interface UserData {
   id: number
@@ -50,6 +52,7 @@ interface UserData {
 export default function DashboardPage() {
   const { data: session, status: sessionStatus } = useSession()
   const [userData, setUserData] = useState<UserData | null>(null)
+  const [balanceMinutes, setBalanceMinutes] = useState<number | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
@@ -82,6 +85,15 @@ export default function DashboardPage() {
         const data = await response.json()
         console.log(`[Dashboard] Admin API returned:`, JSON.stringify(data, null, 2))
         setUserData(data)
+
+        // Fetch transcription balance for usage warnings
+        try {
+          const balanceResp = await fetch("/api/account/balance", { cache: "no-store" })
+          if (balanceResp.ok) {
+            const balanceData = await balanceResp.json()
+            setBalanceMinutes(balanceData.balance_minutes)
+          }
+        } catch {}
         // No longer need to set bot count since we're using Stripe portal
       } catch (err) {
         console.error("Error fetching user data:", err)
@@ -278,6 +290,12 @@ export default function DashboardPage() {
     <PageContainer>
       <Section>
         <Toaster />
+        <SubscriptionPopup subscriptionStatus={userData?.data?.subscription_status} />
+        <UsageWarning
+          subscriptionTier={userData?.data?.subscription_tier}
+          subscriptionStatus={userData?.data?.subscription_status}
+          transcriptionBalanceMinutes={balanceMinutes}
+        />
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold tracking-tight mb-2">Dashboard</h1>
           <p className="text-muted-foreground">
