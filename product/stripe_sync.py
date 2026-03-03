@@ -144,7 +144,63 @@ def sync_product(spec: Dict[str, Any]) -> Dict[str, str]:
     return {"product_id": product.id, "price_id": new_price.id}
 
 
+def sync_portal_config(return_url: str) -> str:
+    """Create or update the Stripe Customer Portal configuration."""
+    print("\n[billing_portal]")
+
+    # Check for existing default config
+    configs = stripe.billing_portal.Configuration.list(limit=10)
+    for cfg in configs.data:
+        if cfg.is_default:
+            print(f"  Default portal config exists ({cfg.id}), updating...")
+            updated = stripe.billing_portal.Configuration.modify(
+                cfg.id,
+                business_profile={"headline": "Vexa — Manage your subscription"},
+                features={
+                    "subscription_cancel": {
+                        "enabled": True,
+                        "mode": "at_period_end",
+                        "proration_behavior": "none",
+                    },
+                    "payment_method_update": {"enabled": True},
+                    "invoice_history": {"enabled": True},
+                    "subscription_update": {
+                        "enabled": True,
+                        "default_allowed_updates": ["quantity"],
+                        "proration_behavior": "always_invoice",
+                    },
+                },
+                default_return_url=return_url,
+            )
+            print(f"  Updated portal config ({updated.id})")
+            return updated.id
+
+    # No default config found — create one
+    portal = stripe.billing_portal.Configuration.create(
+        business_profile={"headline": "Vexa — Manage your subscription"},
+        features={
+            "subscription_cancel": {
+                "enabled": True,
+                "mode": "at_period_end",
+                "proration_behavior": "none",
+            },
+            "payment_method_update": {"enabled": True},
+            "invoice_history": {"enabled": True},
+            "subscription_update": {
+                "enabled": True,
+                "default_allowed_updates": ["quantity"],
+                "proration_behavior": "always_invoice",
+            },
+        },
+        default_return_url=return_url,
+    )
+    print(f"  Created portal config ({portal.id})")
+    return portal.id
+
+
 def main():
+    portal_return_url = os.getenv("PORTAL_RETURN_URL", "https://webapp.vexa.ai/account")
+
     products = load_config()
     print(f"Syncing {len(products)} products to Stripe...\n")
 
@@ -159,14 +215,25 @@ def main():
             print(f"  FAILED: {e}")
             sys.exit(1)
 
+    # Billing portal
+    try:
+        portal_id = sync_portal_config(portal_return_url)
+        results["_portal_config_id"] = {"id": portal_id}
+    except Exception as e:
+        print(f"  Portal config FAILED: {e}")
+        print("  (non-fatal — products/prices are synced)")
+
     print("\n--- Stripe Price IDs ---")
     for pid, ids in results.items():
+        if pid.startswith("_"):
+            continue
         print(f"  {pid}: product={ids['product_id']}  price={ids['price_id']}")
 
-    # Write results for other services to consume
+    # Write results for other services to consume (exclude internal keys)
     out_path = os.path.join(os.path.dirname(__file__), "stripe_ids.json")
+    output = {k: v for k, v in results.items() if not k.startswith("_")}
     with open(out_path, "w") as f:
-        json.dump(results, f, indent=2)
+        json.dump(output, f, indent=2)
     print(f"\nSaved to {out_path}")
     print("Stripe catalog synced")
 

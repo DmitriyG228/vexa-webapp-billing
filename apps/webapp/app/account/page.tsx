@@ -582,37 +582,43 @@ function BotsTab({
           </button>
         </div>
 
-        {/* Meeting stats card */}
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Meeting Stats</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { label: "Total", value: meetingsData?.meeting_stats?.total ?? 0 },
-              { label: "Completed", value: meetingsData?.meeting_stats?.completed ?? 0 },
-              { label: "Failed", value: meetingsData?.meeting_stats?.failed ?? 0 },
-            ].map(({ label, value }) => (
-              <div key={label}>
-                <p className="text-[12px] text-gray-400 mb-0.5">{label}</p>
-                <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
-              </div>
-            ))}
-          </div>
-          {meetingsData?.usage_patterns?.platforms && Object.keys(meetingsData.usage_patterns.platforms).length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
-              <p className="text-[12px] text-gray-400 mb-2">Platforms</p>
-              <div className="flex gap-2 flex-wrap">
-                {Object.entries(meetingsData.usage_patterns.platforms).map(([platform, count]) => (
-                  <span
-                    key={platform}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700"
-                  >
-                    {platform} ({count})
-                  </span>
-                ))}
-              </div>
+        {/* Meeting stats card — only show when there's actual data */}
+        {meetingsData?.meeting_stats && (meetingsData.meeting_stats.total > 0) ? (
+          <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Meeting Stats</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: "Total", value: meetingsData.meeting_stats.total },
+                { label: "Completed", value: meetingsData.meeting_stats.completed ?? 0 },
+                { label: "Failed", value: meetingsData.meeting_stats.failed ?? 0 },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="text-[12px] text-gray-400 mb-0.5">{label}</p>
+                  <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+            {meetingsData?.usage_patterns?.platforms && Object.keys(meetingsData.usage_patterns.platforms).length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                <p className="text-[12px] text-gray-400 mb-2">Platforms</p>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(meetingsData.usage_patterns.platforms).map(([platform, count]) => (
+                    <span
+                      key={platform}
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700"
+                    >
+                      {platform} ({count})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 p-6 text-center" style={{ boxShadow: cardShadow }}>
+            <p className="text-[14px] text-gray-400">No meetings yet. Send a bot to a meeting to see stats here.</p>
+          </div>
+        )}
       </div>
 
       {/* Auto-topup & spending limit (pay-as-you-go only) */}
@@ -831,6 +837,14 @@ function TranscriptionTab({
 
   return (
     <div className="space-y-6">
+      {/* Product explanation */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-gray-50 to-white dark:from-neutral-900 dark:to-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Transcription API</h3>
+        <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-relaxed">
+          Offload transcription to Vexa&apos;s GPU infrastructure while keeping your self-hosted instances lightweight and CPU-only. Send audio from your bots to our API and get accurate transcripts back — no local GPU required.
+        </p>
+      </div>
+
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
@@ -1016,7 +1030,7 @@ function TranscriptionTab({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Free credit</span>
-            <span className="text-gray-700">$20.00 (13,333 minutes)</span>
+            <span className="text-gray-700">$5.00 (3,333 minutes)</span>
           </div>
         </div>
       </div>
