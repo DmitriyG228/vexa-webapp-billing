@@ -690,9 +690,26 @@ async def resolve_billing_url(req: ResolveUrlRequest):
             price_id = _get_price_id("transcription_api")
             line_items.append({"price": price_id})
         elif plan_type == "consultation":
+            # Consultation is a one-time payment, not a subscription
             price_id = _get_price_id("consultation")
             quantity = req.quantity or 1
-            line_items.append({"price": price_id, "quantity": quantity})
+            try:
+                checkout = stripe.checkout.Session.create(
+                    mode="payment",
+                    customer=customer.id,
+                    line_items=[{"price": price_id, "quantity": quantity}],
+                    success_url=success_url,
+                    cancel_url=cancel_url,
+                    allow_promotion_codes=True,
+                    payment_method_collection="if_required",
+                    metadata={
+                        "userEmail": customer.email,
+                        "tier": "consultation",
+                    },
+                )
+                return {"url": checkout.url}
+            except stripe.error.StripeError as e:
+                raise HTTPException(status_code=400, detail=f"Checkout error: {str(e)}")
         else:
             raise HTTPException(status_code=400, detail=f"Unknown plan_type '{plan_type}'")
 
@@ -712,6 +729,7 @@ async def resolve_billing_url(req: ResolveUrlRequest):
                 success_url=success_url,
                 cancel_url=cancel_url,
                 allow_promotion_codes=True,
+                payment_method_collection="if_required",
                 subscription_data=sub_data,
             )
             return {"url": checkout.url}
