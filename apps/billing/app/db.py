@@ -65,7 +65,7 @@ async def merge_user_data(email: str, patch: Dict[str, Any]) -> None:
     """
     async with get_session() as session:
         await session.execute(
-            text("UPDATE public.users SET data = COALESCE(data, '{}'::jsonb) || :patch::jsonb WHERE email = :email"),
+            text("UPDATE public.users SET data = COALESCE(data, CAST('{}' AS jsonb)) || CAST(:patch AS jsonb) WHERE email = :email"),
             {"email": email, "patch": json.dumps(patch)},
         )
         await session.commit()
@@ -75,7 +75,7 @@ async def merge_user_data_by_id(user_id: int, patch: Dict[str, Any]) -> None:
     """Atomic JSONB merge by user ID."""
     async with get_session() as session:
         await session.execute(
-            text("UPDATE public.users SET data = COALESCE(data, '{}'::jsonb) || :patch::jsonb WHERE id = :user_id"),
+            text("UPDATE public.users SET data = COALESCE(data, CAST('{}' AS jsonb)) || CAST(:patch AS jsonb) WHERE id = :user_id"),
             {"user_id": user_id, "patch": json.dumps(patch)},
         )
         await session.commit()
