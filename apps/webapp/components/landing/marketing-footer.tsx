@@ -23,7 +23,7 @@ export function MarketingFooter() {
             <Link href="https://github.com/Vexa-ai/vexa" target="_blank" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               GitHub
             </Link>
-            <Link href="#pricing" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <Link href="/pricing" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               Pricing
             </Link>
             <Link href="/contact" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">

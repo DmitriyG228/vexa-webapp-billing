@@ -65,9 +65,9 @@ export function PricingSection() {
           </p>
         </div>
 
-        {/* Main pricing cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* ── Open Source ───────────────────────────── */}
+        {/* Main pricing cards — 3 equal-height columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* ── Free (Open Source) ────────────────────── */}
           <div
             className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex flex-col"
             style={{
@@ -76,11 +76,11 @@ export function PricingSection() {
           >
             <div className="mb-5">
               <div className="text-[13px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-[0.06em] mb-2">
-                Open Source
+                Free
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-                  Free
+                  $0
                 </span>
               </div>
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
@@ -111,6 +111,14 @@ export function PricingSection() {
               <div className="flex items-center gap-2">
                 <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">Docker Compose deploy</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Google Meet + Teams + Zoom</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
               </div>
             </div>
           </div>
@@ -153,7 +161,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
-                <span className="text-[13px] text-gray-600 dark:text-gray-300">Google Meet + Teams</span>
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">Google Meet + Teams + Zoom</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
@@ -174,7 +182,7 @@ export function PricingSection() {
             </div>
           </div>
 
-          {/* ── Bot Service ────────────────────────────── */}
+          {/* ── Pay-as-you-go (Bot Service) ──────────── */}
           <div
             className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex flex-col"
             style={{
@@ -183,7 +191,7 @@ export function PricingSection() {
           >
             <div className="mb-5">
               <div className="text-[13px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-[0.06em] mb-2">
-                Bot Service
+                Pay-as-you-go
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
@@ -202,6 +210,14 @@ export function PricingSection() {
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Unlimited concurrent bots</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Google Meet + Teams + Zoom</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">Post-meeting transcription</span>
               </div>
               <div className="flex items-center gap-2">
@@ -210,15 +226,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Google Meet + Teams + Zoom</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">Recording + Bot API</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
               </div>
               <div className="mt-3 rounded-lg border border-gray-200 dark:border-neutral-800 px-3 py-2">
                 <div className="flex items-center justify-between">
@@ -229,65 +237,42 @@ export function PricingSection() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* ── Enterprise ────────────────────────────── */}
-          <div
-            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex flex-col"
-            style={{
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)',
-            }}
-          >
-            <div className="mb-5">
-              <div className="text-[13px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-[0.06em] mb-2">
-                Enterprise
+        {/* ── Enterprise + Transcription API ──────────── */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Enterprise */}
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
+                  <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
+                  <path d="M9 22v-4h6v4" />
+                  <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01" />
+                </svg>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-                  Custom
-                </span>
-              </div>
-              <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
-                On-premises &middot; Your cloud
-              </p>
             </div>
-            <Link
-              href={process.env.NEXT_PUBLIC_CAL_URL || "https://cal.com/dmitrygrankin/30-min"}
-              target="_blank"
-              className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-6"
-            >
-              Book a call
-            </Link>
-            <div className="space-y-2.5 mt-auto">
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Everything in Bot Service</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">OpenShift + Kubernetes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">On-premises deployment</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Dedicated support engineer</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Full data sovereignty</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">SLA + monthly review</span>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                    Enterprise
+                  </div>
+                  <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                    On-premises, OpenShift, Kubernetes. Dedicated support + SLA.
+                  </p>
+                </div>
+                <Link
+                  href={process.env.NEXT_PUBLIC_CAL_URL || "https://cal.com/dmitrygrankin/30-min"}
+                  target="_blank"
+                  className="flex-shrink-0 ml-4 inline-flex items-center h-[32px] px-4 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[12px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
+                >
+                  Book a call
+                </Link>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ── Add-ons & Usage-Based ─────────────────── */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {/* Transcription API */}
           <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
             <div className="flex-shrink-0 mt-0.5">
@@ -298,41 +283,23 @@ export function PricingSection() {
                 </svg>
               </div>
             </div>
-            <div>
-              <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
-                Transcription API
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                    Transcription API
+                  </div>
+                  <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                    For self-hosted Vexa bot users. Transcription only &mdash; <span className="font-semibold text-gray-950 dark:text-gray-50">$0.0015</span>/min.
+                  </p>
+                </div>
+                <Link
+                  href="/get-started"
+                  className="flex-shrink-0 ml-4 inline-flex items-center h-[32px] px-4 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[12px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
+                >
+                  Get started
+                </Link>
               </div>
-              <div className="text-[20px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 mt-0.5">
-                $0.0015<span className="text-[13px] font-normal text-gray-400 dark:text-gray-500">/min</span>
-              </div>
-              <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
-                For self-hosted Vexa bot users. Transcription only.
-              </p>
-            </div>
-          </div>
-
-          {/* Consultation */}
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
-            <div className="flex-shrink-0 mt-0.5">
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
-                Consultation
-              </div>
-              <div className="text-[20px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50 mt-0.5">
-                $240<span className="text-[13px] font-normal text-gray-400 dark:text-gray-500">/hr</span>
-              </div>
-              <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
-                Expert consultation. Deployment, integration, custom workflows.
-              </p>
             </div>
           </div>
         </div>

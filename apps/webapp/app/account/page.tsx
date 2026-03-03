@@ -85,10 +85,9 @@ type TabId = (typeof TABS)[number]["id"]
 
 const PRICING_PLANS = [
   { id: "individual", name: "Individual", price: "$12/mo", detail: "1 bot included" },
-  { id: "bot_service", name: "Bot Service", price: "$0.45/hr", detail: "Usage-based" },
+  { id: "bot_service", name: "Pay-as-you-go", price: "$0.45/hr", detail: "Usage-based" },
   { id: "realtime", name: "+ Real-time", price: "+$0.05/hr", detail: "Add-on" },
   { id: "transcription_api", name: "Transcription API", price: "$0.0015/min", detail: "Self-hosted users" },
-  { id: "consultation", name: "Consultation", price: "$240/hr", detail: "Expert help" },
   { id: "enterprise", name: "Enterprise", price: "Custom", detail: "On-premises" },
 ]
 
@@ -542,39 +541,31 @@ function BotsTab({
         {/* Meeting stats card */}
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Meeting Stats</h3>
-          {meetingsData?.meeting_stats ? (
-            <>
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { label: "Total", value: meetingsData.meeting_stats.total },
-                  { label: "Completed", value: meetingsData.meeting_stats.completed },
-                  { label: "Failed", value: meetingsData.meeting_stats.failed },
-                ].map(({ label, value }) => (
-                  <div key={label}>
-                    <p className="text-[12px] text-gray-400 mb-0.5">{label}</p>
-                    <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
-                  </div>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { label: "Total", value: meetingsData?.meeting_stats?.total ?? 0 },
+              { label: "Completed", value: meetingsData?.meeting_stats?.completed ?? 0 },
+              { label: "Failed", value: meetingsData?.meeting_stats?.failed ?? 0 },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p className="text-[12px] text-gray-400 mb-0.5">{label}</p>
+                <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
+              </div>
+            ))}
+          </div>
+          {meetingsData?.usage_patterns?.platforms && Object.keys(meetingsData.usage_patterns.platforms).length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
+              <p className="text-[12px] text-gray-400 mb-2">Platforms</p>
+              <div className="flex gap-2 flex-wrap">
+                {Object.entries(meetingsData.usage_patterns.platforms).map(([platform, count]) => (
+                  <span
+                    key={platform}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700"
+                  >
+                    {platform} ({count})
+                  </span>
                 ))}
               </div>
-              {meetingsData.usage_patterns?.platforms && Object.keys(meetingsData.usage_patterns.platforms).length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
-                  <p className="text-[12px] text-gray-400 mb-2">Platforms</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {Object.entries(meetingsData.usage_patterns.platforms).map(([platform, count]) => (
-                      <span
-                        key={platform}
-                        className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700"
-                      >
-                        {platform} ({count})
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="h-32 flex items-center justify-center">
-              <p className="text-[13px] text-gray-300">No meeting data yet</p>
             </div>
           )}
         </div>
@@ -653,7 +644,7 @@ function TranscriptionTab({
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">Balance</p>
           <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {balanceData?.balance_minutes != null ? `${Math.round(balanceData.balance_minutes)}` : "--"}
+            {Math.round(balanceData?.balance_minutes ?? 0)}
           </p>
           <p className="text-[13px] text-gray-400">minutes remaining</p>
         </div>
@@ -661,7 +652,7 @@ function TranscriptionTab({
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">Total Purchased</p>
           <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {balanceData?.total_purchased_minutes != null ? `${Math.round(balanceData.total_purchased_minutes)}` : "--"}
+            {Math.round(balanceData?.total_purchased_minutes ?? 0)}
           </p>
           <p className="text-[13px] text-gray-400">minutes all time</p>
         </div>
@@ -669,7 +660,7 @@ function TranscriptionTab({
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">Total Used</p>
           <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {balanceData?.total_used_minutes != null ? `${Math.round(balanceData.total_used_minutes)}` : "--"}
+            {Math.round(balanceData?.total_used_minutes ?? 0)}
           </p>
           <p className="text-[13px] text-gray-400">minutes all time</p>
         </div>
