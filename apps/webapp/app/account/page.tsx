@@ -538,6 +538,7 @@ function BotsTab({
 
   // Auto-topup state — initialized from server data (string for free-form editing)
   const [autoTopup, setAutoTopup] = useState(botBalanceData?.topup_enabled ?? false)
+  const [topupThresholdStr, setTopupThresholdStr] = useState(String(Math.round((botBalanceData?.topup_threshold_cents ?? 100) / 100)))
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100)))
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
@@ -547,12 +548,18 @@ function BotsTab({
   useEffect(() => {
     if (botBalanceData) {
       setAutoTopup(botBalanceData.topup_enabled ?? false)
+      setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
       setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
     }
   }, [botBalanceData])
 
   const handleSaveSettings = async () => {
+    const threshold = parseInt(topupThresholdStr, 10) || 0
     const amount = parseInt(topupAmountStr, 10) || 0
+    if (autoTopup && threshold < 1) {
+      alert("Threshold must be at least $1.")
+      return
+    }
     if (autoTopup && amount < 2) {
       alert("Top-up amount must be at least $2.")
       return
@@ -566,7 +573,7 @@ function BotsTab({
         body: JSON.stringify({
           product: "bot",
           enabled: autoTopup,
-          threshold: (botBalanceData?.topup_threshold_cents ?? 100),
+          threshold: threshold * 100,
           amount_cents: amount * 100,
         }),
       })
@@ -713,26 +720,37 @@ function BotsTab({
             </button>
           </div>
 
-          {/* Top-up amount */}
+          {/* Auto-topup settings */}
           {autoTopup && (
-            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Top-up amount</p>
-                  <p className="text-[13px] text-gray-400">Amount charged when balance runs low.</p>
+            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 space-y-4">
+              <div>
+                <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when balance drops below</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] text-gray-400">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={topupThresholdStr}
+                    onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="1"
+                    className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                  />
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] text-gray-400">$</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={topupAmountStr}
-                  onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                  placeholder="5"
-                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                />
-                <span className="text-[13px] text-gray-400">min $2</span>
+              <div>
+                <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] text-gray-400">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={topupAmountStr}
+                    onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="5"
+                    className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                  />
+                  <span className="text-[13px] text-gray-400">min $2</span>
+                </div>
               </div>
               <button
                 onClick={handleSaveSettings}
