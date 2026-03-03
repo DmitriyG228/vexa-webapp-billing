@@ -1,6 +1,7 @@
 import NextAuth, { AuthOptions, User as NextAuthUser } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import AzureADProvider from "next-auth/providers/azure-ad";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
 import { JWT } from "next-auth/jwt";
 
@@ -139,6 +140,24 @@ export const authOptions: AuthOptions = {
           }),
         ]
       : []),
+    ...(process.env.MOCK_AUTH === "true"
+      ? [
+          CredentialsProvider({
+            id: "mock",
+            name: "Mock Login",
+            credentials: {
+              email: { label: "Email", type: "text", placeholder: "test@vexa.ai" },
+            },
+            async authorize(credentials) {
+              if (process.env.NODE_ENV === "production") return null;
+              const email = credentials?.email || "test@vexa.ai";
+              const dbUser = await findOrCreateUser(email, "Test User", null);
+              if (!dbUser) return null;
+              return { id: String(dbUser.id), email, name: "Test User" };
+            },
+          }),
+        ]
+      : []),
   ],
   session: {
     strategy: "jwt",
@@ -146,6 +165,12 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('[NextAuth] signIn callback triggered');
+      // Mock provider: user already has id set from authorize()
+      if (account?.provider === "mock" && user.email) {
+        console.log(`[NextAuth] Mock sign in for: ${user.email}`);
+        return true;
+      }
+
       const isOAuth = account?.provider === "google" || account?.provider === "microsoft";
 
       if (isOAuth && user.email) {

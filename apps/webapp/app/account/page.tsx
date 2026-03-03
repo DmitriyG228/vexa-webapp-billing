@@ -369,19 +369,11 @@ function AccountPage() {
   const handleOpenStripePortal = async () => {
     setIsOpeningPortal(true)
     try {
-      // Active subscribers go straight to the Stripe Customer Portal;
-      // everyone else goes through the resolve-url flow (→ pricing / checkout).
-      const hasActiveSub = userData?.data?.subscription_status &&
-        ["active", "trialing", "scheduled_to_cancel"].includes(userData.data.subscription_status)
-
-      const endpoint = hasActiveSub
-        ? "/api/stripe/create-portal-session"
-        : "/api/stripe/resolve-url"
-
-      const resp = await fetch(endpoint, {
+      // resolve-url handles all cases: active sub → portal, no sub → pricing/checkout
+      const resp = await fetch("/api/stripe/resolve-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(hasActiveSub ? {} : { context: "dashboard" }),
+        body: JSON.stringify({ context: "dashboard" }),
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.error || "Failed to open billing portal")

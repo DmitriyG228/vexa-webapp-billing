@@ -1,22 +1,24 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 
 const BILLING_URL = process.env.BILLING_URL
 
-export async function GET() {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
     if (!BILLING_URL) {
       return NextResponse.json({ error: 'BILLING_URL not configured' }, { status: 503 })
     }
 
-    const resp = await fetch(`${BILLING_URL}/v1/balance/${encodeURIComponent(session.user.email)}`, {
-      cache: 'no-store',
+    const body = await request.json()
+    const resp = await fetch(`${BILLING_URL}/v1/balance/topup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, email: session.user.email }),
     })
 
     const data = await resp.json().catch(() => ({}))
@@ -25,7 +27,7 @@ export async function GET() {
     }
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching bot balance:', error)
-    return NextResponse.json({ error: 'Failed to fetch bot balance' }, { status: 500 })
+    console.error('Error processing topup:', error)
+    return NextResponse.json({ error: 'Failed to process topup' }, { status: 500 })
   }
 }

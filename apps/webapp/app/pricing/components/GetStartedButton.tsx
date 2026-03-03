@@ -59,30 +59,7 @@ export function GetStartedButton({
       return
     }
 
-    // If user is on the SAME plan already, go to Stripe Portal (manage)
-    if (hasActiveSub && currentTier === planType) {
-      setIsSubscribing(true)
-      try {
-        const resp = await fetch('/api/stripe/create-portal-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        })
-        const data = await resp.json()
-        if (!resp.ok) throw new Error(data.error || 'Failed to open billing portal')
-        window.location.href = data.url
-      } catch (error) {
-        console.error('Error opening portal:', error)
-        alert('Failed to open billing portal. Please try again.')
-      } finally {
-        setIsSubscribing(false)
-      }
-      return
-    }
-
-    // If user has active sub on DIFFERENT plan → resolve-url sends to Portal
-    // where they can cancel current plan, then subscribe to the new one.
-    // Same flow as new subscription (resolve-url handles the routing).
+    // resolve-url handles all cases: same plan → portal, different plan → switch, no sub → checkout
     setIsSubscribing(true)
     try {
       const stripePlanType = planType === 'mvp' ? 'individual' : planType
