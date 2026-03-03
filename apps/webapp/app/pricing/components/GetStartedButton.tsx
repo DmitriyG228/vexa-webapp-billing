@@ -2,9 +2,7 @@
 
 import { useSession, signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-
-
+import { useState, useEffect, useRef } from 'react'
 
 interface GetStartedButtonProps {
   buttonText?: string
@@ -16,6 +14,10 @@ interface GetStartedButtonProps {
   botCount?: number
   totalPrice?: string
   href?: string
+  /** Current user's subscription tier (passed from parent if available) */
+  currentTier?: string
+  /** Current user's subscription status */
+  currentStatus?: string
 }
 
 export function GetStartedButton({
@@ -28,20 +30,81 @@ export function GetStartedButton({
   botCount,
   totalPrice,
   href,
+  currentTier,
+  currentStatus,
 }: GetStartedButtonProps) {
   const { data: session } = useSession()
   const [isSubscribing, setIsSubscribing] = useState(false)
+  const autoCheckoutTriggered = useRef(false)
 
+  // Auto-resume checkout after sign-in redirect (read URL params without useSearchParams to avoid Suspense requirement)
+  useEffect(() => {
+    if (!session || autoCheckoutTriggered.current) return
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const checkoutPlan = params.get('checkout')
+    if (checkoutPlan && checkoutPlan === planType) {
+      autoCheckoutTriggered.current = true
+      handleMvpSubscription()
+    }
+  }, [session])
+
+  const hasActiveSub = currentStatus &&
+    ['active', 'trialing', 'scheduled_to_cancel'].includes(currentStatus)
 
   const handleMvpSubscription = async () => {
     if (!session) {
-      signIn('google', { callbackUrl: '/pricing' })
+      // Encode intended plan in callback URL so we auto-resume after sign-in
+      signIn('google', { callbackUrl: `/pricing?checkout=${planType}` })
       return
     }
 
+    // If user already has an active subscription on a DIFFERENT plan,
+    // send them to Stripe Portal to switch (not a new checkout)
+    if (hasActiveSub && currentTier && currentTier !== planType) {
+      setIsSubscribing(true)
+      try {
+        const resp = await fetch('/api/stripe/create-portal-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        })
+        const data = await resp.json()
+        if (!resp.ok) throw new Error(data.error || 'Failed to open billing portal')
+        window.location.href = data.url
+      } catch (error) {
+        console.error('Error opening portal:', error)
+        alert('Failed to open billing portal. Please try again.')
+      } finally {
+        setIsSubscribing(false)
+      }
+      return
+    }
+
+    // If user is on the SAME plan already, also go to portal (manage)
+    if (hasActiveSub && currentTier === planType) {
+      setIsSubscribing(true)
+      try {
+        const resp = await fetch('/api/stripe/create-portal-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        })
+        const data = await resp.json()
+        if (!resp.ok) throw new Error(data.error || 'Failed to open billing portal')
+        window.location.href = data.url
+      } catch (error) {
+        console.error('Error opening portal:', error)
+        alert('Failed to open billing portal. Please try again.')
+      } finally {
+        setIsSubscribing(false)
+      }
+      return
+    }
+
+    // No active subscription → new checkout
     setIsSubscribing(true)
     try {
-      // Map planType to Stripe plan_type
       const stripePlanType = planType === 'mvp' ? 'individual' : planType
 
       const response = await fetch('/api/stripe/resolve-url', {
@@ -74,7 +137,6 @@ export function GetStartedButton({
 
   const handleButtonClick = () => {
     if (isEnterprise) {
-      // Enterprise buttons: route to scheduling link if provided
       if (href) window.location.href = href
       else window.location.href = '/contact-sales'
       return
@@ -95,7 +157,12 @@ export function GetStartedButton({
   const getButtonText = () => {
     if (isEnterprise) return buttonText || 'Talk to Founder'
 
-    // If we have bot count and total price, show dynamic pricing text
+    // If user has active sub on THIS plan → "Manage"
+    if (hasActiveSub && currentTier === planType) return 'Manage Plan'
+
+    // If user has active sub on DIFFERENT plan → "Switch to this plan"
+    if (hasActiveSub && currentTier && currentTier !== planType) return 'Switch Plan'
+
     if (botCount && totalPrice) {
       const botText = botCount === 1 ? '1 bot' : `${botCount} bots`
       return `Subscribe for ${botText} for ${totalPrice}/mo`
@@ -109,8 +176,8 @@ export function GetStartedButton({
   return (
     <Button
       className={`w-full h-10 text-sm font-semibold transition-all duration-300 ${
-        buttonVariant === 'outline' 
-          ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground shadow-lg hover:shadow-xl' 
+        buttonVariant === 'outline'
+          ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground shadow-lg hover:shadow-xl'
           : 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl'
       }`}
       variant={buttonVariant}
@@ -128,4 +195,4 @@ export function GetStartedButton({
       )}
     </Button>
   )
-} 
+}

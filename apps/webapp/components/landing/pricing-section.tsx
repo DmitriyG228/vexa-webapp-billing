@@ -1,4 +1,8 @@
+'use client'
+
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { GetStartedButton } from '@/app/pricing/components/GetStartedButton';
 
 const CheckIcon = ({ className = 'text-gray-400 dark:text-gray-500' }: { className?: string }) => (
@@ -32,6 +36,29 @@ const GitHubIcon = () => (
 
 
 export function PricingSection() {
+  const { data: session } = useSession()
+  const [currentTier, setCurrentTier] = useState<string | undefined>()
+  const [currentStatus, setCurrentStatus] = useState<string | undefined>()
+
+  const userId = (session?.user as any)?.id
+
+  // Fetch subscription state when user is signed in
+  useEffect(() => {
+    if (!userId) return
+    const fetchSub = async () => {
+      try {
+        const resp = await fetch(`/api/admin/tokens?userId=${encodeURIComponent(userId)}`)
+        if (!resp.ok) return
+        const data = await resp.json()
+        setCurrentTier(data?.data?.subscription_tier)
+        setCurrentStatus(data?.data?.subscription_status)
+      } catch {
+        // Ignore — subscription data is optional for pricing display
+      }
+    }
+    fetchSub()
+  }, [userId])
+
   return (
     <section id="pricing" className="py-16 lg:py-20 border-t border-gray-200 dark:border-neutral-800">
       <div className="max-w-6xl mx-auto px-6">
@@ -142,7 +169,7 @@ export function PricingSection() {
             </div>
 
             <div className="mb-1">
-              <GetStartedButton buttonText="Start here" planType="individual" botCount={1} />
+              <GetStartedButton buttonText="Start here" planType="individual" botCount={1} currentTier={currentTier} currentStatus={currentStatus} />
             </div>
             <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">
@@ -201,7 +228,7 @@ export function PricingSection() {
               </p>
             </div>
             <div className="mb-1">
-              <GetStartedButton buttonText="Get started" planType="bot_service" />
+              <GetStartedButton buttonText="Get started" planType="bot_service" currentTier={currentTier} currentStatus={currentStatus} />
             </div>
             <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">

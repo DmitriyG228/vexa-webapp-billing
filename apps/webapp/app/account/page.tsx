@@ -656,6 +656,11 @@ function BotsTab({
         <div className="divide-y divide-gray-100 dark:divide-neutral-800">
           {PRICING_PLANS.map((plan) => {
             const isCurrent = plan.id === subTier
+            // Show "Switch" button for switchable plans (individual, bot_service)
+            // when user has an active subscription on a different plan
+            const isSwitchable = ["individual", "bot_service"].includes(plan.id)
+            const hasActiveSub = subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus)
+            const canSwitch = isSwitchable && hasActiveSub && !isCurrent && subTier && subTier !== plan.id
             return (
               <div
                 key={plan.id}
@@ -672,9 +677,20 @@ function BotsTab({
                     </span>
                   )}
                 </div>
-                <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"}`}>
-                  {plan.price}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"}`}>
+                    {plan.price}
+                  </span>
+                  {canSwitch && (
+                    <button
+                      onClick={onOpenPortal}
+                      disabled={isOpeningPortal}
+                      className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
+                    >
+                      Switch
+                    </button>
+                  )}
+                </div>
               </div>
             )
           })}
