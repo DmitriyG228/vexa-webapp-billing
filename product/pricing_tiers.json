@@ -33,7 +33,14 @@
         "REST API + WebSockets",
         "UI Dashboard"
       ],
-      "cta": { "text": "Start here", "plan_type": "mvp" }
+      "cta": { "text": "Start here", "plan_type": "individual" },
+      "stripe": {
+        "product_name": "Vexa Individual",
+        "price_nickname": "Individual Monthly",
+        "recurring": { "interval": "month" },
+        "unit_amount": 1200,
+        "max_concurrent_bots": 1
+      }
     },
     {
       "id": "bot_service",
@@ -56,6 +63,13 @@
         "vexa": "$0.50/hr (with real-time)",
         "competitor": "Recall.ai $0.72/hr",
         "savings": "30% cheaper"
+      },
+      "stripe": {
+        "product_name": "Vexa Bot Service",
+        "price_nickname": "Bot Service Hourly",
+        "recurring": { "interval": "month", "usage_type": "metered" },
+        "unit_amount": 45,
+        "usage_unit": "hour"
       }
     },
     {
@@ -67,7 +81,14 @@
       "price_unit": "/hr",
       "price_cents_per_hour": 5,
       "currency": "usd",
-      "parent": "bot_service"
+      "parent": "bot_service",
+      "stripe": {
+        "product_name": "Vexa Real-time Transcription",
+        "price_nickname": "Real-time Hourly",
+        "recurring": { "interval": "month", "usage_type": "metered" },
+        "unit_amount": 5,
+        "usage_unit": "hour"
+      }
     },
     {
       "id": "transcription_api",
@@ -77,7 +98,14 @@
       "price_display": "$0.0015",
       "price_unit": "/min",
       "price_per_min_cents": 0.15,
-      "currency": "usd"
+      "currency": "usd",
+      "stripe": {
+        "product_name": "Vexa Transcription API",
+        "price_nickname": "Transcription Per Minute",
+        "recurring": { "interval": "month", "usage_type": "metered" },
+        "unit_amount_decimal": "0.15",
+        "usage_unit": "minute"
+      }
     },
     {
       "id": "consultation",
@@ -87,7 +115,12 @@
       "price_display": "$240",
       "price_unit": "/hr",
       "price_cents_per_hour": 24000,
-      "currency": "usd"
+      "currency": "usd",
+      "stripe": {
+        "product_name": "Vexa Consultation",
+        "price_nickname": "Consultation Hourly",
+        "unit_amount": 24000
+      }
     },
     {
       "id": "enterprise",

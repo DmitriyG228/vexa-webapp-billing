@@ -1,0 +1,22 @@
+{
+  "individual": {
+    "product_id": "prod_U4yLD85vjF17j1",
+    "price_id": "price_1T6oObFKEqzvZq6xBipgXQDA"
+  },
+  "bot_service": {
+    "product_id": "prod_U4yLETnqRSESCR",
+    "price_id": "price_1T6oOcFKEqzvZq6xsiLNIpU4"
+  },
+  "realtime": {
+    "product_id": "prod_U4yLYwnr2lCGmQ",
+    "price_id": "price_1T6oOdFKEqzvZq6xmf2NeMaW"
+  },
+  "transcription_api": {
+    "product_id": "prod_U4yLWCodeIUG1j",
+    "price_id": "price_1T6oOeFKEqzvZq6xSIRstlAJ"
+  },
+  "consultation": {
+    "product_id": "prod_U4yLaKgNopnFu3",
+    "price_id": "price_1T6oOfFKEqzvZq6x23czcXEG"
+  }
+}

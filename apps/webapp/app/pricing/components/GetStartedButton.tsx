@@ -12,7 +12,7 @@ interface GetStartedButtonProps {
   isPopular?: boolean
   isEnterprise?: boolean
   isLoading?: boolean
-  planType?: 'mvp' | 'dynamic' | 'enterprise' | 'local' | 'community' | 'nomad' | 'dedicated'
+  planType?: 'mvp' | 'dynamic' | 'enterprise' | 'local' | 'community' | 'nomad' | 'dedicated' | 'individual' | 'bot_service' | 'transcription_api'
   botCount?: number
   totalPrice?: string
   href?: string
@@ -41,7 +41,9 @@ export function GetStartedButton({
 
     setIsSubscribing(true)
     try {
-      // Use the new resolve-url endpoint for proper routing
+      // Map planType to Stripe plan_type
+      const stripePlanType = planType === 'mvp' ? 'individual' : planType
+
       const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
@@ -49,11 +51,8 @@ export function GetStartedButton({
         },
         body: JSON.stringify({
           context: 'pricing',
+          plan_type: stripePlanType,
           quantity: botCount || 1,
-          consent: {
-            timestamp: new Date().toISOString(),
-            userId: session?.user?.email
-          }
         }),
       })
 
@@ -81,17 +80,14 @@ export function GetStartedButton({
       return
     }
 
-    if (planType === 'mvp') {
+    if (planType === 'mvp' || planType === 'individual' || planType === 'bot_service' || planType === 'transcription_api') {
       handleMvpSubscription()
       return
     }
 
     if (!session) {
-      // If user is not logged in, initiate Google sign-in
       signIn('google', { callbackUrl: '/pricing' })
     } else {
-      // If user is logged in, redirect them to the dashboard or a checkout page
-      // For a simple "Get Started", redirecting to the dashboard makes sense.
       window.location.href = '/dashboard'
     }
   }

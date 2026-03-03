@@ -143,7 +143,7 @@ export function PricingSection() {
             </div>
 
             <div className="mb-1">
-              <GetStartedButton buttonText="Start here" planType="mvp" botCount={1} />
+              <GetStartedButton buttonText="Start here" planType="individual" botCount={1} />
             </div>
             <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">
@@ -195,12 +195,9 @@ export function PricingSection() {
                 Bot + transcription + 12mo storage
               </p>
             </div>
-            <Link
-              href="/get-started"
-              className="flex items-center justify-center h-[40px] rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[13px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all mb-1"
-            >
-              Get started
-            </Link>
+            <div className="mb-1">
+              <GetStartedButton buttonText="Get started" planType="bot_service" />
+            </div>
             <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">

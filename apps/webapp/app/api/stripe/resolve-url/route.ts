@@ -21,14 +21,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing Origin header to construct return URL' }, { status: 400 })
     }
 
-    const body = await request.json().catch(() => ({})) as { context?: string; quantity?: number }
+    const body = await request.json().catch(() => ({})) as { context?: string; quantity?: number; plan_type?: string }
     const context = body?.context || 'pricing'
     const quantity = typeof body?.quantity === 'number' ? body.quantity : undefined
+    const plan_type = body?.plan_type || undefined
 
     const payload = {
       email: session.user.email,
       context,
       quantity,
+      plan_type,
       origin,
       returnUrl: `${origin}/account`,
       successUrl: `${origin}/account`,
