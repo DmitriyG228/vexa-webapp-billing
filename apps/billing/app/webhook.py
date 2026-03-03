@@ -101,16 +101,25 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
     prefix = _sub_fields(plan_type)
     sub_id_field = f"stripe_{prefix}_id" if is_addon else "stripe_subscription_id"
 
-    # Guard: if this is a cancellation, don't overwrite a newer active subscription.
+    # Guard: if this is a cancellation, check Stripe for a newer active subscription.
+    # DB check is unreliable because subscription.created and subscription.deleted
+    # arrive simultaneously — the created handler may not have written to DB yet.
     status_field = f"{prefix}_status"
     cancel_statuses = ("canceled", "incomplete_expired")
-    if entitlements.get(status_field) in cancel_statuses and DATABASE_URL:
-        from .db import get_user_data
-        current_data = await get_user_data(email)
-        current_sub_id = current_data.get(sub_id_field)
-        if current_sub_id and current_sub_id != sub.get("id"):
-            print(f"[WEBHOOK] Ignoring canceled sub {sub.get('id')} — user has newer sub {current_sub_id}")
-            return
+    if entitlements.get(status_field) in cancel_statuses:
+        cust_id = sub.get("customer")
+        if cust_id:
+            try:
+                active_subs = stripe.Subscription.list(customer=cust_id, status="active", limit=10)
+                for active_sub in active_subs.data:
+                    active_plan = _identify_plan(active_sub)
+                    active_is_addon = active_plan in ADDON
+                    # Same product category (bot vs addon) and different sub ID = newer sub exists
+                    if active_is_addon == is_addon and active_sub.id != sub.get("id"):
+                        print(f"[WEBHOOK] Ignoring canceled sub {sub.get('id')} — customer has active sub {active_sub.id}")
+                        return
+            except stripe.error.StripeError as e:
+                print(f"[WEBHOOK] WARNING: Could not check active subs: {e}")
 
     # Upsert user
     resp = await admin_request("POST", "/admin/users", {"email": email})
