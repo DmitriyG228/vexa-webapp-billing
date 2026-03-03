@@ -58,6 +58,9 @@ interface BalanceData {
   remaining_minutes: number
   total_purchased_minutes: number
   total_used_minutes: number
+  topup_enabled?: boolean
+  topup_threshold_min?: number
+  topup_amount_cents?: number
 }
 
 interface MeetingsData {
@@ -205,7 +208,7 @@ function AccountPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [balanceData, setBalanceData] = useState<BalanceData | null>(null)
-  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean } | null>(null)
+  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number } | null>(null)
   const [meetingsData, setMeetingsData] = useState<MeetingsData | null>(null)
 
   // Loading states
@@ -497,7 +500,7 @@ function BotsTab({
 }: {
   userData: UserData | null
   meetingsData: MeetingsData | null
-  botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean } | null
+  botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number } | null
   onOpenPortal: () => void
   isOpeningPortal: boolean
 }) {
@@ -533,9 +536,73 @@ function BotsTab({
     }
   }
 
-  // Auto-topup state (UI-only — backend storage TBD)
-  const [autoTopup, setAutoTopup] = useState(true)
-  const [spendingLimit, setSpendingLimit] = useState(5)
+  // Auto-topup state — initialized from server data
+  const [autoTopup, setAutoTopup] = useState(botBalanceData?.topup_enabled ?? false)
+  const [topupAmount, setTopupAmount] = useState(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100))
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
+  const [isAddingFunds, setIsAddingFunds] = useState(false)
+
+  // Sync state when server data arrives
+  useEffect(() => {
+    if (botBalanceData) {
+      setAutoTopup(botBalanceData.topup_enabled ?? false)
+      setTopupAmount(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100))
+    }
+  }, [botBalanceData])
+
+  const handleSaveSettings = async () => {
+    setIsSavingSettings(true)
+    setSettingsSaved(false)
+    try {
+      const resp = await fetch("/api/billing/topup-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product: "bot",
+          enabled: autoTopup,
+          threshold: (botBalanceData?.topup_threshold_cents ?? 100),
+          amount_cents: topupAmount * 100,
+        }),
+      })
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}))
+        throw new Error(data.detail || data.error || "Failed to save settings")
+      }
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to save settings")
+    } finally {
+      setIsSavingSettings(false)
+    }
+  }
+
+  const handleAddFunds = async () => {
+    setIsAddingFunds(true)
+    try {
+      const resp = await fetch("/api/billing/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: "bot" }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) {
+        if (data.detail?.includes("No saved payment method")) {
+          alert("No payment method on file. Add a card via Manage Subscription first.")
+        } else {
+          throw new Error(data.detail || data.error || "Failed to add funds")
+        }
+        return
+      }
+      alert(`Added $${(data.charged_cents / 100).toFixed(2)} to your bot balance.`)
+      window.location.reload()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to add funds")
+    } finally {
+      setIsAddingFunds(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -647,29 +714,44 @@ function BotsTab({
             </button>
           </div>
 
-          {/* Spending limit */}
-          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Spending limit</p>
-                <p className="text-[13px] text-gray-400">Maximum monthly spend before bots are paused.</p>
+          {/* Top-up amount */}
+          {autoTopup && (
+            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Top-up amount</p>
+                  <p className="text-[13px] text-gray-400">Amount charged when balance runs low.</p>
+                </div>
               </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] text-gray-400">$</span>
+                <input
+                  type="number"
+                  min={2}
+                  value={topupAmount}
+                  onChange={(e) => {
+                    const v = parseInt(e.target.value, 10)
+                    if (!isNaN(v) && v >= 2) setTopupAmount(v)
+                  }}
+                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-[13px] text-gray-400">min $2</span>
+              </div>
+              <button
+                onClick={handleSaveSettings}
+                disabled={isSavingSettings}
+                className="mt-3 h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
+              >
+                {isSavingSettings ? (
+                  <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
+                ) : settingsSaved ? (
+                  <><Check className="h-3 w-3" /> Saved</>
+                ) : (
+                  "Save Settings"
+                )}
+              </button>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[14px] text-gray-400">$</span>
-              <input
-                type="number"
-                min={2}
-                value={spendingLimit}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10)
-                  if (!isNaN(v) && v >= 2) setSpendingLimit(v)
-                }}
-                className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-[13px] text-gray-400">min $2</span>
-            </div>
-          </div>
+          )}
 
           {/* Balance & usage display */}
           <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mt-5">
@@ -695,6 +777,25 @@ function BotsTab({
                 />
               </div>
             )}
+          </div>
+
+          {/* Add Funds */}
+          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mt-5">
+            <button
+              onClick={handleAddFunds}
+              disabled={isAddingFunds}
+              className="w-full sm:w-auto h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {isAddingFunds ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Add Funds"
+              )}
+            </button>
+            <p className="text-[12px] text-gray-400 mt-2">Charges your saved payment method. Default: $5.</p>
           </div>
         </div>
       )}
@@ -819,11 +920,49 @@ function TranscriptionTab({
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics
 
-  // Auto-topup state (UI-only — backend storage TBD)
-  const [autoTopup, setAutoTopup] = useState(true)
-  const [threshold, setThreshold] = useState(100)
-  const [topupAmount, setTopupAmount] = useState(5)
+  // Auto-topup state — initialized from server data
+  const [autoTopup, setAutoTopup] = useState(balanceData?.topup_enabled ?? false)
+  const [threshold, setThreshold] = useState(Math.round(balanceData?.topup_threshold_min ?? 100))
+  const [topupAmount, setTopupAmount] = useState(Math.round((balanceData?.topup_amount_cents ?? 500) / 100))
   const [isAddingFunds, setIsAddingFunds] = useState(false)
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
+
+  // Sync state when server data arrives
+  useEffect(() => {
+    if (balanceData) {
+      setAutoTopup(balanceData.topup_enabled ?? false)
+      setThreshold(Math.round(balanceData.topup_threshold_min ?? 100))
+      setTopupAmount(Math.round((balanceData.topup_amount_cents ?? 500) / 100))
+    }
+  }, [balanceData])
+
+  const handleSaveSettings = async () => {
+    setIsSavingSettings(true)
+    setSettingsSaved(false)
+    try {
+      const resp = await fetch("/api/billing/topup-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product: "tx",
+          enabled: autoTopup,
+          threshold: threshold,
+          amount_cents: topupAmount * 100,
+        }),
+      })
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}))
+        throw new Error(data.detail || data.error || "Failed to save settings")
+      }
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to save settings")
+    } finally {
+      setIsSavingSettings(false)
+    }
+  }
 
   const handleAddFunds = async () => {
     setIsAddingFunds(true)
@@ -960,6 +1099,19 @@ function TranscriptionTab({
                 <span className="text-[13px] text-gray-400">min $2</span>
               </div>
             </div>
+            <button
+              onClick={handleSaveSettings}
+              disabled={isSavingSettings}
+              className="mt-3 h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
+            >
+              {isSavingSettings ? (
+                <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
+              ) : settingsSaved ? (
+                <><Check className="h-3 w-3" /> Saved</>
+              ) : (
+                "Save Settings"
+              )}
+            </button>
           </div>
         )}
 
@@ -973,18 +1125,14 @@ function TranscriptionTab({
             {isAddingFunds ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading...
+                Processing...
               </>
             ) : (
               "Add Funds"
             )}
           </button>
-          <p className="text-[12px] text-gray-400 mt-2">Default: $5, minimum: $2. Charges your saved payment method or prompts for a new one.</p>
+          <p className="text-[12px] text-gray-400 mt-2">Default: $5, minimum: $2. Charges your saved payment method.</p>
         </div>
-
-        <p className="text-[12px] text-gray-400 mt-4 italic">
-          Auto-topup settings will be saved once the backend is available. Changes are local for now.
-        </p>
       </div>
 
       {/* Usage chart (last 30 days) */}

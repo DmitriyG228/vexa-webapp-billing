@@ -31,6 +31,9 @@ export async function GET() {
       remaining_minutes: tx.balance_minutes ?? 0,
       total_purchased_minutes: tx.balance_minutes ?? 0,
       total_used_minutes: 0,
+      topup_enabled: tx.topup_enabled ?? false,
+      topup_threshold_min: tx.topup_threshold_min ?? 1333.0,
+      topup_amount_cents: tx.topup_amount_cents ?? 500,
     })
   } catch (error) {
     console.error('Error fetching balance:', error)
