@@ -4,7 +4,8 @@ import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2 } from "lucide-react"
+import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink } from "lucide-react"
+import { getDashboardUrl } from "@/lib/utils"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -411,17 +412,50 @@ function AccountPage() {
     )
   }
 
+  // ─── Switched plan success banner ──────────────────────────────────────
+  const switchedPlan = searchParams?.get("switched")
+  const [showSwitchedBanner, setShowSwitchedBanner] = useState(!!switchedPlan)
+
+  useEffect(() => {
+    if (switchedPlan) {
+      // Clean URL without reload
+      window.history.replaceState({}, "", "/account")
+    }
+  }, [switchedPlan])
+
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
     <section className="py-10 lg:py-14">
       <div className="max-w-5xl mx-auto px-6">
+        {/* Success banner after plan switch */}
+        {showSwitchedBanner && (
+          <div className="mb-6 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+              <p className="text-[14px] text-emerald-800 dark:text-emerald-300 font-medium">
+                Plan switched successfully!{switchedPlan ? ` You're now on the ${getPlanLabel(switchedPlan)} plan.` : ""}
+              </p>
+            </div>
+            <button onClick={() => setShowSwitchedBanner(false)} className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 text-[18px] leading-none px-2">×</button>
+          </div>
+        )}
+
         {/* Page heading */}
-        <div className="mb-8">
-          <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">Account</h1>
-          <p className="mt-1 text-[14px] text-gray-500">
-            Manage your services, usage, and billing.
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">Account</h1>
+            <p className="mt-1 text-[14px] text-gray-500">
+              Manage your services, usage, and billing.
+            </p>
+          </div>
+          <a
+            href={getDashboardUrl()}
+            className="hidden sm:inline-flex items-center gap-2 h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+          >
+            Go to Dashboard
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
         </div>
 
         {/* Tab bar */}
@@ -543,6 +577,7 @@ function BotsTab({
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [isAddingFunds, setIsAddingFunds] = useState(false)
+  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
 
   // Sync state when server data arrives
   useEffect(() => {
@@ -590,7 +625,8 @@ function BotsTab({
     }
   }
 
-  const handleAddFunds = async () => {
+  const handleAddFundsConfirmed = async () => {
+    setShowAddFundsConfirm(false)
     setIsAddingFunds(true)
     try {
       const resp = await fetch("/api/billing/topup", {
@@ -797,7 +833,7 @@ function BotsTab({
           {/* Add Funds */}
           <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mt-5">
             <button
-              onClick={handleAddFunds}
+              onClick={() => setShowAddFundsConfirm(true)}
               disabled={isAddingFunds}
               className="w-full sm:w-auto h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
@@ -810,8 +846,34 @@ function BotsTab({
                 "Add Funds"
               )}
             </button>
-            <p className="text-[12px] text-gray-400 mt-2">Charges your saved payment method. Default: $5.</p>
+            <p className="text-[12px] text-gray-400 mt-2">Adds $5.00 to your bot balance.</p>
           </div>
+
+          {/* Add Funds confirmation dialog */}
+          {showAddFundsConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+                <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
+                <p className="text-[14px] text-gray-500 mb-4">
+                  This will charge <span className="font-medium text-gray-950 dark:text-gray-50">$5.00</span> to your saved payment method.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowAddFundsConfirm(false)}
+                    className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddFundsConfirmed}
+                    className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                  >
+                    Confirm — $5.00
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -940,6 +1002,7 @@ function TranscriptionTab({
   const [thresholdStr, setThresholdStr] = useState(String(Math.round(balanceData?.topup_threshold_min ?? 100)))
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((balanceData?.topup_amount_cents ?? 500) / 100)))
   const [isAddingFunds, setIsAddingFunds] = useState(false)
+  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
 
@@ -989,7 +1052,8 @@ function TranscriptionTab({
     }
   }
 
-  const handleAddFunds = async () => {
+  const handleAddFundsConfirmed = async () => {
+    setShowAddFundsConfirm(false)
     setIsAddingFunds(true)
     try {
       const resp = await fetch("/api/billing/topup", {
@@ -1137,7 +1201,7 @@ function TranscriptionTab({
         {/* Add funds button */}
         <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
           <button
-            onClick={handleAddFunds}
+            onClick={() => setShowAddFundsConfirm(true)}
             disabled={isAddingFunds}
             className="w-full sm:w-auto h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
           >
@@ -1150,8 +1214,34 @@ function TranscriptionTab({
               "Add Funds"
             )}
           </button>
-          <p className="text-[12px] text-gray-400 mt-2">Default: $5, minimum: $2. Charges your saved payment method.</p>
+          <p className="text-[12px] text-gray-400 mt-2">Adds $5.00 to your transcription balance.</p>
         </div>
+
+        {/* Add Funds confirmation dialog */}
+        {showAddFundsConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+              <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
+              <p className="text-[14px] text-gray-500 mb-4">
+                This will charge <span className="font-medium text-gray-950 dark:text-gray-50">$5.00</span> to your saved payment method for transcription minutes.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowAddFundsConfirm(false)}
+                  className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddFundsConfirmed}
+                  className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Confirm — $5.00
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Usage chart (last 30 days) */}
