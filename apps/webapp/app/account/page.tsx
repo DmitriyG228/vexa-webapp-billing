@@ -389,6 +389,17 @@ function AccountPage() {
     }
   }
 
+  // ─── Switched plan success banner (hooks must be before early returns) ──
+  const switchedPlan = searchParams?.get("switched")
+  const [showSwitchedBanner, setShowSwitchedBanner] = useState(!!switchedPlan)
+
+  useEffect(() => {
+    if (switchedPlan) {
+      // Clean URL without reload
+      window.history.replaceState({}, "", "/account")
+    }
+  }, [switchedPlan])
+
   // ─── Loading / auth states ───────────────────────────────────────────────
 
   if (sessionStatus === "loading" || isLoading) {
@@ -411,17 +422,6 @@ function AccountPage() {
       </section>
     )
   }
-
-  // ─── Switched plan success banner ──────────────────────────────────────
-  const switchedPlan = searchParams?.get("switched")
-  const [showSwitchedBanner, setShowSwitchedBanner] = useState(!!switchedPlan)
-
-  useEffect(() => {
-    if (switchedPlan) {
-      // Clean URL without reload
-      window.history.replaceState({}, "", "/account")
-    }
-  }, [switchedPlan])
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
