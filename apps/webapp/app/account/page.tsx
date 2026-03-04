@@ -695,6 +695,25 @@ function BotsTab({
               {isOpeningPortal ? "Opening..." : "Cancel subscription"}
             </button>
           )}
+          {/* Past due — update payment method CTA */}
+          {subStatus === "past_due" && (
+            <button
+              onClick={onOpenPortal}
+              disabled={isOpeningPortal}
+              className="mt-4 h-9 px-4 rounded-full bg-red-600 text-white text-[13px] font-medium hover:bg-red-500 transition-colors disabled:opacity-50"
+            >
+              {isOpeningPortal ? "Opening..." : "Update Payment Method"}
+            </button>
+          )}
+          {/* Canceled — re-subscribe CTA */}
+          {subStatus === "canceled" && (
+            <a
+              href="/pricing"
+              className="mt-4 inline-flex h-9 px-4 items-center rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+            >
+              Re-subscribe
+            </a>
+          )}
         </div>
 
         {/* Meeting stats card — only show when there's actual data */}
@@ -887,9 +906,11 @@ function BotsTab({
         </div>
         <div className="divide-y divide-gray-100 dark:divide-neutral-800">
           {BOT_PLANS.map((plan) => {
-            const isCurrent = plan.id === subTier
             const hasActiveSub = subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus)
+            const isCurrent = plan.id === subTier && hasActiveSub
             const canSwitch = hasActiveSub && !isCurrent
+            const isCanceled = subStatus === "canceled" || subStatus === "past_due" || subStatus === "incomplete_expired"
+            const canSubscribe = !hasActiveSub && isCanceled
             return (
               <div key={plan.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
@@ -915,6 +936,14 @@ function BotsTab({
                     >
                       {isSwitching ? "Switching..." : "Switch"}
                     </button>
+                  )}
+                  {canSubscribe && (
+                    <a
+                      href={`/get-started`}
+                      className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all"
+                    >
+                      Subscribe
+                    </a>
                   )}
                 </div>
               </div>
