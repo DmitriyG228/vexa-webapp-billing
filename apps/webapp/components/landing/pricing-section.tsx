@@ -245,7 +245,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Post-meeting transcription</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Real-time transcription</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -258,13 +258,6 @@ export function PricingSection() {
               <div className="flex items-center gap-2">
                 <CheckIcon />
                 <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
-              </div>
-              <div className="mt-3 rounded-lg border border-gray-200 dark:border-neutral-800 px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] font-medium text-gray-500 dark:text-gray-400">+ Real-time</span>
-                  <span className="text-[12px] font-semibold text-gray-950 dark:text-gray-50">$0.05<span className="font-normal text-gray-400 dark:text-gray-500">/hr</span></span>
-                </div>
-                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Live transcription &lt;5s latency</p>
               </div>
             </div>
           </div>
@@ -368,10 +361,10 @@ export function PricingSection() {
         <div className="mt-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm">
             <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">
-              Vexa full-service: $0.50/hr vs Recall.ai $0.72/hr &mdash;
+              Vexa full-service: $0.45/hr vs Recall.ai $0.72/hr &mdash;
             </span>
             <span className="text-[13px] text-gray-950 dark:text-gray-50 font-semibold">
-              30% cheaper
+              ~37% cheaper
             </span>
           </div>
         </div>
@@ -387,7 +380,7 @@ export function PricingSection() {
                 What&apos;s included in the $0.45/hr Bot Service?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                The Bot Service includes a meeting bot, post-meeting transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for $0.05/hr.
+                The Bot Service includes a meeting bot, real-time transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom.
               </p>
             </div>
             <div className="py-5">
@@ -419,7 +412,7 @@ export function PricingSection() {
                 How does Vexa compare to Recall.ai?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                Vexa is open source, self-hostable, and 30% cheaper. Full-service Vexa costs $0.50/hr vs Recall.ai&apos;s ~$0.72/hr at scale. See our{' '}
+                Vexa is open source, self-hostable, and ~37% cheaper. Full-service Vexa costs $0.45/hr vs Recall.ai&apos;s ~$0.72/hr at scale. See our{' '}
                 <Link href="/compare/recall-ai" className="text-gray-700 dark:text-gray-300 underline underline-offset-2">
                   detailed comparison
                 </Link>.
@@ -449,7 +442,7 @@ export function PricingSection() {
                   name: "What's included in the $0.45/hr Bot Service?",
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'The Bot Service includes a meeting bot, post-meeting transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for $0.05/hr.',
+                    text: 'The Bot Service includes a meeting bot, real-time transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom.',
                   },
                 },
                 {
@@ -481,7 +474,7 @@ export function PricingSection() {
                   name: 'How does Vexa compare to Recall.ai?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: "Vexa is open source, self-hostable, and 30% cheaper. Full-service Vexa costs $0.50/hr vs Recall.ai's approximately $0.72/hr at scale. See the detailed comparison at vexa.ai/compare/recall-ai.",
+                    text: "Vexa is open source, self-hostable, and ~37% cheaper. Full-service Vexa costs $0.45/hr vs Recall.ai's approximately $0.72/hr at scale. See the detailed comparison at vexa.ai/compare/recall-ai.",
                   },
                 },
                 {

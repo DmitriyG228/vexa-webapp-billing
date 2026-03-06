@@ -97,7 +97,6 @@ const BOT_PLANS = [
 // Add-on products — can be added alongside any bot plan
 const ADDON_PRODUCTS = [
   { id: "transcription_api", name: "Transcription API", price: "$0.0015/min", detail: "For self-hosted bot users" },
-  { id: "realtime", name: "+ Real-time transcription", price: "+$0.05/hr", detail: "Add-on to Pay-as-you-go" },
 ]
 
 // All plans for display in getPlanLabel

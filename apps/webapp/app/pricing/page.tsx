@@ -45,7 +45,7 @@ const faqJsonLd = {
       name: 'Is Vexa cheaper than Recall.ai?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes. Vexa's full-service Bot Service costs $0.50/hr (bot + transcription + real-time) compared to Recall.ai's equivalent at approximately $0.72/hr — that's 30% cheaper. Plus, Vexa is open source so you can self-host for free.",
+        text: "Yes. Vexa's full-service Bot Service costs $0.45/hr (bot + real-time transcription) compared to Recall.ai's equivalent at approximately $0.72/hr — that's ~37% cheaper. Plus, Vexa is open source so you can self-host for free.",
       },
     },
     {
