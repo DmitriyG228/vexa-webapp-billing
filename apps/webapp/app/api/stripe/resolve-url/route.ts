@@ -51,7 +51,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: data.url })
   } catch (error) {
     console.error('Error resolving billing URL:', error)
-    return NextResponse.json({ error: 'Failed to resolve billing URL' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Failed to resolve billing URL'
+    const hint = message.includes('ECONNREFUSED') ? ' (billing service may not be running)' : ''
+    return NextResponse.json({ error: `Failed to resolve billing URL: ${message}${hint}` }, { status: 500 })
   }
 }
 
