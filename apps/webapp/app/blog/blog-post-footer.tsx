@@ -46,7 +46,7 @@ export function BlogPostFooter() {
           </div>
           <div className="flex items-center gap-3 mt-6">
             <Link
-              href="/documentation_new"
+              href="https://docs.vexa.ai"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
             >
               Read docs

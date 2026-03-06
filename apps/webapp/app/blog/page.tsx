@@ -37,7 +37,37 @@ function getInitials(name: string) {
 export default async function BlogIndex() {
   const allPostsData = await getSortedPostsData();
 
+  const blogJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Vexa Blog',
+    description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.',
+    url: 'https://vexa.ai/blog',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Vexa',
+      url: 'https://vexa.ai',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://vexa.ai/logodark.svg',
+      },
+    },
+    blogPost: allPostsData.map((post) => ({
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description: post.summary,
+      datePublished: new Date(post.date).toISOString(),
+      author: { '@type': 'Person', name: post.author },
+      url: `https://vexa.ai/blog/${post.slug}`,
+    })),
+  };
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
+    />
     <section className="py-16 lg:py-20">
       <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
@@ -103,6 +133,7 @@ export default async function BlogIndex() {
         )}
       </div>
     </section>
+    </>
   );
 }
 
