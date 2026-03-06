@@ -26,7 +26,12 @@ def _get_engine():
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        _engine = create_async_engine(url, pool_size=5, max_overflow=5)
+        # statement_cache_size=0 required for pgbouncer/Supabase pooler compatibility
+        connect_args = {}
+        if "pooler.supabase.com" in url or "pgbouncer" in url:
+            connect_args["statement_cache_size"] = 0
+            connect_args["prepared_statement_cache_size"] = 0
+        _engine = create_async_engine(url, pool_size=5, max_overflow=5, connect_args=connect_args)
         _session_factory = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
     return _engine, _session_factory
 

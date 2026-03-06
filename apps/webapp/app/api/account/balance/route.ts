@@ -47,6 +47,14 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching balance:', error)
-    return NextResponse.json({ error: 'Failed to fetch balance' }, { status: 500 })
+    return NextResponse.json({
+      balance_minutes: 0,
+      remaining_minutes: 0,
+      total_purchased_minutes: 0,
+      total_used_minutes: 0,
+      topup_enabled: false,
+      topup_threshold_min: 100,
+      topup_amount_cents: 500,
+    })
   }
 }

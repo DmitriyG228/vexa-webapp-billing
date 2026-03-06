@@ -62,6 +62,17 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching bot balance:', error)
-    return NextResponse.json({ error: 'Failed to fetch bot balance' }, { status: 500 })
+    return NextResponse.json({
+      balance_cents: 0,
+      initial_credit_cents: 0,
+      usage_cents: 0,
+      balance_usd: '$0.00',
+      usage_usd: '$0.00',
+      initial_credit_usd: '$0.00',
+      has_subscription: false,
+      topup_enabled: true,
+      topup_threshold_cents: 100,
+      topup_amount_cents: 500,
+    })
   }
 }
