@@ -498,8 +498,6 @@ function AccountPage() {
           <TranscriptionTab
             balanceData={balanceData}
             usageData={usageData}
-            subscriptionTier={userData?.data?.subscription_tier}
-            subscriptionStatus={userData?.data?.subscription_status}
           />
         )}
 
@@ -517,7 +515,7 @@ function AccountPage() {
             onRevoke={revokeApiKey}
             onShowCreateDialog={setShowCreateDialog}
             onShowRevokeDialog={setShowRevokeDialog}
-            hasActiveSubscription={!!userData?.data?.subscription_status && ["active", "trialing"].includes(userData.data.subscription_status)}
+            hasActiveSubscription={!!userData?.data?.subscription_status && ["active", "trialing", "scheduled_to_cancel"].includes(userData.data.subscription_status)}
           />
         )}
       </div>
@@ -551,6 +549,7 @@ function BotsTab({
   const [isSwitching, setIsSwitching] = useState(false)
   const [showSwitchConfirm, setShowSwitchConfirm] = useState<string | null>(null)
   const [isReactivating, setIsReactivating] = useState(false)
+  const [isSubscribing, setIsSubscribing] = useState(false)
 
   const handleReactivate = async () => {
     setIsReactivating(true)
@@ -566,6 +565,29 @@ function BotsTab({
       alert(err instanceof Error ? err.message : "Failed to reactivate subscription")
     } finally {
       setIsReactivating(false)
+    }
+  }
+
+  const handleSubscribe = async (planType: string) => {
+    setIsSubscribing(true)
+    try {
+      const resp = await fetch("/api/stripe/resolve-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: "pricing",
+          plan_type: planType,
+          quantity: 1,
+        }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error || "Failed to start checkout")
+      if (data.url) window.location.href = data.url
+      else throw new Error("No checkout URL returned")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to subscribe")
+    } finally {
+      setIsSubscribing(false)
     }
   }
 
@@ -971,12 +993,13 @@ function BotsTab({
                     </button>
                   )}
                   {canSubscribe && (
-                    <a
-                      href={`/get-started`}
-                      className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all"
+                    <button
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={isSubscribing}
+                      className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all disabled:opacity-50"
                     >
-                      Subscribe
-                    </a>
+                      {isSubscribing ? "Loading..." : "Subscribe"}
+                    </button>
                   )}
                 </div>
               </div>
@@ -1084,29 +1107,10 @@ function BotsTab({
 function TranscriptionTab({
   balanceData,
   usageData,
-  subscriptionTier,
-  subscriptionStatus,
 }: {
   balanceData: BalanceData | null
   usageData: UsageData | null
-  subscriptionTier?: string
-  subscriptionStatus?: string
 }) {
-  // Individual plan users get transcription included — show simple message
-  const isIndividualPlan = subscriptionTier === "individual" && subscriptionStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subscriptionStatus)
-  if (isIndividualPlan) {
-    return (
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Transcription</h3>
-          <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-relaxed">
-            Transcription is included in your Individual plan. Your bot automatically transcribes all meetings — no separate balance or credits needed.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   const history = usageData?.usage_history || []
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics
