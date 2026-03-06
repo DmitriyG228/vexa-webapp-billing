@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Open-source meeting bot infrastructure for Google Meet, Microsoft Teams, and Zoom. Real-time transcription, bot control, and meeting data via REST API, WebSocket, and MCP. Self-host or use our cloud. From $0.45/hr.',
   openGraph: {
     title: 'Vexa — Open-Source Meeting Transcription API',
-    description: 'Deploy meeting bots that record, transcribe, and deliver real-time data. Open source, self-hostable, 30% cheaper than Recall.ai.',
+    description: 'Deploy meeting bots that record, transcribe, and deliver real-time data. Open source, self-hostable, ~37% cheaper than Recall.ai.',
     url: 'https://vexa.ai',
     siteName: 'Vexa',
     images: [

@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Vexa vs Recall.ai — Open-Source Meeting Bot API Comparison (2026)',
   description:
-    'Compare Vexa and Recall.ai side by side. Vexa is open source, self-hostable, and 30% cheaper. Feature comparison, pricing breakdown, and migration guide.',
+    'Compare Vexa and Recall.ai side by side. Vexa is open source, self-hostable, and ~37% cheaper. Feature comparison, pricing breakdown, and migration guide.',
   alternates: { canonical: 'https://vexa.ai/compare/recall-ai' },
   openGraph: {
     title: 'Vexa vs Recall.ai — Which Meeting Bot API?',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Vexa vs Recall.ai — Open-Source Meeting Bot API',
     description:
-      '30% cheaper, open source, self-hostable. Compare Vexa and Recall.ai side by side.',
+      '~37% cheaper, open source, self-hostable. Compare Vexa and Recall.ai side by side.',
   },
 };
 
@@ -89,7 +89,7 @@ export default function CompareRecallAiPage() {
           Vexa vs Recall.ai
         </h1>
         <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-xl mx-auto">
-          Open source vs closed source. Self-hostable vs cloud-only. 30%
+          Open source vs closed source. Self-hostable vs cloud-only. ~37%
           cheaper. See how Vexa compares to Recall.ai for meeting bot
           infrastructure.
         </p>
