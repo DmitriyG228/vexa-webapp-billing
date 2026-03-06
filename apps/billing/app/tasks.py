@@ -42,7 +42,7 @@ async def bot_session_stop(session_id: str) -> Dict[str, Any]:
         from .db import get_user_data
         data = await get_user_data(session["email"])
         current = data.get("bot_balance_cents", 0) or 0
-        new_balance = max(current - duration_cents, 0)
+        new_balance = current - duration_cents  # allow negative — meetings can't be interrupted
         await merge_user_data_by_id(
             # We'd need user_id here — for now use email-based merge
             # This is a simplification; in production the gateway would pass user_id

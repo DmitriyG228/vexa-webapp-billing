@@ -66,7 +66,7 @@ async def balance_deduct(req: BalanceDeductRequest) -> Dict[str, Any]:
     f = _fields(req.product)
     data = await get_user_data(req.email)
     current = data.get(f["balance"], 0) or 0
-    new_balance = max(current - req.amount, 0)
+    new_balance = current - req.amount  # allow negative — meetings can't be interrupted mid-call
     await merge_user_data(req.email, {f["balance"]: new_balance})
     return {"new_balance": new_balance, "product": req.product}
 

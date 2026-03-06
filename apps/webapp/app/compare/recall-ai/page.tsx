@@ -136,14 +136,14 @@ export default function CompareRecallAiPage() {
           </div>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-              $0.50
+              ~$0.72
             </span>
             <span className="text-[14px] text-gray-400 dark:text-gray-500">
-              /hr PAYG
+              /hr effective
             </span>
           </div>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-4">
-            Pay-as-you-go rate. Volume commitments ~$0.72/hr effective
+            Bot ($0.50/hr) + transcription ($0.22/hr) at volume commitments
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[13px] text-gray-500 dark:text-gray-400">

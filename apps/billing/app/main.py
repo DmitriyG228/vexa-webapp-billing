@@ -12,6 +12,7 @@ from .trials import router as trials_router
 from .admin import router as admin_router
 from .balance import router as balance_router
 from .tasks import router as tasks_router, start_background_tasks
+from .hooks import router as hooks_router
 
 
 @asynccontextmanager
@@ -30,6 +31,7 @@ app.include_router(trials_router)
 app.include_router(admin_router)
 app.include_router(balance_router)
 app.include_router(tasks_router)
+app.include_router(hooks_router)
 
 # Bot balance — kept for backward compat until frontend migrates to /v1/balance/
 from .models import BotBalanceRequest
@@ -63,13 +65,13 @@ async def get_bot_balance(req: BotBalanceRequest):
         except Exception as e:
             print(f"[BOT-BALANCE] Error getting usage for {item.id}: {e}")
 
-    balance_cents = max(initial_credit - usage_cents, 0)
+    balance_cents = initial_credit - usage_cents  # can go negative — meetings aren't interrupted
     return {
         "balance_cents": balance_cents,
         "initial_credit_cents": initial_credit,
         "usage_cents": usage_cents,
         "has_subscription": True,
-        "balance_usd": f"${balance_cents / 100:.2f}",
+        "balance_usd": f"-${abs(balance_cents) / 100:.2f}" if balance_cents < 0 else f"${balance_cents / 100:.2f}",
         "usage_usd": f"${usage_cents / 100:.2f}",
         "initial_credit_usd": f"${initial_credit / 100:.2f}",
     }
