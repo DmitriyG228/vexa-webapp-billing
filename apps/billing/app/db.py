@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, Optional
 
+import os
+import ssl as _ssl
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
@@ -10,39 +13,59 @@ from .config import DATABASE_URL
 
 # ── Engine ───────────────────────────────────────────────────────────────────
 # DATABASE_URL is optional — if not set, DB features are disabled (Phase 1 compat)
+# Also supports individual DB_* env vars (like the admin API uses)
 
 _engine = None
 _session_factory = None
 
 
-def _get_engine():
-    global _engine, _session_factory
-    if _engine is None:
-        if not DATABASE_URL:
-            raise RuntimeError("DATABASE_URL not configured — DB features unavailable")
-        # Convert postgres:// to postgresql+asyncpg://
+def _build_url_and_args():
+    """Build asyncpg connection URL and connect_args.
+
+    Handles:
+    - DATABASE_URL or individual DB_* env vars
+    - SSL via connect_args (asyncpg doesn't accept ssl= in URL)
+    - pgbouncer: statement_cache_size=0
+    """
+    db_host = os.environ.get("DB_HOST")
+    db_port = os.environ.get("DB_PORT")
+    db_name = os.environ.get("DB_NAME")
+    db_user = os.environ.get("DB_USER")
+    db_password = os.environ.get("DB_PASSWORD")
+    db_ssl_mode = os.environ.get("DB_SSL_MODE", "")
+
+    if db_host and db_user:
+        # Build URL from individual vars (no SSL in URL — handled via connect_args)
+        url = f"postgresql+asyncpg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        needs_ssl = db_ssl_mode.lower() in ("require", "prefer", "verify-ca", "verify-full")
+    elif DATABASE_URL:
         url = DATABASE_URL
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        # pgbouncer/Supabase pooler: disable prepared statement caching
-        # Also handle SSL via connect_args since asyncpg doesn't accept ssl= in URL
-        connect_args: dict = {"prepared_statement_cache_size": 0, "statement_cache_size": 0}
-        if "ssl=require" in url or "ssl=true" in url:
-            import ssl as _ssl
-            ctx = _ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = _ssl.CERT_NONE
-            connect_args["ssl"] = ctx
-            # Remove ssl param from URL to avoid asyncpg confusion
-            url = url.replace("?ssl=require", "").replace("&ssl=require", "")
-            url = url.replace("?ssl=true", "").replace("&ssl=true", "")
-        _engine = create_async_engine(
-            url, pool_size=5, max_overflow=5,
-            connect_args=connect_args,
-            pool_pre_ping=True,
-        )
+        needs_ssl = "ssl=require" in url or "ssl=true" in url
+        # Strip ssl param from URL — asyncpg doesn't accept it
+        url = url.replace("?ssl=require", "").replace("&ssl=require", "")
+        url = url.replace("?ssl=true", "").replace("&ssl=true", "")
+    else:
+        raise RuntimeError("DATABASE_URL not configured — DB features unavailable")
+
+    connect_args: dict = {"statement_cache_size": 0}
+    if needs_ssl:
+        ctx = _ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = _ssl.CERT_NONE
+        connect_args["ssl"] = ctx
+
+    return url, connect_args
+
+
+def _get_engine():
+    global _engine, _session_factory
+    if _engine is None:
+        url, connect_args = _build_url_and_args()
+        _engine = create_async_engine(url, pool_size=5, max_overflow=5, connect_args=connect_args)
         _session_factory = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
     return _engine, _session_factory
 
