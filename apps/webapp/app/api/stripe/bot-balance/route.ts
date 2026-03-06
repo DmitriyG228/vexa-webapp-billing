@@ -43,7 +43,7 @@ export async function GET() {
       usage_usd: formatUsd(usageCents),
       initial_credit_usd: formatUsd(initialCreditCents),
       has_subscription: bot.welcome_credit_given || balanceCents > 0,
-      topup_enabled: bot.topup_enabled ?? false,
+      topup_enabled: bot.topup_enabled ?? true,
       topup_threshold_cents: bot.topup_threshold_cents ?? 100,
       topup_amount_cents: bot.topup_amount_cents ?? 500,
     })

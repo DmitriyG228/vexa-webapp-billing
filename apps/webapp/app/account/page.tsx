@@ -574,8 +574,8 @@ function BotsTab({
     }
   }
 
-  // Auto-topup state — initialized from server data (string for free-form editing)
-  const [autoTopup, setAutoTopup] = useState(botBalanceData?.topup_enabled ?? true)
+  // Auto-topup state — default ON for Pay-as-you-go per user-flows.md
+  const [autoTopup, setAutoTopup] = useState(true)
   const [topupThresholdStr, setTopupThresholdStr] = useState(String(Math.round((botBalanceData?.topup_threshold_cents ?? 100) / 100)))
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100)))
   const [isSavingSettings, setIsSavingSettings] = useState(false)
@@ -583,7 +583,7 @@ function BotsTab({
   const [isAddingFunds, setIsAddingFunds] = useState(false)
   const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
 
-  // Sync state when server data arrives
+  // Sync state when server data arrives — only override if user has explicitly configured topup
   useEffect(() => {
     if (botBalanceData) {
       setAutoTopup(botBalanceData.topup_enabled ?? true)
@@ -1064,8 +1064,8 @@ function TranscriptionTab({
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics
 
-  // Auto-topup state — initialized from server data (string for free-form editing)
-  const [autoTopup, setAutoTopup] = useState(balanceData?.topup_enabled ?? true)
+  // Auto-topup state — default ON for Pay-as-you-go per user-flows.md
+  const [autoTopup, setAutoTopup] = useState(true)
   const [thresholdStr, setThresholdStr] = useState(String(Math.round(balanceData?.topup_threshold_min ?? 100)))
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((balanceData?.topup_amount_cents ?? 500) / 100)))
   const [isAddingFunds, setIsAddingFunds] = useState(false)

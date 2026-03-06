@@ -91,7 +91,7 @@ async def get_balances(email: str) -> Dict[str, Any]:
     return {
         "bot": {
             "balance_cents": data.get("bot_balance_cents", 0) or 0,
-            "topup_enabled": data.get("bot_topup_enabled", False),
+            "topup_enabled": data.get("bot_topup_enabled", True),
             "topup_threshold_cents": data.get("bot_topup_threshold_cents", 100),
             "topup_amount_cents": data.get("bot_topup_amount_cents", 500),
             "welcome_credit_given": data.get("bot_welcome_credit_given", False),
@@ -100,7 +100,7 @@ async def get_balances(email: str) -> Dict[str, Any]:
         },
         "tx": {
             "balance_minutes": data.get("tx_balance_minutes", 0) or 0,
-            "topup_enabled": data.get("tx_topup_enabled", False),
+            "topup_enabled": data.get("tx_topup_enabled", True),
             "topup_threshold_min": data.get("tx_topup_threshold_min", 60),
             "topup_amount_cents": data.get("tx_topup_amount_cents", 500),
             "free_credit_given": data.get("tx_free_credit_given", False),
