@@ -107,16 +107,28 @@ async def switch(ctx: CustomerContext, plan: str) -> Dict[str, Any]:
         raise HTTPException(status_code=400, detail=f"Failed to create new subscription: {str(e)}")
 
     # Now cancel old — safe because new sub is confirmed
+    credit_amount = ""
     try:
-        stripe.Subscription.cancel(ctx.bot_sub.id, prorate=True, invoice_now=True)
+        canceled_sub = stripe.Subscription.cancel(ctx.bot_sub.id, prorate=True, invoice_now=True)
         print(f"[SWITCH] Canceled old sub {ctx.bot_sub.id}")
+        # Extract proration credit from the final invoice
+        if canceled_sub.latest_invoice:
+            try:
+                invoice = stripe.Invoice.retrieve(canceled_sub.latest_invoice)
+                if invoice.amount_due < 0:
+                    credit_amount = f"{abs(invoice.amount_due) / 100:.2f}"
+                elif invoice.ending_balance and invoice.ending_balance < 0:
+                    credit_amount = f"{abs(invoice.ending_balance) / 100:.2f}"
+            except Exception as e:
+                print(f"[SWITCH] Could not read proration credit: {e}")
     except stripe.error.StripeError as e:
         print(f"[SWITCH] WARNING: Old sub cancel failed: {e} (new sub {new_sub.id} is active)")
 
     # Apply welcome credit if switching to bot_service
     await _apply_welcome_credit_if_needed(ctx, plan)
 
-    return {"url": f"{ctx.success_url}?switched={plan}"}
+    credit_param = f"&credit={credit_amount}" if credit_amount else ""
+    return {"url": f"{ctx.success_url}?switched={plan}{credit_param}"}
 
 
 # ── 3. Switch via checkout (no payment method yet) ──────────────────────────

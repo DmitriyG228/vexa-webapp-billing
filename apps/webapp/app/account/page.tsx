@@ -391,6 +391,7 @@ function AccountPage() {
 
   // ─── Switched plan success banner (hooks must be before early returns) ──
   const switchedPlan = searchParams?.get("switched")
+  const switchCredit = searchParams?.get("credit")
   const [showSwitchedBanner, setShowSwitchedBanner] = useState(!!switchedPlan)
 
   useEffect(() => {
@@ -434,7 +435,7 @@ function AccountPage() {
             <div className="flex items-center gap-3">
               <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
               <p className="text-[14px] text-emerald-800 dark:text-emerald-300 font-medium">
-                Plan switched successfully!{switchedPlan ? ` You're now on the ${getPlanLabel(switchedPlan)} plan.` : ""}
+                Plan switched successfully!{switchedPlan ? ` You're now on the ${getPlanLabel(switchedPlan)} plan.` : ""}{switchCredit ? ` You've been credited $${switchCredit} for remaining days on your previous plan.` : ""}
               </p>
             </div>
             <button onClick={() => setShowSwitchedBanner(false)} className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 text-[18px] leading-none px-2">×</button>
@@ -514,6 +515,7 @@ function AccountPage() {
             onRevoke={revokeApiKey}
             onShowCreateDialog={setShowCreateDialog}
             onShowRevokeDialog={setShowRevokeDialog}
+            hasActiveSubscription={!!userData?.data?.subscription_status && ["active", "trialing"].includes(userData.data.subscription_status)}
           />
         )}
       </div>
@@ -545,8 +547,10 @@ function BotsTab({
 
   // Plan switching state
   const [isSwitching, setIsSwitching] = useState(false)
+  const [showSwitchConfirm, setShowSwitchConfirm] = useState<string | null>(null)
 
   const handleSwitchPlan = async (targetPlanType: string) => {
+    setShowSwitchConfirm(null)
     setIsSwitching(true)
     try {
       // resolve-url detects plan switch: cancels old sub, creates checkout for new one
@@ -571,7 +575,7 @@ function BotsTab({
   }
 
   // Auto-topup state — initialized from server data (string for free-form editing)
-  const [autoTopup, setAutoTopup] = useState(botBalanceData?.topup_enabled ?? false)
+  const [autoTopup, setAutoTopup] = useState(botBalanceData?.topup_enabled ?? true)
   const [topupThresholdStr, setTopupThresholdStr] = useState(String(Math.round((botBalanceData?.topup_threshold_cents ?? 100) / 100)))
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100)))
   const [isSavingSettings, setIsSavingSettings] = useState(false)
@@ -582,7 +586,7 @@ function BotsTab({
   // Sync state when server data arrives
   useEffect(() => {
     if (botBalanceData) {
-      setAutoTopup(botBalanceData.topup_enabled ?? false)
+      setAutoTopup(botBalanceData.topup_enabled ?? true)
       setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
       setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
     }
@@ -930,7 +934,7 @@ function BotsTab({
                   </span>
                   {canSwitch && (
                     <button
-                      onClick={() => handleSwitchPlan(plan.id)}
+                      onClick={() => setShowSwitchConfirm(plan.id)}
                       disabled={isSwitching}
                       className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
                     >
@@ -950,6 +954,40 @@ function BotsTab({
             )
           })}
         </div>
+
+        {/* Switch plan confirmation dialog */}
+        {showSwitchConfirm && (() => {
+          const currentPlan = BOT_PLANS.find(p => p.id === subTier)
+          const targetPlan = BOT_PLANS.find(p => p.id === showSwitchConfirm)
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+                <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Switch Plan</h3>
+                <p className="text-[14px] text-gray-500 mb-1">
+                  Switch from <span className="font-medium text-gray-950 dark:text-gray-50">{currentPlan?.name || "current plan"}</span> to <span className="font-medium text-gray-950 dark:text-gray-50">{targetPlan?.name || showSwitchConfirm}</span>?
+                </p>
+                <p className="text-[13px] text-gray-400 mb-4">
+                  You&apos;ll be credited for any remaining time on your current plan.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowSwitchConfirm(null)}
+                    className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleSwitchPlan(showSwitchConfirm)}
+                    disabled={isSwitching}
+                    className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  >
+                    {isSwitching ? "Switching..." : "Confirm Switch"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Add-on products — can be added alongside bot plan */}
@@ -1027,7 +1065,7 @@ function TranscriptionTab({
   const stats = usageData?.statistics
 
   // Auto-topup state — initialized from server data (string for free-form editing)
-  const [autoTopup, setAutoTopup] = useState(balanceData?.topup_enabled ?? false)
+  const [autoTopup, setAutoTopup] = useState(balanceData?.topup_enabled ?? true)
   const [thresholdStr, setThresholdStr] = useState(String(Math.round(balanceData?.topup_threshold_min ?? 100)))
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((balanceData?.topup_amount_cents ?? 500) / 100)))
   const [isAddingFunds, setIsAddingFunds] = useState(false)
@@ -1038,7 +1076,7 @@ function TranscriptionTab({
   // Sync state when server data arrives
   useEffect(() => {
     if (balanceData) {
-      setAutoTopup(balanceData.topup_enabled ?? false)
+      setAutoTopup(balanceData.topup_enabled ?? true)
       setThresholdStr(String(Math.round(balanceData.topup_threshold_min ?? 100)))
       setTopupAmountStr(String(Math.round((balanceData.topup_amount_cents ?? 500) / 100)))
     }
@@ -1357,6 +1395,7 @@ function ApiKeysTab({
   onRevoke,
   onShowCreateDialog,
   onShowRevokeDialog,
+  hasActiveSubscription,
 }: {
   apiKeys: ApiKey[]
   visibleKeys: Record<number, boolean>
@@ -1370,6 +1409,7 @@ function ApiKeysTab({
   onRevoke: (id: number) => void
   onShowCreateDialog: (v: boolean) => void
   onShowRevokeDialog: (v: number | null) => void
+  hasActiveSubscription?: boolean
 }) {
   const activeKeys = apiKeys.filter((k) => k.active !== false && k.is_active !== false)
 
@@ -1390,13 +1430,15 @@ function ApiKeysTab({
         </button>
       </div>
 
-      {/* Trial banner */}
-      <div className="p-5 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-r from-gray-50 dark:from-neutral-800 to-white dark:to-neutral-900" style={{ boxShadow: cardShadow }}>
-        <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Start 1-hour trial by issuing a new API key</p>
-        <p className="text-[13px] text-gray-400 mt-1">
-          Each new API key includes a fresh 1-hour trial with 1 bot access. Create another key anytime for a new trial.
-        </p>
-      </div>
+      {/* Trial banner — hidden for users with active subscriptions */}
+      {!hasActiveSubscription && (
+        <div className="p-5 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-r from-gray-50 dark:from-neutral-800 to-white dark:to-neutral-900" style={{ boxShadow: cardShadow }}>
+          <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Start 1-hour trial by issuing a new API key</p>
+          <p className="text-[13px] text-gray-400 mt-1">
+            Each new API key includes a fresh 1-hour trial with 1 bot access. Create another key anytime for a new trial.
+          </p>
+        </div>
+      )}
 
       {/* Key list */}
       {activeKeys.length === 0 ? (
