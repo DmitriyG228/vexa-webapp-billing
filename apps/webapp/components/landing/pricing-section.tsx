@@ -270,8 +270,8 @@ export function PricingSection() {
           </div>
         </div>
 
-        {/* ── Enterprise + Transcription API ──────────── */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* ── Enterprise + Transcription API + Priority Support ── */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Enterprise */}
           <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
             <div className="flex-shrink-0 mt-0.5">
@@ -329,6 +329,35 @@ export function PricingSection() {
                   className="flex-shrink-0 ml-4 inline-flex items-center h-[32px] px-4 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[12px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
                 >
                   Get started
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Priority Support */}
+          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
+                  <path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
+                    Priority Support
+                  </div>
+                  <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                    Dedicated help building with Vexa &mdash; from <span className="font-semibold text-gray-950 dark:text-gray-50">$240</span>/hr.
+                  </p>
+                </div>
+                <Link
+                  href="/support"
+                  className="flex-shrink-0 ml-4 inline-flex items-center h-[32px] px-4 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[12px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
+                >
+                  Learn more
                 </Link>
               </div>
             </div>
