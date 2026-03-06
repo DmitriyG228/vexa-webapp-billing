@@ -115,10 +115,13 @@ async def switch(ctx: CustomerContext, plan: str) -> Dict[str, Any]:
         if canceled_sub.latest_invoice:
             try:
                 invoice = stripe.Invoice.retrieve(canceled_sub.latest_invoice)
-                if invoice.amount_due < 0:
+                if invoice.total < 0:
+                    credit_amount = f"{abs(invoice.total) / 100:.2f}"
+                elif invoice.amount_due < 0:
                     credit_amount = f"{abs(invoice.amount_due) / 100:.2f}"
                 elif invoice.ending_balance and invoice.ending_balance < 0:
                     credit_amount = f"{abs(invoice.ending_balance) / 100:.2f}"
+                print(f"[SWITCH] Proration credit: ${credit_amount or '0'} (total={invoice.total}, due={invoice.amount_due}, ending_bal={invoice.ending_balance})")
             except Exception as e:
                 print(f"[SWITCH] Could not read proration credit: {e}")
     except stripe.error.StripeError as e:
