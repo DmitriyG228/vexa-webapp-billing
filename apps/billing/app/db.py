@@ -28,9 +28,7 @@ def _get_engine():
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
         # pgbouncer/Supabase pooler: disable prepared statement caching
         # Also handle SSL via connect_args since asyncpg doesn't accept ssl= in URL
-        connect_args: dict = {}
-        if "pooler.supabase.com" in url or "pgbouncer" in url:
-            connect_args["statement_cache_size"] = 0
+        connect_args: dict = {"prepared_statement_cache_size": 0, "statement_cache_size": 0}
         if "ssl=require" in url or "ssl=true" in url:
             import ssl as _ssl
             ctx = _ssl.create_default_context()
@@ -40,7 +38,11 @@ def _get_engine():
             # Remove ssl param from URL to avoid asyncpg confusion
             url = url.replace("?ssl=require", "").replace("&ssl=require", "")
             url = url.replace("?ssl=true", "").replace("&ssl=true", "")
-        _engine = create_async_engine(url, pool_size=5, max_overflow=5, connect_args=connect_args)
+        _engine = create_async_engine(
+            url, pool_size=5, max_overflow=5,
+            connect_args=connect_args,
+            pool_pre_ping=True,
+        )
         _session_factory = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
     return _engine, _session_factory
 
