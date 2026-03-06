@@ -498,6 +498,8 @@ function AccountPage() {
           <TranscriptionTab
             balanceData={balanceData}
             usageData={usageData}
+            subscriptionTier={userData?.data?.subscription_tier}
+            subscriptionStatus={userData?.data?.subscription_status}
           />
         )}
 
@@ -548,6 +550,24 @@ function BotsTab({
   // Plan switching state
   const [isSwitching, setIsSwitching] = useState(false)
   const [showSwitchConfirm, setShowSwitchConfirm] = useState<string | null>(null)
+  const [isReactivating, setIsReactivating] = useState(false)
+
+  const handleReactivate = async () => {
+    setIsReactivating(true)
+    try {
+      const resp = await fetch("/api/stripe/reactivate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error || data.detail || "Failed to reactivate")
+      window.location.reload()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to reactivate subscription")
+    } finally {
+      setIsReactivating(false)
+    }
+  }
 
   const handleSwitchPlan = async (targetPlanType: string) => {
     setShowSwitchConfirm(null)
@@ -689,6 +709,16 @@ function BotsTab({
               </div>
             )}
           </div>
+          {/* Re-activate — when scheduled to cancel */}
+          {(subStatus === "scheduled_to_cancel" || userData?.data?.subscription_scheduled_to_cancel) && (
+            <button
+              onClick={handleReactivate}
+              disabled={isReactivating}
+              className="mt-4 h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              {isReactivating ? "Reactivating..." : "Re-activate subscription"}
+            </button>
+          )}
           {/* Cancel link — only when active and not already cancelling */}
           {subStatus && ["active", "trialing"].includes(subStatus) && !userData?.data?.subscription_scheduled_to_cancel && (
             <button
@@ -913,8 +943,7 @@ function BotsTab({
             const hasActiveSub = subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus)
             const isCurrent = plan.id === subTier && hasActiveSub
             const canSwitch = hasActiveSub && !isCurrent
-            const isCanceled = subStatus === "canceled" || subStatus === "past_due" || subStatus === "incomplete_expired"
-            const canSubscribe = !hasActiveSub && isCanceled
+            const canSubscribe = !hasActiveSub
             return (
               <div key={plan.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
@@ -1005,7 +1034,15 @@ function BotsTab({
                 <span className="text-[14px] font-medium text-gray-500 dark:text-gray-400">{product.name}</span>
                 <span className="text-[12px] text-gray-400 dark:text-gray-500">{product.detail}</span>
               </div>
-              <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
+                <a
+                  href="/pricing"
+                  className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
+                >
+                  Learn more
+                </a>
+              </div>
             </div>
           ))}
         </div>
@@ -1036,15 +1073,6 @@ function BotsTab({
         </svg>
       </Link>
 
-      {/* Subscription ID */}
-      {userData?.data?.stripe_subscription_id && (
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5" style={{ boxShadow: cardShadow }}>
-          <div className="flex justify-between text-[13px]">
-            <span className="text-gray-400">Subscription ID</span>
-            <span className="text-gray-500 font-mono text-[12px]">{userData.data.stripe_subscription_id}</span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -1056,10 +1084,29 @@ function BotsTab({
 function TranscriptionTab({
   balanceData,
   usageData,
+  subscriptionTier,
+  subscriptionStatus,
 }: {
   balanceData: BalanceData | null
   usageData: UsageData | null
+  subscriptionTier?: string
+  subscriptionStatus?: string
 }) {
+  // Individual plan users get transcription included — show simple message
+  const isIndividualPlan = subscriptionTier === "individual" && subscriptionStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subscriptionStatus)
+  if (isIndividualPlan) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Transcription</h3>
+          <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-relaxed">
+            Transcription is included in your Individual plan. Your bot automatically transcribes all meetings — no separate balance or credits needed.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const history = usageData?.usage_history || []
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics

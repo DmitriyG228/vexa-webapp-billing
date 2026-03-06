@@ -11,8 +11,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
+    const emptyBalance = {
+      balance_minutes: 0,
+      remaining_minutes: 0,
+      total_purchased_minutes: 0,
+      total_used_minutes: 0,
+      topup_enabled: false,
+      topup_threshold_min: 100,
+      topup_amount_cents: 500,
+    }
+
     if (!BILLING_URL) {
-      return NextResponse.json({ error: 'BILLING_URL not configured' }, { status: 503 })
+      return NextResponse.json(emptyBalance)
     }
 
     const resp = await fetch(`${BILLING_URL}/v1/balance/${encodeURIComponent(session.user.email)}`, {
@@ -21,7 +31,7 @@ export async function GET() {
 
     const data = await resp.json().catch(() => ({}))
     if (!resp.ok) {
-      return NextResponse.json(data, { status: resp.status })
+      return NextResponse.json(emptyBalance)
     }
 
     // Map billing service response to expected format for the account page

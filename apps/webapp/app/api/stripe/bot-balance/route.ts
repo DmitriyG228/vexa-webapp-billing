@@ -16,8 +16,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
+    const emptyBotBalance = {
+      balance_cents: 0,
+      initial_credit_cents: 0,
+      usage_cents: 0,
+      balance_usd: '$0.00',
+      usage_usd: '$0.00',
+      initial_credit_usd: '$0.00',
+      has_subscription: false,
+      topup_enabled: true,
+      topup_threshold_cents: 100,
+      topup_amount_cents: 500,
+    }
+
     if (!BILLING_URL) {
-      return NextResponse.json({ error: 'BILLING_URL not configured' }, { status: 503 })
+      return NextResponse.json(emptyBotBalance)
     }
 
     const resp = await fetch(`${BILLING_URL}/v1/balance/${encodeURIComponent(session.user.email)}`, {
@@ -26,7 +39,7 @@ export async function GET() {
 
     const data = await resp.json().catch(() => ({}))
     if (!resp.ok) {
-      return NextResponse.json(data, { status: resp.status })
+      return NextResponse.json(emptyBotBalance)
     }
 
     // Transform billing API response to frontend-expected shape

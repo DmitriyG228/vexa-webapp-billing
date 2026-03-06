@@ -27,7 +27,7 @@ export function HeroSection() {
               <h1 className="text-[46px] sm:text-[52px] lg:text-[56px] font-semibold leading-[1.05] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
                 Meeting
                 <br />
-                Intelligence
+                Transcription
                 <br />
                 <em className="not-italic font-light text-gray-400 dark:text-gray-500 tracking-[-0.02em]">
                   API
