@@ -95,21 +95,9 @@ export async function POST() {
       metadata: { auto_provisioned: 'true', admin_user_id: String(userId) },
     })
 
-    // Step 4: Update Admin API with subscription info
-    await patchUser(userId, {
-      max_concurrent_bots: 100,
-      data: {
-        subscription_status: subscription.status === 'incomplete' ? 'active' : subscription.status,
-        subscription_tier: 'bot_service',
-        stripe_customer_id: customerId,
-        stripe_subscription_id: subscription.id,
-        subscription_current_period_end: subscription.current_period_end,
-        subscription_current_period_start: subscription.current_period_start,
-      },
-    })
-
-    // Step 5: Grant $5 welcome credit (if not already given)
-    if (!user.data?.bot_welcome_credit_given) {
+    // Step 4: Grant $5 welcome credit (if not already given)
+    let creditGranted = !!user.data?.bot_welcome_credit_given
+    if (!creditGranted) {
       try {
         await stripe.billing.creditGrants.create({
           customer: customerId,
@@ -123,15 +111,26 @@ export async function POST() {
           metadata: { welcome_credit_cents: String(INITIAL_BOT_CREDIT_CENTS) },
         })
 
-        await patchUser(userId, {
-          data: { bot_welcome_credit_given: true },
-        })
-
+        creditGranted = true
         console.log(`[AUTO-PROVISION] Granted $${(INITIAL_BOT_CREDIT_CENTS / 100).toFixed(2)} welcome credit for ${email}`)
       } catch (err) {
         console.error(`[AUTO-PROVISION] Welcome credit failed for ${email}:`, err)
       }
     }
+
+    // Step 5: Update Admin API — single patch to avoid data replacement race
+    await patchUser(userId, {
+      max_concurrent_bots: 100,
+      data: {
+        subscription_status: subscription.status === 'incomplete' ? 'active' : subscription.status,
+        subscription_tier: 'bot_service',
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscription.id,
+        subscription_current_period_end: subscription.current_period_end,
+        subscription_current_period_start: subscription.current_period_start,
+        ...(creditGranted ? { bot_welcome_credit_given: true } : {}),
+      },
+    })
 
     console.log(`[AUTO-PROVISION] Created PAYG subscription ${subscription.id} for ${email}`)
 
