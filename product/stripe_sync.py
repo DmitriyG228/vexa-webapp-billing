@@ -4,8 +4,8 @@ Sync pricing_tiers.json products → Stripe Products & Prices.
 
 Handles:
   - Fixed recurring subscriptions (Individual $12/mo)
-  - Metered recurring prices (Bot Service $0.45/hr, Real-time $0.05/hr)
-  - Sub-cent metered prices via unit_amount_decimal (Transcription API $0.0015/min)
+  - Metered recurring prices (Bot Service $0.30/hr)
+  - Sub-cent metered prices via unit_amount_decimal (Transcription API $0.002/min)
   - One-time prices (Consultation $240/hr)
 
 Usage:

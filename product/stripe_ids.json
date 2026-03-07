@@ -5,15 +5,11 @@
   },
   "bot_service": {
     "product_id": "prod_U4yLETnqRSESCR",
-    "price_id": "price_1T6oOcFKEqzvZq6xsiLNIpU4"
-  },
-  "realtime": {
-    "product_id": "prod_U4yLYwnr2lCGmQ",
-    "price_id": "price_1T6oOdFKEqzvZq6xmf2NeMaW"
+    "price_id": "price_1T8JvBFKEqzvZq6xpahyRizk"
   },
   "transcription_api": {
     "product_id": "prod_U4yLWCodeIUG1j",
-    "price_id": "price_1T6oOeFKEqzvZq6xSIRstlAJ"
+    "price_id": "price_1T8JvHFKEqzvZq6xxlBeBoD2"
   },
   "consultation": {
     "product_id": "prod_U4yLaKgNopnFu3",

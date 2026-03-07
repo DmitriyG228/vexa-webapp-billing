@@ -301,7 +301,7 @@ async def stripe_webhook(request: Request):
                     else:
                         field = "tx_balance_minutes"
                         current = data.get(field, 0) or 0
-                        minutes_per_cent = 1 / 0.15
+                        minutes_per_cent = 1 / 0.2  # $0.002/min = 0.2 cents/min
                         new_balance = current + (topup_cents * minutes_per_cent)
                     # Also save the payment method for future off-session charges
                     patch = {field: new_balance}

@@ -12,50 +12,6 @@ from .db import get_session, merge_user_data_by_id
 
 router = APIRouter()
 
-# ── Bot session tracking (in-memory) ────────────────────────────────────────
-# API gateway calls start/stop to track active sessions
-
-_active_sessions: Dict[str, Dict[str, Any]] = {}  # session_id → {email, start_time, meeting_id}
-
-
-@router.post("/v1/bot-session/start")
-async def bot_session_start(session_id: str, email: str, meeting_id: str = "") -> Dict[str, Any]:
-    _active_sessions[session_id] = {
-        "email": email,
-        "start_time": time.time(),
-        "meeting_id": meeting_id,
-    }
-    return {"tracked": True, "active_sessions": len(_active_sessions)}
-
-
-@router.post("/v1/bot-session/stop")
-async def bot_session_stop(session_id: str) -> Dict[str, Any]:
-    session = _active_sessions.pop(session_id, None)
-    if not session:
-        return {"tracked": False, "note": "session not found"}
-
-    duration_seconds = time.time() - session["start_time"]
-    duration_cents = int((duration_seconds / 3600) * 45)  # $0.45/hr in cents
-
-    # Deduct from bot balance via DB (if configured)
-    if DATABASE_URL:
-        from .db import get_user_data
-        data = await get_user_data(session["email"])
-        current = data.get("bot_balance_cents", 0) or 0
-        new_balance = current - duration_cents  # allow negative — meetings can't be interrupted
-        await merge_user_data_by_id(
-            # We'd need user_id here — for now use email-based merge
-            # This is a simplification; in production the gateway would pass user_id
-            0,  # placeholder
-            {"bot_balance_cents": new_balance},
-        )
-
-    return {
-        "tracked": True,
-        "duration_seconds": int(duration_seconds),
-        "deducted_cents": duration_cents,
-    }
-
 
 # ── Admin API helper ─────────────────────────────────────────────────────────
 
@@ -156,7 +112,7 @@ async def _auto_topup_loop():
                             description="Transcription balance auto top-up",
                         )
                         current = data.get("tx_balance_minutes", 0) or 0
-                        minutes_per_cent = 1 / 0.15  # ~6.667 min/cent
+                        minutes_per_cent = 1 / 0.2  # $0.002/min = 0.2 cents/min → 5 min/cent
                         new_balance = current + (amount_cents * minutes_per_cent)
                         await merge_user_data_by_id(row["id"], {"tx_balance_minutes": new_balance})
                         print(f"[AUTO-TOPUP] TX charged {amount_cents}c for {row['email']}, new balance={new_balance:.0f}min")
@@ -164,17 +120,17 @@ async def _auto_topup_loop():
                         print(f"[AUTO-TOPUP] TX failed for {row['email']}: {e}")
 
                 # ── 3. Enforce: zero max_bots when bot balance exhausted ─
+                # For users with no subscription and no auto-topup, block bots
                 result3 = await db.execute(text("""
                     SELECT id, email, data, max_concurrent_bots FROM public.users
-                    WHERE (data->>'subscription_tier') IN ('bot_service')
-                      AND (data->>'subscription_status') IN ('active', 'trialing')
-                      AND (data->>'bot_topup_enabled')::boolean IS NOT true
+                    WHERE (data->>'bot_topup_enabled')::boolean IS NOT true
                       AND COALESCE((data->>'bot_balance_cents')::numeric, 0) <= 0
                       AND max_concurrent_bots > 0
+                      AND (data->>'subscription_status') IS DISTINCT FROM 'active'
                 """))
                 for row in result3.mappings().all():
                     await _patch_max_bots(row["id"], 0)
-                    print(f"[ENFORCE] Set max_bots=0 for {row['email']} — balance exhausted, no auto-topup")
+                    print(f"[ENFORCE] Set max_bots=0 for {row['email']} — balance exhausted, no auto-topup, no active subscription")
 
         except Exception as e:
             print(f"[AUTO-TOPUP] Loop error: {e}")

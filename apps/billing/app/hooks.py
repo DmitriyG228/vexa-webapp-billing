@@ -27,32 +27,38 @@ async def handle_meeting_completed(payload: Dict[str, Any]):
     email = meeting.get("user_email")
     duration_seconds = meeting.get("duration_seconds", 0)
     meeting_id = meeting.get("id")
+    transcription_enabled = meeting.get("transcription_enabled", False)
 
     if not email or duration_seconds <= 0:
         return {"skipped": True, "reason": "missing email or non-positive duration"}
 
+    duration_hours = duration_seconds / 3600.0
     duration_minutes = duration_seconds / 60.0
-    # $0.45/hr = $0.0075/min = 0.75 cents/min
-    cost_cents = int(duration_minutes * 0.75 + 0.5)
+
+    # $0.30/hr bot + $0.10/hr transcription (if enabled)
+    bot_cost_cents = int(duration_hours * 30 + 0.5)
+    tx_cost_cents = int(duration_hours * 10 + 0.5) if transcription_enabled else 0
+    total_cost_cents = bot_cost_cents + tx_cost_cents
 
     result = {
         "meeting_id": meeting_id,
         "email": email,
         "duration_minutes": round(duration_minutes, 1),
-        "cost_cents": cost_cents,
+        "bot_cost_cents": bot_cost_cents,
+        "tx_cost_cents": tx_cost_cents,
+        "total_cost_cents": total_cost_cents,
+        "transcription_enabled": transcription_enabled,
     }
 
     # 1. Deduct from prepaid bot balance
     # Balance CAN go negative — we never cut a meeting short.
-    # Negative balance means the user owes; auto-topup or next topup covers it.
-    # The account page and auto-topup task must handle negative values gracefully.
     try:
         data = await get_user_data(email)
         current = data.get("bot_balance_cents", 0) or 0
-        new_balance = current - cost_cents  # allow negative
+        new_balance = current - total_cost_cents  # allow negative
         await merge_user_data(email, {
             "bot_balance_cents": new_balance,
-            "bot_monthly_spent_cents": (data.get("bot_monthly_spent_cents", 0) or 0) + cost_cents,
+            "bot_monthly_spent_cents": (data.get("bot_monthly_spent_cents", 0) or 0) + total_cost_cents,
         })
         result["balance_deducted"] = True
         result["new_balance_cents"] = new_balance

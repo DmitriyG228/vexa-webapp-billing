@@ -8,7 +8,6 @@ from .config import DATABASE_URL  # noqa: F401 — validates env on import
 from .router import router as resolve_router
 from .webhook import router as webhook_router
 from .usage import router as usage_router
-from .trials import router as trials_router
 from .admin import router as admin_router
 from .balance import router as balance_router
 from .tasks import router as tasks_router, start_background_tasks
@@ -21,13 +20,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Billing Service", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="Billing Service", version="0.4.0", lifespan=lifespan)
 
 # Mount all routers
 app.include_router(resolve_router)
 app.include_router(webhook_router)
 app.include_router(usage_router)
-app.include_router(trials_router)
 app.include_router(admin_router)
 app.include_router(balance_router)
 app.include_router(tasks_router)
@@ -48,7 +46,7 @@ async def get_bot_balance(req: BotBalanceRequest):
     customer = customers.data[0]
     subs = stripe.Subscription.list(customer=customer.id, status="all", limit=50)
     active_sub = next(
-        (s for s in subs.data if s.status in ("active", "trialing", "past_due") and s.metadata.get("tier") == "bot_service"),
+        (s for s in subs.data if s.status in ("active", "past_due") and s.metadata.get("tier") == "bot_service"),
         None,
     )
     if not active_sub:
@@ -61,11 +59,11 @@ async def get_bot_balance(req: BotBalanceRequest):
             summaries = stripe.SubscriptionItem.list_usage_record_summaries(item.id, limit=1)
             if summaries.data:
                 total_usage = summaries.data[0].total_usage
-                usage_cents = int(total_usage * 45)
+                usage_cents = int(total_usage * 30)  # $0.30/hr
         except Exception as e:
             print(f"[BOT-BALANCE] Error getting usage for {item.id}: {e}")
 
-    balance_cents = initial_credit - usage_cents  # can go negative — meetings aren't interrupted
+    balance_cents = initial_credit - usage_cents
     return {
         "balance_cents": balance_cents,
         "initial_credit_cents": initial_credit,
@@ -79,4 +77,4 @@ async def get_bot_balance(req: BotBalanceRequest):
 
 @app.get("/")
 async def health():
-    return {"status": "ok", "service": "billing", "version": "0.3.0"}
+    return {"status": "ok", "service": "billing", "version": "0.4.0"}

@@ -32,7 +32,7 @@ ADDON = {"transcription_api"}
 ONETIME = {"consultation"}
 
 INITIAL_BOT_CREDIT_CENTS = 500       # $5 welcome credit for bot_service
-TX_FREE_CREDIT_MINUTES = 13333.0     # $20 at $0.0015/min
+TX_FREE_CREDIT_MINUTES = 10000.0     # $20 at $0.002/min
 
 # ── Stripe product/price IDs ────────────────────────────────────────────────
 

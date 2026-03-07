@@ -10,7 +10,7 @@
         "Full platform — no limits",
         "Your infrastructure",
         "Community support",
-        "Docker Compose deploy"
+        "K8s chart included"
       ],
       "cta": { "text": "View on GitHub", "href": "https://github.com/Vexa-ai/vexa" }
     },
@@ -29,7 +29,7 @@
         "1 concurrent bot",
         "Google Meet + Teams",
         "Real-time transcription",
-        "Recording + Bot API",
+        "12-month audio storage",
         "REST API + WebSockets",
         "UI Dashboard"
       ],
@@ -46,47 +46,35 @@
       "id": "bot_service",
       "name": "Bot Service",
       "type": "metered",
-      "tagline": "Bot + transcription + 12mo audio storage",
-      "price_display": "$0.45",
+      "tagline": "Audio bot infrastructure · Add transcription optionally",
+      "price_display": "$0.30",
       "price_unit": "/hr",
-      "price_cents_per_hour": 45,
+      "price_cents_per_hour": 30,
       "currency": "usd",
       "features": [
-        "Post-meeting transcription",
+        "Audio capture + webhooks",
         "12-month audio storage",
         "Google Meet + Teams + Zoom",
-        "Recording + Bot API",
-        "REST API + WebSockets"
+        "Bot management API",
+        "REST API + WebSockets",
+        "Transcription add-on: +$0.10/hr"
       ],
-      "cta": { "text": "Get started", "plan_type": "bot_service" },
+      "cta": { "text": "Start free", "plan_type": "bot_service" },
+      "welcome_credit": {
+        "amount_cents": 500,
+        "description": "$5 free credit — no card required"
+      },
       "comparison": {
-        "vexa": "$0.50/hr (with real-time)",
-        "competitor": "Recall.ai $0.72/hr",
-        "savings": "30% cheaper"
+        "vexa_bot_only": "$0.30/hr",
+        "vexa_with_transcription": "$0.40/hr",
+        "competitor": "Recall.ai $0.65/hr",
+        "savings": "38% cheaper (with transcription)"
       },
       "stripe": {
         "product_name": "Vexa Bot Service",
         "price_nickname": "Bot Service Hourly",
         "recurring": { "interval": "month", "usage_type": "metered" },
-        "unit_amount": 45,
-        "usage_unit": "hour"
-      }
-    },
-    {
-      "id": "realtime",
-      "name": "+ Real-time",
-      "type": "metered_addon",
-      "tagline": "Live transcription (<5s latency)",
-      "price_display": "+$0.05",
-      "price_unit": "/hr",
-      "price_cents_per_hour": 5,
-      "currency": "usd",
-      "parent": "bot_service",
-      "stripe": {
-        "product_name": "Vexa Real-time Transcription",
-        "price_nickname": "Real-time Hourly",
-        "recurring": { "interval": "month", "usage_type": "metered" },
-        "unit_amount": 5,
+        "unit_amount": 30,
         "usage_unit": "hour"
       }
     },
@@ -94,16 +82,22 @@
       "id": "transcription_api",
       "name": "Transcription API",
       "type": "metered",
-      "tagline": "For self-hosted Vexa bot users",
-      "price_display": "$0.0015",
+      "tagline": "Standalone transcription · Bring your own audio",
+      "price_display": "$0.002",
       "price_unit": "/min",
-      "price_per_min_cents": 0.15,
+      "price_per_min_cents": 0.2,
       "currency": "usd",
+      "features": [
+        "large-v3-turbo model",
+        "Batch processing",
+        "For self-hosters or standalone use",
+        "3x cheaper than OpenAI Whisper"
+      ],
       "stripe": {
         "product_name": "Vexa Transcription API",
         "price_nickname": "Transcription Per Minute",
         "recurring": { "interval": "month", "usage_type": "metered" },
-        "unit_amount_decimal": "0.15",
+        "unit_amount_decimal": "0.2",
         "usage_unit": "minute"
       }
     },

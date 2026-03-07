@@ -29,17 +29,10 @@ class PortalRequest(BaseModel):
 
 class UsageReport(BaseModel):
     email: EmailStr
-    plan_type: str  # "bot_service", "realtime", "transcription_api"
+    plan_type: str  # "bot_service", "transcription_api"
     quantity: float
     timestamp: Optional[int] = None
     idempotency_key: Optional[str] = None
-
-
-# ── Trials ───────────────────────────────────────────────────────────────────
-
-class TrialRequest(BaseModel):
-    email: EmailStr
-    userId: int
 
 
 # ── Balance ──────────────────────────────────────────────────────────────────
@@ -85,14 +78,6 @@ class PaymentMethodRequest(BaseModel):
 
 class BotBalanceRequest(BaseModel):
     email: EmailStr
-
-
-# ── Bot session tracking ────────────────────────────────────────────────────
-
-class BotSessionEvent(BaseModel):
-    email: EmailStr
-    session_id: str
-    meeting_id: Optional[str] = None
 
 
 # ── Stats ────────────────────────────────────────────────────────────────────

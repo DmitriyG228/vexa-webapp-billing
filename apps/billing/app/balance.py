@@ -15,6 +15,22 @@ from .models import (
 
 router = APIRouter()
 
+
+# ── Free credit on signup ────────────────────────────────────────────────────
+
+async def ensure_free_credit(email: str) -> bool:
+    """Apply $5 free bot credit if not already given. Returns True if credit was applied."""
+    data = await get_user_data(email)
+    if data.get("bot_free_credit_given"):
+        return False
+    await merge_user_data(email, {
+        "bot_balance_cents": INITIAL_BOT_CREDIT_CENTS,
+        "bot_free_credit_given": True,
+    })
+    print(f"[CREDIT] Applied ${INITIAL_BOT_CREDIT_CENTS/100:.2f} free credit for {email}")
+    return True
+
+
 # ── Field mapping ────────────────────────────────────────────────────────────
 # product → JSONB field names
 
@@ -41,6 +57,14 @@ def _fields(product: str) -> Dict[str, str]:
     if not f:
         raise HTTPException(status_code=400, detail=f"Unknown product '{product}'. Use 'bot' or 'tx'.")
     return f
+
+
+# ── Apply free credit (called on user signup) ────────────────────────────────
+
+@router.post("/v1/balance/free-credit")
+async def apply_free_credit(email: str) -> Dict[str, Any]:
+    applied = await ensure_free_credit(email)
+    return {"applied": applied, "amount_cents": INITIAL_BOT_CREDIT_CENTS if applied else 0}
 
 
 # ── Check balance ────────────────────────────────────────────────────────────
@@ -219,8 +243,8 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
     if req.product == "bot":
         new_balance = current + amount_cents
     else:
-        # Convert cents to minutes: $0.0015/min → 1 cent = 0.6667 min
-        minutes_per_cent = 1 / 0.15  # ~6.667 minutes per cent
+        # Convert cents to minutes: $0.002/min = 0.2 cents/min → 5 min/cent
+        minutes_per_cent = 1 / 0.2  # 5 minutes per cent
         new_balance = current + (amount_cents * minutes_per_cent)
 
     await merge_user_data(req.email, {f["balance"]: new_balance})

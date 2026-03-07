@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/v1/usage")
 async def report_usage(req: UsageReport) -> Dict[str, Any]:
     """Report metered usage for a customer's subscription."""
-    if req.plan_type not in ("bot_service", "realtime", "transcription_api"):
+    if req.plan_type not in ("bot_service", "transcription_api"):
         raise HTTPException(status_code=400, detail=f"Invalid plan_type '{req.plan_type}'")
 
     price_id = get_price_id(req.plan_type)
