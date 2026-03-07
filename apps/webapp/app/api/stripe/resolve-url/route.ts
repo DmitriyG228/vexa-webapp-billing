@@ -49,13 +49,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing plan_type' }, { status: 400 })
     }
 
-    // Create Stripe customer if needed
+    // Find or create Stripe customer
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email,
-        name: session.user.name || undefined,
-      })
-      customerId = customer.id
+      // Check Stripe for existing customer with this email before creating a new one
+      const existing = await stripe.customers.list({ email, limit: 1 })
+      if (existing.data.length > 0 && !existing.data[0].deleted) {
+        customerId = existing.data[0].id
+      } else {
+        const customer = await stripe.customers.create({
+          email,
+          name: session.user.name || undefined,
+        })
+        customerId = customer.id
+      }
     }
 
     // Check for existing active subscription to detect plan switch

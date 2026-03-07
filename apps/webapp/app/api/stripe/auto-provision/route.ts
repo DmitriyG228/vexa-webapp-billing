@@ -39,18 +39,24 @@ export async function POST() {
       return NextResponse.json({ provisioned: false, reason: 'already_active' })
     }
 
-    // Step 1: Ensure Stripe customer exists
+    // Step 1: Ensure Stripe customer exists (search Stripe before creating)
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email,
-        name: session.user.name || undefined,
-        metadata: { admin_user_id: String(userId) },
-      })
-      customerId = customer.id
+      const existing = await stripe.customers.list({ email, limit: 1 })
+      if (existing.data.length > 0 && !existing.data[0].deleted) {
+        customerId = existing.data[0].id
+        console.log(`[AUTO-PROVISION] Found existing Stripe customer ${customerId} for ${email}`)
+      } else {
+        const customer = await stripe.customers.create({
+          email,
+          name: session.user.name || undefined,
+          metadata: { admin_user_id: String(userId) },
+        })
+        customerId = customer.id
+        console.log(`[AUTO-PROVISION] Created Stripe customer ${customerId} for ${email}`)
+      }
       await patchUser(userId, {
         data: { stripe_customer_id: customerId },
       })
-      console.log(`[AUTO-PROVISION] Created Stripe customer ${customerId} for ${email}`)
     }
 
     // Step 2: Check if customer already has an active bot subscription in Stripe
