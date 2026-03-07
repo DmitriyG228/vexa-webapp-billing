@@ -2,21 +2,21 @@ import { Metadata } from 'next'
 import { PricingSection } from '@/components/landing/pricing-section'
 
 export const metadata: Metadata = {
-  title: 'Pricing | Vexa — Meeting Intelligence API',
-  description: 'Usage-based pricing from $0.45/hr. Self-host free, or use our managed cloud. ~37% cheaper than Recall.ai.',
+  title: 'Pricing | Vexa — Meeting Bot API',
+  description: 'Bot infrastructure from $0.30/hr. Transcription add-on +$0.10/hr. Self-host free, or use our managed cloud. 40% cheaper than Recall.ai.',
   alternates: {
     canonical: 'https://vexa.ai/pricing',
   },
   openGraph: {
-    title: 'Vexa Pricing — Meeting Intelligence API',
-    description: 'Open source free forever. Individual $12/mo. Bot Service from $0.45/hr. ~37% cheaper than alternatives.',
+    title: 'Vexa Pricing — Meeting Bot API',
+    description: 'Open source free forever. Individual $12/mo. Bot Service from $0.30/hr + $0.10/hr transcription. 40% cheaper than alternatives.',
     url: 'https://vexa.ai/pricing',
     images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vexa Pricing — Meeting Intelligence API',
-    description: 'Usage-based pricing from $0.45/hr. Self-host free or use our managed cloud.',
+    title: 'Vexa Pricing — Meeting Bot API',
+    description: 'Bot infrastructure from $0.30/hr. Transcription +$0.10/hr. Self-host free or use our managed cloud.',
   },
 }
 
@@ -29,7 +29,7 @@ const faqJsonLd = {
       name: 'How much does Vexa cost?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Vexa offers four tiers: Open Source (free, self-host), Individual ($12/mo for 1 bot), Bot Service ($0.45/hr pay-as-you-go), and Enterprise (custom pricing). All plans include a 1-hour free trial with no credit card required.',
+        text: 'Vexa offers four tiers: Open Source (free, self-host), Individual ($12/mo for 1 bot with transcription included), Bot Service ($0.30/hr bot infrastructure + $0.10/hr transcription add-on), and Enterprise (custom pricing). New accounts get $5 free credit — no credit card required.',
       },
     },
     {
@@ -37,7 +37,7 @@ const faqJsonLd = {
       name: 'Which plan is right for me?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Choose Individual ($12/mo) if you need one bot for personal use — it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.45/hr) if you need multiple simultaneous bots or want to pay only for what you use — ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.',
+        text: 'Choose Individual ($12/mo) if you need one bot for personal use — it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.30/hr) if you need multiple simultaneous bots or want to pay only for what you use — ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.',
       },
     },
     {
@@ -45,7 +45,7 @@ const faqJsonLd = {
       name: 'Is Vexa cheaper than Recall.ai?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Yes. Vexa's full-service Bot Service costs $0.45/hr (bot + real-time transcription) compared to Recall.ai's equivalent at approximately $0.72/hr — that's ~37% cheaper. Plus, Vexa is open source so you can self-host for free.",
+        text: "Yes. Vexa's bot infrastructure costs $0.30/hr vs Recall.ai's approximately $0.50/hr — 40% cheaper. With transcription: Vexa $0.40/hr vs Recall.ai approximately $0.72/hr — 44% cheaper. Plus, Vexa is open source so you can self-host for free.",
       },
     },
     {
@@ -66,10 +66,10 @@ const faqJsonLd = {
     },
     {
       '@type': 'Question',
-      name: 'Does Vexa offer a free trial?',
+      name: 'Does Vexa offer free credit?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. Every new account gets 1 hour of free bot time — no credit card required. The trial includes all features: transcription, recording, real-time data, and API access.',
+        text: 'Yes. Every new account gets $5 in free bot credit — no credit card required. That covers approximately 16 hours of bot time at $0.30/hr. All features are available including transcription, recording, and full API access.',
       },
     },
   ],

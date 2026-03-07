@@ -216,15 +216,15 @@ export function PricingSection() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-                  $0.45
+                  $0.30
                 </span>
                 <span className="text-[14px] text-gray-400 dark:text-gray-500">/hr</span>
               </div>
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
-                Per bot hour &middot; Scale without limits
+                Bot infrastructure &middot; +$0.10/hr transcription
               </p>
               <p className="text-[12px] text-gray-400 dark:text-gray-500 italic mt-1">
-                Best for teams &amp; API builders
+                Best for teams &amp; API builders &middot; $5 free credit
               </p>
             </div>
             <div className="mb-1">
@@ -245,7 +245,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Real-time transcription</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Audio capture + webhooks</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -253,7 +253,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Recording + Bot API</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Transcription add-on: +$0.10/hr</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -314,7 +314,7 @@ export function PricingSection() {
                     Transcription API
                   </div>
                   <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
-                    For self-hosted Vexa bot users. Transcription only &mdash; <span className="font-semibold text-gray-950 dark:text-gray-50">$0.0015</span>/min.
+                    For self-hosted Vexa bot users. Transcription only &mdash; <span className="font-semibold text-gray-950 dark:text-gray-50">$0.002</span>/min.
                   </p>
                 </div>
                 <Link
@@ -361,10 +361,10 @@ export function PricingSection() {
         <div className="mt-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm">
             <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">
-              Vexa full-service: $0.45/hr vs Recall.ai $0.72/hr &mdash;
+              Vexa bot: $0.30/hr vs Recall.ai $0.65/hr &mdash;
             </span>
             <span className="text-[13px] text-gray-950 dark:text-gray-50 font-semibold">
-              ~37% cheaper
+              54% cheaper
             </span>
           </div>
         </div>
@@ -377,10 +377,10 @@ export function PricingSection() {
           <div className="divide-y divide-gray-100 dark:divide-neutral-800">
             <div className="py-5">
               <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
-                What&apos;s included in the $0.45/hr Bot Service?
+                What&apos;s included in the $0.30/hr Bot Service?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                The Bot Service includes a meeting bot, real-time transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom.
+                The base rate covers bot infrastructure: audio capture, webhooks, and 12 months of audio storage across Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for +$0.10/hr ($0.40/hr total).
               </p>
             </div>
             <div className="py-5">
@@ -388,15 +388,15 @@ export function PricingSection() {
                 Which plan is right for me?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                Choose Individual ($12/mo) if you need one bot for personal use&mdash;it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.45/hr) if you need multiple simultaneous bots or want to pay only for what you use&mdash;ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.
+                Choose Individual ($12/mo) if you need one bot for personal use&mdash;it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.30/hr) if you need multiple simultaneous bots or want to pay only for what you use&mdash;ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.
               </p>
             </div>
             <div className="py-5">
               <h4 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
-                How does the free trial work?
+                How does the free credit work?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                Every new account gets 1 hour of free bot time&mdash;no credit card required. The trial includes all features: transcription, recording, real-time data, and full API access. The clock starts on your first API call, not on signup.
+                Every new account gets $5 in free bot credit&mdash;no credit card required. That covers ~16 hours of bot time at $0.30/hr. All features are available: audio capture, transcription, real-time data, and full API access.
               </p>
             </div>
             <div className="py-5">
@@ -412,7 +412,7 @@ export function PricingSection() {
                 How does Vexa compare to Recall.ai?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                Vexa is open source, self-hostable, and ~37% cheaper. Full-service Vexa costs $0.45/hr vs Recall.ai&apos;s ~$0.72/hr at scale. See our{' '}
+                Vexa is open source, self-hostable, and 40% cheaper. Bot infrastructure: Vexa $0.30/hr vs Recall.ai ~$0.50/hr. With transcription: Vexa $0.40/hr vs Recall.ai ~$0.72/hr. See our{' '}
                 <Link href="/compare/recall-ai" className="text-gray-700 dark:text-gray-300 underline underline-offset-2">
                   detailed comparison
                 </Link>.
@@ -439,10 +439,10 @@ export function PricingSection() {
               mainEntity: [
                 {
                   '@type': 'Question',
-                  name: "What's included in the $0.45/hr Bot Service?",
+                  name: "What's included in the $0.30/hr Bot Service?",
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'The Bot Service includes a meeting bot, real-time transcription, and 12 months of audio storage. It covers Google Meet, Microsoft Teams, and Zoom.',
+                    text: 'The base rate covers bot infrastructure: audio capture, webhooks, and 12 months of audio storage across Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for +$0.10/hr ($0.40/hr total).',
                   },
                 },
                 {
@@ -450,15 +450,15 @@ export function PricingSection() {
                   name: 'Which plan is right for me?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Choose Individual ($12/mo) if you need one bot for personal use — it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.45/hr) if you need multiple simultaneous bots or want to pay only for what you use — ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.',
+                    text: 'Choose Individual ($12/mo) if you need one bot for personal use — it includes real-time transcription, storage, and the Dashboard. Choose Pay-as-you-go ($0.30/hr) if you need multiple simultaneous bots or want to pay only for what you use — ideal for teams and API integrations. Both plans include Google Meet and Microsoft Teams support. Self-host for free from GitHub if you need full data control.',
                   },
                 },
                 {
                   '@type': 'Question',
-                  name: 'How does the free trial work?',
+                  name: 'How does the free credit work?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Every new account gets 1 hour of free bot time — no credit card required. The trial includes all features: transcription, recording, real-time data, and full API access. The clock starts on your first API call, not on signup.',
+                    text: 'Every new account gets $5 in free bot credit — no credit card required. That covers approximately 16 hours of bot time at $0.30/hr. All features are available: audio capture, transcription, real-time data, and full API access.',
                   },
                 },
                 {
@@ -474,7 +474,7 @@ export function PricingSection() {
                   name: 'How does Vexa compare to Recall.ai?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: "Vexa is open source, self-hostable, and ~37% cheaper. Full-service Vexa costs $0.45/hr vs Recall.ai's approximately $0.72/hr at scale. See the detailed comparison at vexa.ai/compare/recall-ai.",
+                    text: "Vexa is open source, self-hostable, and 40% cheaper. Bot infrastructure: Vexa $0.30/hr vs Recall.ai approximately $0.50/hr. With transcription: Vexa $0.40/hr vs Recall.ai approximately $0.72/hr. See the detailed comparison at vexa.ai/compare/recall-ai.",
                   },
                 },
                 {
