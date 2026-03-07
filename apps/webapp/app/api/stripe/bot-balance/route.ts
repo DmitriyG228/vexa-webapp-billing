@@ -16,6 +16,7 @@ const EMPTY = {
   usage_usd: '$0.00',
   initial_credit_usd: '$0.00',
   has_subscription: false,
+  cancel_at_period_end: false,
   topup_enabled: false,
   topup_threshold_cents: 100,
   topup_amount_cents: 500,
@@ -40,6 +41,15 @@ export async function GET() {
 
     if (!customerId) {
       return NextResponse.json({ ...EMPTY, has_subscription: hasSub })
+    }
+
+    // Check subscription cancel_at_period_end from Stripe
+    let cancelAtPeriodEnd = false
+    try {
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
+      cancelAtPeriodEnd = subs.data.some(s => s.cancel_at_period_end)
+    } catch (err) {
+      console.error('[BOT-BALANCE] Subscription list error:', err)
     }
 
     // Read credit balance from Stripe
@@ -90,6 +100,7 @@ export async function GET() {
       usage_usd: formatUsd(usageCents),
       initial_credit_usd: formatUsd(initialCreditCents),
       has_subscription: hasSub,
+      cancel_at_period_end: cancelAtPeriodEnd,
       topup_enabled: topupEnabled,
       topup_threshold_cents: topupThresholdCents,
       topup_amount_cents: topupAmountCents,
