@@ -1,28 +1,31 @@
 """Tests for exponential backoff retry logic."""
 import asyncio
+import sys
+import os
 import pytest
 import httpx
+
+# Support both local (apps/billing/app/) and Docker (/app/) import paths
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps", "billing"))
+
+from app.retry import with_retry, _is_retryable
 
 
 def test_retry_module_imports():
     """retry.py module loads without errors."""
-    from app.retry import with_retry, _is_retryable
     assert callable(with_retry)
     assert callable(_is_retryable)
 
 
 def test_retryable_httpx_timeout():
-    from app.retry import _is_retryable
     assert _is_retryable(httpx.TimeoutException("timed out")) is True
 
 
 def test_retryable_httpx_connect_error():
-    from app.retry import _is_retryable
     assert _is_retryable(httpx.ConnectError("refused")) is True
 
 
 def test_retryable_http_500():
-    from app.retry import _is_retryable
     request = httpx.Request("GET", "http://example.com")
     response = httpx.Response(500, request=request)
     exc = httpx.HTTPStatusError("server error", request=request, response=response)
@@ -30,7 +33,6 @@ def test_retryable_http_500():
 
 
 def test_retryable_http_429():
-    from app.retry import _is_retryable
     request = httpx.Request("GET", "http://example.com")
     response = httpx.Response(429, request=request)
     exc = httpx.HTTPStatusError("rate limited", request=request, response=response)
@@ -38,7 +40,6 @@ def test_retryable_http_429():
 
 
 def test_not_retryable_http_400():
-    from app.retry import _is_retryable
     request = httpx.Request("GET", "http://example.com")
     response = httpx.Response(400, request=request)
     exc = httpx.HTTPStatusError("bad request", request=request, response=response)
@@ -46,14 +47,11 @@ def test_not_retryable_http_400():
 
 
 def test_not_retryable_value_error():
-    from app.retry import _is_retryable
     assert _is_retryable(ValueError("bad value")) is False
 
 
 @pytest.mark.asyncio
 async def test_with_retry_succeeds_first_try():
-    from app.retry import with_retry
-
     call_count = 0
 
     async def ok_fn():
@@ -68,8 +66,6 @@ async def test_with_retry_succeeds_first_try():
 
 @pytest.mark.asyncio
 async def test_with_retry_retries_on_timeout():
-    from app.retry import with_retry
-
     call_count = 0
 
     async def failing_then_ok():
@@ -86,8 +82,6 @@ async def test_with_retry_retries_on_timeout():
 
 @pytest.mark.asyncio
 async def test_with_retry_gives_up_after_max():
-    from app.retry import with_retry
-
     async def always_fails():
         raise httpx.TimeoutException("timeout")
 
@@ -97,8 +91,6 @@ async def test_with_retry_gives_up_after_max():
 
 @pytest.mark.asyncio
 async def test_with_retry_no_retry_on_non_retryable():
-    from app.retry import with_retry
-
     call_count = 0
 
     async def bad_request():
@@ -114,8 +106,6 @@ async def test_with_retry_no_retry_on_non_retryable():
 @pytest.mark.asyncio
 async def test_with_retry_works_with_sync_functions():
     """with_retry handles sync functions via coroutine wrapping."""
-    from app.retry import with_retry
-
     def sync_fn():
         return 42
 
