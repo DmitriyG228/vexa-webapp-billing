@@ -1,60 +1,108 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
-
-const BILLING_URL = process.env.BILLING_URL
+import {
+  getStripe,
+  getPriceId,
+  getUserByEmail,
+} from '@/lib/stripe-billing'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    if (!BILLING_URL) {
-      return NextResponse.json({ error: 'Server misconfiguration: BILLING_URL is not set' }, { status: 500 })
+    const stripe = getStripe()
+    const email = session.user.email
+    const origin = request.headers.get('origin') || request.nextUrl.origin
+
+    const body = await request.json().catch(() => ({})) as {
+      context?: string
+      plan_type?: string
+      quantity?: number
     }
 
-    const origin = request.headers.get('origin')
-    if (!origin) {
-      return NextResponse.json({ error: 'Missing Origin header to construct return URL' }, { status: 400 })
+    const context = body.context || 'pricing'
+    const planType = body.plan_type
+    const returnUrl = `${origin}/account`
+
+    // Look up user to get Stripe customer ID
+    const user = await getUserByEmail(email)
+    let customerId = (user?.data?.stripe_customer_id as string) || null
+
+    // "dashboard" context = open Stripe Billing Portal (for cancel/manage)
+    if (context === 'dashboard') {
+      if (!customerId) {
+        return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
+      }
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: returnUrl,
+      })
+      return NextResponse.json({ url: portalSession.url })
     }
 
-    const body = await request.json().catch(() => ({})) as { context?: string; quantity?: number; plan_type?: string }
-    const context = body?.context || 'pricing'
-    const quantity = typeof body?.quantity === 'number' ? body.quantity : undefined
-    const plan_type = body?.plan_type || undefined
-
-    const payload = {
-      email: session.user.email,
-      context,
-      quantity,
-      plan_type,
-      origin,
-      returnUrl: `${origin}/account`,
-      successUrl: `${origin}/account`,
-      cancelUrl: `${origin}/pricing`,
+    // "pricing" context = checkout for new sub or plan switch
+    if (!planType) {
+      return NextResponse.json({ error: 'Missing plan_type' }, { status: 400 })
     }
 
-    const resp = await fetch(`${BILLING_URL}/v1/stripe/resolve-url`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    // Create Stripe customer if needed
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email,
+        name: session.user.name || undefined,
+      })
+      customerId = customer.id
+    }
+
+    // Check for existing active subscription to detect plan switch
+    let currentSubId: string | undefined
+    if (customerId) {
+      const subs = await stripe.subscriptions.list({
+        customer: customerId,
+        status: 'active',
+        limit: 5,
+      })
+      if (subs.data.length > 0) {
+        currentSubId = subs.data[0].id
+      }
+    }
+
+    const priceId = getPriceId(planType)
+    const subMetadata: Record<string, string> = {
+      userEmail: email,
+      tier: planType,
+    }
+
+    if (currentSubId) {
+      subMetadata.replaces_sub = currentSubId
+    }
+
+    const lineItems: { price: string; quantity?: number }[] = [{ price: priceId }]
+    if (planType === 'individual') {
+      lineItems[0].quantity = 1
+    }
+
+    const checkout = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      line_items: lineItems,
+      success_url: currentSubId
+        ? `${returnUrl}?switched=${planType}`
+        : returnUrl,
+      cancel_url: `${origin}/pricing`,
+      allow_promotion_codes: true,
+      payment_method_collection: 'if_required',
+      subscription_data: { metadata: subMetadata },
     })
 
-    const data = await resp.json().catch(() => ({}))
-    if (!resp.ok) {
-      return NextResponse.json(data, { status: resp.status })
-    }
-
-    return NextResponse.json({ url: data.url })
+    return NextResponse.json({ url: checkout.url })
   } catch (error) {
-    console.error('Error resolving billing URL:', error)
+    console.error('[RESOLVE-URL] Error:', error)
     const message = error instanceof Error ? error.message : 'Failed to resolve billing URL'
-    const hint = message.includes('ECONNREFUSED') ? ' (billing service may not be running)' : ''
-    return NextResponse.json({ error: `Failed to resolve billing URL: ${message}${hint}` }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
-
-
