@@ -21,11 +21,11 @@ router = APIRouter()
 async def ensure_free_credit(email: str) -> bool:
     """Apply $5 free bot credit if not already given. Returns True if credit was applied."""
     data = await get_user_data(email)
-    if data.get("bot_free_credit_given"):
+    if data.get("bot_welcome_credit_given"):
         return False
     await merge_user_data(email, {
         "bot_balance_cents": INITIAL_BOT_CREDIT_CENTS,
-        "bot_free_credit_given": True,
+        "bot_welcome_credit_given": True,
     })
     print(f"[CREDIT] Applied ${INITIAL_BOT_CREDIT_CENTS/100:.2f} free credit for {email}")
     return True
