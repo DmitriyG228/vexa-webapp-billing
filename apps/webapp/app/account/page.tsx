@@ -307,6 +307,8 @@ function AccountPage() {
     }
   }, [])
 
+  const [hasAutoProvisioned, setHasAutoProvisioned] = useState(false)
+
   useEffect(() => {
     if (sessionStatus !== "authenticated" || !userId) {
       setIsLoading(false)
@@ -319,6 +321,27 @@ function AccountPage() {
     }
     loadAll()
   }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBalance, fetchBotBalance, fetchMeetings])
+
+  // Auto-provision: if user has no subscription, create PAYG + $5 credit
+  useEffect(() => {
+    if (!userData || hasAutoProvisioned) return
+    const subStatus = userData.data?.subscription_status as string | undefined
+    if (subStatus && ["active", "trialing", "past_due", "scheduled_to_cancel"].includes(subStatus)) return
+    // No active subscription — auto-provision
+    setHasAutoProvisioned(true)
+    const provision = async () => {
+      try {
+        const resp = await fetch("/api/stripe/auto-provision", { method: "POST" })
+        if (resp.ok) {
+          // Reload all data to reflect new subscription
+          await Promise.all([fetchUserData(), fetchBotBalance()])
+        }
+      } catch (err) {
+        console.error("Auto-provision failed:", err)
+      }
+    }
+    provision()
+  }, [userData, hasAutoProvisioned, fetchUserData, fetchBotBalance])
 
   // ─── API Key actions ─────────────────────────────────────────────────────
 
