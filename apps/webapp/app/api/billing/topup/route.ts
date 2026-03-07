@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             customer: customerId,
             name: `Top-up $${(amountCents / 100).toFixed(2)} — ${product}`,
             category: 'paid',
-            amount: { type: 'monetary', monetary_amount: { currency: 'usd', value: amountCents } },
+            amount: { type: 'monetary', monetary: { currency: 'usd', value: amountCents } },
             applicability_config: { scope: { price_type: 'metered' } },
           } as Stripe.Billing.CreditGrantCreateParams)
 

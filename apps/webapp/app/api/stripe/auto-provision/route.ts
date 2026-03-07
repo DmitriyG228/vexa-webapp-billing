@@ -115,7 +115,7 @@ export async function POST() {
           customer: customerId,
           name: 'Welcome credit — $5 bot',
           category: 'promotional',
-          amount: { type: 'monetary', monetary_amount: { currency: 'usd', value: INITIAL_BOT_CREDIT_CENTS } },
+          amount: { type: 'monetary', monetary: { currency: 'usd', value: INITIAL_BOT_CREDIT_CENTS } },
           applicability_config: { scope: { price_type: 'metered' } },
         } as Stripe.Billing.CreditGrantCreateParams)
 

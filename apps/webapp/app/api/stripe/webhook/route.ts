@@ -200,7 +200,7 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
           customer: custId,
           name: 'Welcome credit — $5 bot',
           category: 'promotional',
-          amount: { type: 'monetary', monetary_amount: { currency: 'usd', value: INITIAL_BOT_CREDIT_CENTS } },
+          amount: { type: 'monetary', monetary: { currency: 'usd', value: INITIAL_BOT_CREDIT_CENTS } },
           applicability_config: { scope: { price_type: 'metered' } },
         } as Stripe.Billing.CreditGrantCreateParams)
         await patchUser(userId, { data: { bot_welcome_credit_given: true } })
@@ -223,7 +223,7 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
             ? 'Welcome credit — 10,000 minutes'
             : 'Welcome credit — TX add-on',
           category: 'promotional',
-          amount: { type: 'monetary', monetary_amount: { currency: 'usd', value: TX_WELCOME_CREDIT_CENTS } },
+          amount: { type: 'monetary', monetary: { currency: 'usd', value: TX_WELCOME_CREDIT_CENTS } },
           applicability_config: { scope: { price_type: 'metered' } },
         } as Stripe.Billing.CreditGrantCreateParams)
         await patchUser(userId, { data: { [creditKey]: true } })
@@ -274,7 +274,7 @@ async function handleCheckoutCompleted(stripe: Stripe, session: Stripe.Checkout.
       customer: custId,
       name: `Top-up $${(topupCents / 100).toFixed(2)} — ${topupProduct}`,
       category: 'paid',
-      amount: { type: 'monetary', monetary_amount: { currency: 'usd', value: topupCents } },
+      amount: { type: 'monetary', monetary: { currency: 'usd', value: topupCents } },
       applicability_config: { scope: { price_type: 'metered' } },
     } as Stripe.Billing.CreditGrantCreateParams)
     console.log(`[WEBHOOK] Topup credit grant for ${topupEmail}: +${topupCents}c (${topupProduct})`)
@@ -335,7 +335,7 @@ async function handleCreditDepleted(stripe: Stripe, creditGrant: Record<string, 
         customer: custId,
         name: `Auto top-up $${(topupAmountCents / 100).toFixed(2)}`,
         category: 'paid',
-        amount: { type: 'monetary', monetary_amount: { currency: 'usd', value: topupAmountCents } },
+        amount: { type: 'monetary', monetary: { currency: 'usd', value: topupAmountCents } },
         applicability_config: { scope: { price_type: 'metered' } },
       } as Stripe.Billing.CreditGrantCreateParams)
       console.log(`[WEBHOOK] Auto-topup +$${(topupAmountCents / 100).toFixed(2)} for ${cust.email}`)
