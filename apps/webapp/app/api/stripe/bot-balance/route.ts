@@ -59,8 +59,9 @@ export async function GET() {
         customer: customerId,
         filter: { type: 'applicability_scope', applicability_scope: { price_type: 'metered' } },
       } as Stripe.Billing.CreditBalanceSummaryRetrieveParams)
-      for (const bal of (summary as unknown as { balances: Array<{ monetary: { available: { amount: number } } }> }).balances || []) {
-        balanceCents += bal.monetary?.available?.amount || 0
+      const balances = (summary as unknown as { balances: Array<{ available_balance: { monetary: { value: number } } }> }).balances || []
+      for (const bal of balances) {
+        balanceCents += bal.available_balance?.monetary?.value || 0
       }
     } catch (err) {
       console.error('[BOT-BALANCE] CreditBalanceSummary error:', err)
