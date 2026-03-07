@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 import stripe
 from fastapi import APIRouter, HTTPException, Request, status
 
 from .config import STRIPE_WEBHOOK_SECRET, STRIPE_IDS, BOT_PLANS, ADDON, DATABASE_URL, INITIAL_BOT_CREDIT_CENTS, TX_FREE_CREDIT_MINUTES
 from .admin import admin_request
+from .retry import with_retry
 
 router = APIRouter()
 
@@ -15,6 +16,32 @@ router = APIRouter()
 # In-memory set (upgrade to Redis later if needed)
 _processed_events: Set[str] = set()
 _MAX_PROCESSED = 10000
+
+# ── Webhook event log (kept in JSONB, last N events per user) ────────────────
+_MAX_WEBHOOK_LOG_ENTRIES = 50
+
+
+async def _log_webhook_event(email: str, event_type: str, event_id: str, result: str, detail: str = "") -> None:
+    """Append a webhook event to the user's data JSONB (no schema change)."""
+    if not DATABASE_URL or not email:
+        return
+    try:
+        from .db import get_user_data, merge_user_data
+        data = await get_user_data(email)
+        log: List[Dict[str, Any]] = data.get("webhook_log", []) or []
+        log.append({
+            "ts": int(time.time()),
+            "type": event_type,
+            "id": event_id,
+            "result": result,
+            "detail": detail[:200] if detail else "",
+        })
+        # Keep only the last N entries
+        if len(log) > _MAX_WEBHOOK_LOG_ENTRIES:
+            log = log[-_MAX_WEBHOOK_LOG_ENTRIES:]
+        await merge_user_data(email, {"webhook_log": log})
+    except Exception as e:
+        print(f"[WEBHOOK] Failed to log event for {email}: {e}")
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -110,7 +137,10 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
         cust_id = sub.get("customer")
         if cust_id:
             try:
-                active_subs = stripe.Subscription.list(customer=cust_id, status="active", limit=10)
+                active_subs = await with_retry(
+                    stripe.Subscription.list, customer=cust_id, status="active", limit=10,
+                    label="stripe list active subs",
+                )
                 for active_sub in active_subs.data:
                     active_plan = _identify_plan(active_sub)
                     active_is_addon = active_plan in ADDON
@@ -121,7 +151,7 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
             except stripe.error.StripeError as e:
                 print(f"[WEBHOOK] WARNING: Could not check active subs: {e}")
 
-    # Upsert user
+    # Upsert user (admin_request already has retry)
     resp = await admin_request("POST", "/admin/users", {"email": email})
     if resp.status_code not in (200, 201):
         raise HTTPException(
@@ -171,18 +201,28 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
             cust_id = sub.get("customer")
             if cust_id:
                 try:
-                    customer = stripe.Customer.retrieve(cust_id)
+                    customer = await with_retry(
+                        stripe.Customer.retrieve, cust_id,
+                        label="stripe retrieve customer",
+                    )
                     pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
                     if not pm_id:
                         pm_id = customer.get("default_source")
                     # Fallback: list attached cards
                     if not pm_id:
-                        pms = stripe.PaymentMethod.list(customer=cust_id, type="card", limit=1)
+                        pms = await with_retry(
+                            stripe.PaymentMethod.list, customer=cust_id, type="card", limit=1,
+                            label="stripe list payment methods",
+                        )
                         if pms.data:
                             pm_id = pms.data[0].id
                             # Set as default on Stripe customer
                             try:
-                                stripe.Customer.modify(cust_id, invoice_settings={"default_payment_method": pm_id})
+                                await with_retry(
+                                    stripe.Customer.modify, cust_id,
+                                    invoice_settings={"default_payment_method": pm_id},
+                                    label="stripe set default pm",
+                                )
                             except stripe.error.StripeError:
                                 pass
                     if pm_id:
@@ -199,11 +239,13 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
         if not data.get("bot_welcome_credit_given"):
             try:
                 cust_id = sub.get("customer")
-                stripe.Customer.create_balance_transaction(
+                await with_retry(
+                    stripe.Customer.create_balance_transaction,
                     cust_id,
                     amount=-INITIAL_BOT_CREDIT_CENTS,
                     currency="usd",
                     description="Welcome credit — Pay-as-you-go ($5)",
+                    label="stripe welcome credit",
                 )
                 await merge_user_data(email, {
                     "bot_welcome_credit_given": True,
@@ -217,7 +259,10 @@ async def _sync_entitlements(email: str, sub: Dict[str, Any]) -> None:
     replaces = (sub.get("metadata") or {}).get("replaces_sub")
     if replaces:
         try:
-            stripe.Subscription.cancel(replaces, prorate=True, invoice_now=True)
+            await with_retry(
+                stripe.Subscription.cancel, replaces, prorate=True, invoice_now=True,
+                label="stripe cancel replaced sub",
+            )
             print(f"[WEBHOOK] Canceled replaced sub {replaces}")
         except stripe.error.StripeError as e:
             print(f"[WEBHOOK] WARNING: Could not cancel replaced sub {replaces}: {e}")
@@ -271,14 +316,22 @@ async def stripe_webhook(request: Request):
             cust_id = sub.get("customer")
             if cust_id:
                 try:
-                    customer = stripe.Customer.retrieve(cust_id)
+                    customer = await with_retry(
+                        stripe.Customer.retrieve, cust_id,
+                        label="stripe retrieve customer for email",
+                    )
                     email = customer.get("email")
                 except stripe.error.StripeError:
                     email = None
         if not email:
             return {"received": True, "note": "No email to map user"}
 
-        await _sync_entitlements(email, sub)
+        try:
+            await _sync_entitlements(email, sub)
+            await _log_webhook_event(email, event_type, event_id, "ok")
+        except Exception as e:
+            await _log_webhook_event(email, event_type, event_id, "error", str(e))
+            raise
         return {"received": True}
 
     # Handle one-time topup checkout sessions (not subscriptions — those are handled by subscription.created)
@@ -308,7 +361,10 @@ async def stripe_webhook(request: Request):
                     cust_id = session.get("customer")
                     if cust_id:
                         try:
-                            customer = stripe.Customer.retrieve(cust_id)
+                            customer = await with_retry(
+                                stripe.Customer.retrieve, cust_id,
+                                label="stripe retrieve customer for topup",
+                            )
                             pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
                             if not pm_id:
                                 pm_id = customer.get("default_source")
@@ -319,6 +375,7 @@ async def stripe_webhook(request: Request):
                         patch["stripe_customer_id"] = cust_id
                     await merge_user_data(topup_email, patch)
                     print(f"[WEBHOOK] Topup {topup_product} for {topup_email}: +{topup_cents}c → {field}={new_balance}")
+                    await _log_webhook_event(topup_email, event_type, event_id, "ok", f"topup {topup_product} +{topup_cents}c")
             return {"received": True}
         # Non-topup checkout sessions (subscriptions) — handled by subscription.created, skip here
         return {"received": True, "note": "checkout handled by subscription events"}

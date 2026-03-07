@@ -14,10 +14,21 @@ router = APIRouter()
 # ── Admin API helper ─────────────────────────────────────────────────────────
 
 async def admin_request(method: str, path: str, json_body: Optional[Dict[str, Any]] = None) -> httpx.Response:
+    from .retry import with_retry
+
     url = f"{ADMIN_API_URL}{path}"
     headers = {"X-Admin-API-Key": ADMIN_API_TOKEN}
-    async with httpx.AsyncClient() as client:
-        return await client.request(method, url, json=json_body, headers=headers, timeout=30)
+
+    async def _do_request() -> httpx.Response:
+        async with httpx.AsyncClient() as client:
+            resp = await client.request(method, url, json=json_body, headers=headers, timeout=30)
+            resp.raise_for_status()
+            return resp
+
+    try:
+        return await with_retry(_do_request, label=f"admin {method} {path}")
+    except httpx.HTTPStatusError as e:
+        return e.response
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────

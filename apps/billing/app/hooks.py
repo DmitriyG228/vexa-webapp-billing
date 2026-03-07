@@ -17,6 +17,7 @@ from fastapi import APIRouter
 from .config import get_price_id
 from .context import _ensure_customer
 from .db import get_user_data, merge_user_data
+from .retry import with_retry
 
 router = APIRouter()
 
@@ -68,8 +69,11 @@ async def handle_meeting_completed(payload: Dict[str, Any]):
 
     # 2. Report metered usage to Stripe (for PAYG subscribers)
     try:
-        customer = _ensure_customer(email)
-        subs = stripe.Subscription.list(customer=customer.id, status="active", limit=50)
+        customer = await with_retry(_ensure_customer, email, label="stripe ensure customer")
+        subs = await with_retry(
+            stripe.Subscription.list, customer=customer.id, status="active", limit=50,
+            label="stripe list subs",
+        )
 
         price_id = get_price_id("bot_service")
         target_item = None
@@ -84,12 +88,14 @@ async def handle_meeting_completed(payload: Dict[str, Any]):
 
         if target_item:
             import time
-            stripe.SubscriptionItem.create_usage_record(
+            await with_retry(
+                stripe.SubscriptionItem.create_usage_record,
                 target_item["id"],
                 quantity=max(1, int(duration_minutes + 0.5)),
                 timestamp=int(time.time()),
                 action="increment",
                 idempotency_key=f"meeting-{meeting_id}" if meeting_id else None,
+                label="stripe usage record",
             )
             result["stripe_reported"] = True
         else:

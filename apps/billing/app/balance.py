@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from .config import INITIAL_BOT_CREDIT_CENTS, TX_FREE_CREDIT_MINUTES, PORTAL_RETURN_URL
 from .context import _ensure_customer
 from .db import get_user_data, merge_user_data
+from .retry import with_retry
 from .models import (
     BalanceCheckRequest, BalanceDeductRequest, BalanceCreditRequest,
     TopupSettingsRequest, TopupRequest, PaymentMethodRequest,
@@ -165,19 +166,18 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
     # Try to find payment method from Stripe if not saved locally
     if not pm_id and cust_id:
         try:
-            customer = stripe.Customer.retrieve(cust_id)
+            customer = await with_retry(stripe.Customer.retrieve, cust_id, label="stripe retrieve customer")
             pm_id = (customer.get("invoice_settings") or {}).get("default_payment_method")
             if not pm_id:
                 pm_id = customer.get("default_source")
             # Fallback: list all attached cards and use the most recent one
             if not pm_id:
-                pms = stripe.PaymentMethod.list(customer=cust_id, type="card", limit=1)
+                pms = await with_retry(stripe.PaymentMethod.list, customer=cust_id, type="card", limit=1, label="stripe list pms")
                 if pms.data:
                     pm_id = pms.data[0].id
             if pm_id:
-                # Set as default on Stripe customer so it's found faster next time
                 try:
-                    stripe.Customer.modify(cust_id, invoice_settings={"default_payment_method": pm_id})
+                    await with_retry(stripe.Customer.modify, cust_id, invoice_settings={"default_payment_method": pm_id}, label="stripe set default pm")
                 except stripe.error.StripeError:
                     pass
                 await merge_user_data(req.email, {"stripe_payment_method_id": pm_id})
@@ -189,14 +189,14 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
     # If no saved payment method, create a Stripe Checkout session for one-time payment
     if not pm_id or not cust_id:
         if not cust_id:
-            customer = _ensure_customer(req.email)
+            customer = await with_retry(_ensure_customer, req.email, label="stripe ensure customer")
             cust_id = customer.id
             await merge_user_data(req.email, {"stripe_customer_id": cust_id})
 
         origin = req.origin or PORTAL_RETURN_URL.rstrip("/")
         product_label = "Bot" if req.product == "bot" else "Transcription"
         try:
-            session = stripe.checkout.Session.create(
+            session = await with_retry(stripe.checkout.Session.create,
                 mode="payment",
                 customer=cust_id,
                 payment_method_types=["card"],
@@ -218,6 +218,7 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
                 },
                 success_url=f"{origin}/account?topup=success",
                 cancel_url=f"{origin}/account?topup=cancelled",
+                label="stripe checkout session",
             )
         except stripe.error.StripeError as e:
             raise HTTPException(status_code=400, detail=f"Checkout failed: {str(e)}")
@@ -226,7 +227,8 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
 
     # Charge saved payment method off-session
     try:
-        pi = stripe.PaymentIntent.create(
+        pi = await with_retry(
+            stripe.PaymentIntent.create,
             amount=amount_cents,
             currency="usd",
             customer=cust_id,
@@ -234,6 +236,7 @@ async def manual_topup(req: TopupRequest) -> Dict[str, Any]:
             off_session=True,
             confirm=True,
             description=f"{'Bot' if req.product == 'bot' else 'Transcription'} balance top-up",
+            label="stripe payment intent",
         )
     except stripe.error.StripeError as e:
         raise HTTPException(status_code=400, detail=f"Payment failed: {str(e)}")
@@ -265,16 +268,16 @@ async def save_payment_method(req: PaymentMethodRequest) -> Dict[str, Any]:
     cust_id = data.get("stripe_customer_id")
 
     if not cust_id:
-        # Create or find Stripe customer
-        customer = _ensure_customer(req.email)
+        customer = await with_retry(_ensure_customer, req.email, label="stripe ensure customer")
         cust_id = customer.id
         await merge_user_data(req.email, {"stripe_customer_id": cust_id})
 
     try:
-        stripe.PaymentMethod.attach(req.pm_id, customer=cust_id)
-        stripe.Customer.modify(
-            cust_id,
+        await with_retry(stripe.PaymentMethod.attach, req.pm_id, customer=cust_id, label="stripe attach pm")
+        await with_retry(
+            stripe.Customer.modify, cust_id,
             invoice_settings={"default_payment_method": req.pm_id},
+            label="stripe set default pm",
         )
     except stripe.error.StripeError as e:
         raise HTTPException(status_code=400, detail=f"Failed to save payment method: {str(e)}")
