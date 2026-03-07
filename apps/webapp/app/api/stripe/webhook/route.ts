@@ -238,11 +238,26 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
   const replacesSub = sub.metadata?.replaces_sub
   if (replacesSub) {
     try {
+      const custId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
       await stripe.subscriptions.cancel(replacesSub, {
         prorate: true,
         invoice_now: true,
       } as Stripe.SubscriptionCancelParams)
       console.log(`[WEBHOOK] Canceled replaced sub ${replacesSub}`)
+
+      // Finalize any draft proration invoices so credit lands on customer.balance
+      const drafts = await stripe.invoices.list({
+        customer: custId,
+        status: 'draft',
+        limit: 5,
+      })
+      for (const inv of drafts.data) {
+        if (inv.total < 0) {
+          // Negative total = credit to customer. Finalize so Stripe applies it.
+          await stripe.invoices.finalizeInvoice(inv.id, { auto_advance: true })
+          console.log(`[WEBHOOK] Finalized proration invoice ${inv.id} (${inv.total}c credit)`)
+        }
+      }
     } catch (err) {
       console.error(`[WEBHOOK] Could not cancel replaced sub ${replacesSub}:`, err)
     }

@@ -67,39 +67,48 @@ export async function GET() {
       console.error('[BOT-BALANCE] CreditBalanceSummary error:', err)
     }
 
-    // Read topup preferences + initial credit info from Customer.metadata
+    // Read customer data: balance, topup preferences, initial credit info
     let topupEnabled = false
     let topupThresholdCents = 100
     let topupAmountCents = 500
     let initialCreditCents = 0
+    let customerBalanceCents = 0 // Stripe customer.balance (negative = credit)
 
     try {
       const customer = await stripe.customers.retrieve(customerId)
       if (!customer.deleted) {
-        const meta = (customer as Stripe.Customer).metadata || {}
+        const cust = customer as Stripe.Customer
+        const meta = cust.metadata || {}
         topupEnabled = meta.topup_enabled === 'true'
         if (meta.topup_threshold_cents) topupThresholdCents = parseInt(meta.topup_threshold_cents, 10)
         if (meta.topup_amount_cents) topupAmountCents = parseInt(meta.topup_amount_cents, 10)
         if (meta.welcome_credit_cents) initialCreditCents = parseInt(meta.welcome_credit_cents, 10)
+        // Stripe: negative balance = customer has credit (e.g. from proration)
+        if (cust.balance < 0) customerBalanceCents = Math.abs(cust.balance)
       }
     } catch (err) {
       console.error('[BOT-BALANCE] Customer retrieve error:', err)
     }
+
+    // Total balance = credit grants + Stripe customer credit (from prorations)
+    balanceCents += customerBalanceCents
 
     // If no welcome_credit_cents in metadata but user has an active sub, assume $5 was granted
     if (initialCreditCents === 0 && hasSub) {
       initialCreditCents = 500
     }
 
-    const usageCents = Math.max(initialCreditCents - balanceCents, 0)
+    // Initial credit includes proration credits
+    const totalCreditCents = initialCreditCents + customerBalanceCents
+    const usageCents = Math.max(totalCreditCents - balanceCents, 0)
 
     return NextResponse.json({
       balance_cents: balanceCents,
-      initial_credit_cents: initialCreditCents,
+      initial_credit_cents: totalCreditCents,
       usage_cents: usageCents,
       balance_usd: formatUsd(balanceCents),
       usage_usd: formatUsd(usageCents),
-      initial_credit_usd: formatUsd(initialCreditCents),
+      initial_credit_usd: formatUsd(totalCreditCents),
       has_subscription: hasSub,
       cancel_at_period_end: cancelAtPeriodEnd,
       topup_enabled: topupEnabled,

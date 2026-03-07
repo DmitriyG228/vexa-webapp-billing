@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
               customer: customerId,
               filter: { type: 'applicability_scope', applicability_scope: { price_type: 'metered' } },
             } as Stripe.Billing.CreditBalanceSummaryRetrieveParams)
-            for (const bal of (summary as unknown as { balances: Array<{ monetary: { available: { amount: number } } }> }).balances || []) {
-              newBalance += bal.monetary?.available?.amount || 0
+            for (const bal of (summary as unknown as { balances: Array<{ available_balance: { monetary: { value: number } } }> }).balances || []) {
+              newBalance += bal.available_balance?.monetary?.value || 0
             }
           } catch { /* ignore */ }
 
