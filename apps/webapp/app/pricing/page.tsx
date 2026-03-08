@@ -82,6 +82,14 @@ export default function PricingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      <div className="text-center mb-2 px-6">
+        <h1 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
+          Meeting Bot API Pricing
+        </h1>
+        <p className="mt-3 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-xl mx-auto">
+          Bot infrastructure from $0.30/hr. Self-host free or use our managed cloud.
+        </p>
+      </div>
       <PricingSection />
     </div>
   )

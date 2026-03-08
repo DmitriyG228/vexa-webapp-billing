@@ -6,14 +6,14 @@ import { BlogRefreshButton } from './blog-refresh-button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const metadata: Metadata = {
-  title: 'Blog | Vexa',
-  description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source. Tutorials, comparisons, and product updates.',
+  title: 'Meeting Bot API Blog — Guides, Tutorials & Updates | Vexa',
+  description: 'Guides, tutorials, and updates on meeting bot APIs, self-hosted transcription, and open-source meeting infrastructure from the Vexa team.',
   alternates: {
     canonical: 'https://vexa.ai/blog',
   },
   openGraph: {
-    title: 'Blog | Vexa',
-    description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.',
+    title: 'Meeting Bot API Blog | Vexa',
+    description: 'Guides, tutorials, and updates on meeting bot APIs, self-hosted transcription, and open-source meeting infrastructure.',
     url: 'https://vexa.ai/blog',
     siteName: 'Vexa',
     images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Blog | Vexa',
-    description: 'Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.',
+    title: 'Meeting Bot API Blog | Vexa',
+    description: 'Guides, tutorials, and updates on meeting bot APIs, self-hosted transcription, and open-source meeting infrastructure.',
   },
 };
 
@@ -77,8 +77,8 @@ export default async function BlogIndex() {
             Blog
           </span>
           <h1 className="text-[34px] sm:text-[40px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-            Insights &amp;&nbsp;
-            <em className="not-italic font-light text-gray-400 dark:text-gray-500">updates</em>
+            Meeting Bot API&nbsp;
+            <em className="not-italic font-light text-gray-400 dark:text-gray-500">Blog</em>
           </h1>
           <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-lg mx-auto">
             Latest thinking from the Vexa team on meeting intelligence, APIs, and open source.
