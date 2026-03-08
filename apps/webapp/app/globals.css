@@ -202,12 +202,12 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 93%;
     --primary: 0 0% 98%;
     --primary-foreground: 0 0% 9%;
     --secondary: 0 0% 14.9%;
@@ -218,8 +218,8 @@
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
     --ring: 0 0% 83.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -298,6 +298,195 @@
 
 .prose-code-copy-buttons .copy-button:hover {
   opacity: 1;
+}
+
+/* ==============================================
+   Blog post — decorative background elements
+   ============================================== */
+
+/* Edge border lines flanking the content area */
+.blog-grid-lines {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px); /* account for px-6 on each side */
+  max-width: 768px; /* matches max-w-3xl */
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  border-left: 1px dashed rgba(0, 0, 0, 0.08);
+  border-right: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.dark .blog-grid-lines {
+  border-left-color: rgba(255, 255, 255, 0.06);
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Dot grid in header */
+.blog-header-dots {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .blog-header-dots {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+}
+
+/* ==============================================
+   Blog prose overrides — Vercel-inspired styling
+   ============================================== */
+
+/* --- Tables (Vercel-style: dashed column dividers, subtle bg, rounded) --- */
+.prose .table-container {
+  overflow: auto hidden;
+  background: hsl(0 0% 98%);
+  border-radius: 16px;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding: 4px;
+}
+
+.dark .prose .table-container {
+  background: hsl(0 0% 6%);
+}
+
+.prose .table-container table {
+  margin: 0;
+  border-collapse: collapse;
+  table-layout: auto;
+  font-size: 15px;
+  width: 100%;
+}
+
+.prose .table-container th,
+.prose .table-container td {
+  padding: 18px 24px;
+  text-align: left;
+  border-bottom: none;
+  border-right: 1px dashed rgba(0, 0, 0, 0.12);
+  font-weight: 400;
+  vertical-align: top;
+}
+
+.dark .prose .table-container th,
+.dark .prose .table-container td {
+  border-right-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Header row */
+.prose .table-container th {
+  font-weight: 600;
+  font-size: 15px;
+  color: hsl(var(--foreground));
+  padding-bottom: 14px;
+}
+
+/* Subtle row separator (solid, very light) */
+.prose .table-container tbody tr + tr td {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .prose .table-container tbody tr + tr td {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Remove right border on last column */
+.prose .table-container th:last-child,
+.prose .table-container td:last-child {
+  border-right: none;
+}
+
+/* --- Images in prose (Vercel-style figure frame) --- */
+.prose .blog-image-figure {
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 8px;
+  border-radius: 8px;
+  background: hsl(0 0% 98%);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  margin: 2em auto;
+  max-width: 100%;
+}
+
+.dark .prose .blog-image-figure {
+  background: hsl(0 0% 6%);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.prose .blog-image-figure img {
+  border-radius: 6px;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+/* --- Inline code --- */
+.prose :where(code):not(:where(pre *)) {
+  font-size: 0.875em;
+  font-weight: 500;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: hsl(0 0% 96%);
+  border: none;
+}
+
+.prose :where(code):not(:where(pre *))::before,
+.prose :where(code):not(:where(pre *))::after {
+  content: '' !important;
+}
+
+.dark .prose :where(code):not(:where(pre *)) {
+  background: hsl(0 0% 12%);
+}
+
+/* --- Links (blue accent like Vercel) --- */
+.prose a {
+  color: hsl(212, 100%, 48%);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dark .prose a {
+  color: hsl(210, 100%, 66%);
+}
+
+/* --- Body text size bump --- */
+.prose {
+  font-size: 18px;
+  line-height: 1.56;
+}
+
+/* --- Headings tighter tracking --- */
+.prose h2 {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+  line-height: 1.25;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+}
+
+.prose h3 {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* --- Dark mode body text: slightly muted (not pure white) --- */
+.dark .prose {
+  color: rgb(180, 180, 180);
+}
+
+.dark .prose strong {
+  color: rgb(237, 237, 237);
 }
 
 /* Print styles for pitch deck */

@@ -39,7 +39,7 @@ export default function PublicBetaPage() {
           </p>
           
           <div className="flex flex-col gap-3 mt-4">
-            <a href="/api/auth/signin">
+            <a href="/signin">
               <Button className="w-full flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" className="w-5 h-5">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -54,7 +54,7 @@ export default function PublicBetaPage() {
             <a href="/get-started">
               <Button variant="outline" className="w-full">Starting Guide</Button>
             </a>
-            <a href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.md" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/Vexa-ai/vexa/blob/main/docs/user_api_guide.mdx" target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" className="w-full">View API Documentation</Button>
             </a>
           </div>

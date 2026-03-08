@@ -13,6 +13,30 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/product/google-meet-transcription-api',
+        destination: '/pricing',
+        permanent: true,
+      },
+      {
+        source: '/product/microsoft-teams-transcription-api',
+        destination: '/pricing',
+        permanent: true,
+      },
+      {
+        source: '/open-source',
+        destination: '/open-source-dashboard',
+        permanent: true,
+      },
+      {
+        source: '/documentation_new',
+        destination: 'https://docs.vexa.ai',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

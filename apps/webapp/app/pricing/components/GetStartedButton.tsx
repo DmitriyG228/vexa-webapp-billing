@@ -2,9 +2,7 @@
 
 import { useSession, signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-
-
+import { useState, useEffect, useRef } from 'react'
 
 interface GetStartedButtonProps {
   buttonText?: string
@@ -12,10 +10,14 @@ interface GetStartedButtonProps {
   isPopular?: boolean
   isEnterprise?: boolean
   isLoading?: boolean
-  planType?: 'mvp' | 'dynamic' | 'enterprise' | 'local' | 'community' | 'nomad' | 'dedicated'
+  planType?: 'mvp' | 'dynamic' | 'enterprise' | 'local' | 'community' | 'nomad' | 'dedicated' | 'individual' | 'bot_service' | 'transcription_api'
   botCount?: number
   totalPrice?: string
   href?: string
+  /** Current user's subscription tier (passed from parent if available) */
+  currentTier?: string
+  /** Current user's subscription status */
+  currentStatus?: string
 }
 
 export function GetStartedButton({
@@ -28,20 +30,40 @@ export function GetStartedButton({
   botCount,
   totalPrice,
   href,
+  currentTier,
+  currentStatus,
 }: GetStartedButtonProps) {
   const { data: session } = useSession()
   const [isSubscribing, setIsSubscribing] = useState(false)
+  const autoCheckoutTriggered = useRef(false)
 
+  // Auto-resume checkout after sign-in redirect (read URL params without useSearchParams to avoid Suspense requirement)
+  useEffect(() => {
+    if (!session || autoCheckoutTriggered.current) return
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const checkoutPlan = params.get('checkout')
+    if (checkoutPlan && checkoutPlan === planType) {
+      autoCheckoutTriggered.current = true
+      handleMvpSubscription()
+    }
+  }, [session])
+
+  const hasActiveSub = currentStatus &&
+    ['active', 'trialing', 'scheduled_to_cancel'].includes(currentStatus)
 
   const handleMvpSubscription = async () => {
     if (!session) {
-      signIn('google', { callbackUrl: '/pricing' })
+      // Encode intended plan in callback URL so we auto-resume after sign-in
+      signIn('google', { callbackUrl: `/pricing?checkout=${planType}` })
       return
     }
 
+    // resolve-url handles all cases: same plan → portal, different plan → switch, no sub → checkout
     setIsSubscribing(true)
     try {
-      // Use the new resolve-url endpoint for proper routing
+      const stripePlanType = planType === 'mvp' ? 'individual' : planType
+
       const response = await fetch('/api/stripe/resolve-url', {
         method: 'POST',
         headers: {
@@ -49,11 +71,8 @@ export function GetStartedButton({
         },
         body: JSON.stringify({
           context: 'pricing',
+          plan_type: stripePlanType,
           quantity: botCount || 1,
-          consent: {
-            timestamp: new Date().toISOString(),
-            userId: session?.user?.email
-          }
         }),
       })
 
@@ -75,31 +94,32 @@ export function GetStartedButton({
 
   const handleButtonClick = () => {
     if (isEnterprise) {
-      // Enterprise buttons: route to scheduling link if provided
       if (href) window.location.href = href
       else window.location.href = '/contact-sales'
       return
     }
 
-    if (planType === 'mvp') {
+    if (planType === 'mvp' || planType === 'individual' || planType === 'bot_service' || planType === 'transcription_api') {
       handleMvpSubscription()
       return
     }
 
     if (!session) {
-      // If user is not logged in, initiate Google sign-in
       signIn('google', { callbackUrl: '/pricing' })
     } else {
-      // If user is logged in, redirect them to the dashboard or a checkout page
-      // For a simple "Get Started", redirecting to the dashboard makes sense.
-      window.location.href = '/dashboard'
+      window.location.href = '/account'
     }
   }
 
   const getButtonText = () => {
     if (isEnterprise) return buttonText || 'Talk to Founder'
 
-    // If we have bot count and total price, show dynamic pricing text
+    // If user has active sub on THIS plan → "Manage"
+    if (hasActiveSub && currentTier === planType) return 'Manage Plan'
+
+    // If user has active sub on DIFFERENT plan → "Switch to this plan"
+    if (hasActiveSub && currentTier && currentTier !== planType) return 'Switch Plan'
+
     if (botCount && totalPrice) {
       const botText = botCount === 1 ? '1 bot' : `${botCount} bots`
       return `Subscribe for ${botText} for ${totalPrice}/mo`
@@ -113,8 +133,8 @@ export function GetStartedButton({
   return (
     <Button
       className={`w-full h-10 text-sm font-semibold transition-all duration-300 ${
-        buttonVariant === 'outline' 
-          ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground shadow-lg hover:shadow-xl' 
+        buttonVariant === 'outline'
+          ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground shadow-lg hover:shadow-xl'
           : 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl'
       }`}
       variant={buttonVariant}
@@ -132,4 +152,4 @@ export function GetStartedButton({
       )}
     </Button>
   )
-} 
+}

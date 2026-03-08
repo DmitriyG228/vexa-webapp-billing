@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vexa — Meeting Transcription API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          animation: {
+            'blink': 'blink 1s step-end infinite',
+            'fade-up': 'fade-up 0.5s ease-out both',
+          },
+          keyframes: {
+            'blink': { '0%,100%': { opacity: '1' }, '50%': { opacity: '0' } },
+            'fade-up': { 'from': { opacity: '0', transform: 'translateY(12px)' }, 'to': { opacity: '1', transform: 'translateY(0)' } },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #fff; color: #111; }
+
+    /* Subtle dot-grid background */
+    .dot-grid {
+      background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* Avatar overlap */
+    .avatar img + img { margin-left: -8px; }
+
+    /* Terminal scrollbar */
+    .term-scroll::-webkit-scrollbar { width: 3px; }
+    .term-scroll::-webkit-scrollbar-track { background: transparent; }
+    .term-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    /* Staggered fade-up delays */
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.12s; }
+    .delay-3 { animation-delay: 0.19s; }
+    .delay-4 { animation-delay: 0.26s; }
+    .delay-5 { animation-delay: 0.33s; }
+    .delay-6 { animation-delay: 0.40s; }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ─── -->
+  <header class="fixed top-0 inset-x-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-sm">
+    <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <!-- Wordmark -->
+        <span class="text-base font-semibold tracking-tight text-gray-900">vexa</span>
+      </a>
+      <nav class="hidden sm:flex items-center gap-6 text-sm text-gray-500">
+        <a href="#" class="hover:text-gray-900 transition-colors">Docs</a>
+        <a href="#" class="hover:text-gray-900 transition-colors">Pricing</a>
+        <a href="https://github.com/Vexa-ai/vexa" target="_blank" class="hover:text-gray-900 transition-colors">GitHub</a>
+      </nav>
+      <a href="/get-started" class="inline-flex items-center gap-1.5 h-8 px-4 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors">
+        Get started
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- ─── HERO ─── -->
+  <main class="dot-grid min-h-screen pt-14">
+    <!-- Fade mask over grid at bottom -->
+    <div class="relative">
+
+      <!-- Content container -->
+      <div class="relative max-w-5xl mx-auto px-6 pt-20 pb-0 flex flex-col items-center text-center gap-7">
+
+        <!-- Badge -->
+        <div class="animate-fade-up delay-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-gray-200 bg-white text-xs text-gray-500 font-medium shadow-sm">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          v0.6 · Microsoft Teams support
+        </div>
+
+        <!-- Headline -->
+        <h1 class="animate-fade-up delay-2 text-5xl sm:text-6xl md:text-[72px] font-semibold tracking-tight leading-[1.08] text-gray-950 max-w-3xl">
+          Meeting<br/>Transcription API
+        </h1>
+
+        <!-- Subheading -->
+        <p class="animate-fade-up delay-3 text-lg sm:text-xl text-gray-400 max-w-xl leading-relaxed font-normal">
+          Real-time transcription for Google Meet and Microsoft Teams — one simple REST API.
+        </p>
+
+        <!-- Platform tags -->
+        <div class="animate-fade-up delay-3 flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-600 font-medium">
+            <img src="microsoft-teams-logo.png" alt="" class="h-3.5 w-3.5 object-contain" onerror="this.style.display='none'" />
+            Microsoft Teams
+          </span>
+          <span class="text-gray-300 text-sm">+</span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-600 font-medium">
+            <img src="google-meet-logo.png" alt="" class="h-3.5 w-3.5 object-contain" onerror="this.style.display='none'" />
+            Google Meet
+          </span>
+        </div>
+
+        <!-- CTAs -->
+        <div class="animate-fade-up delay-4 flex flex-col sm:flex-row items-center gap-3">
+          <a href="/get-started" class="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-gray-950 text-white text-sm font-medium hover:bg-gray-700 transition-colors shadow-sm">
+            Quick Start
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="https://github.com/Vexa-ai/vexa" target="_blank"
+             class="inline-flex items-center gap-2 h-11 px-6 rounded-full border border-gray-200 bg-white text-gray-900 text-sm font-medium hover:border-gray-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="text-gray-700">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/>
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Social proof -->
+        <div class="animate-fade-up delay-5 flex items-center gap-3">
+          <div class="avatar flex items-center">
+            <img src="https://i.pravatar.cc/64?img=45" alt="" class="h-6 w-6 rounded-full ring-2 ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=23" alt="" class="h-6 w-6 rounded-full ring-2 ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=67" alt="" class="h-6 w-6 rounded-full ring-2 ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=12" alt="" class="h-6 w-6 rounded-full ring-2 ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=34" alt="" class="h-6 w-6 rounded-full ring-2 ring-white object-cover" />
+          </div>
+          <div class="flex items-center gap-1.5 text-sm text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" class="text-amber-400">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span>Starred by <strong class="text-gray-700 font-medium">1.3k+</strong> developers</span>
+          </div>
+        </div>
+
+        <!-- Terminal mock -->
+        <div class="animate-fade-up delay-6 w-full mt-6">
+          <!-- Outer card: light border, subtle shadow, white bg peek above -->
+          <div class="relative rounded-2xl border border-gray-200 overflow-hidden shadow-xl shadow-gray-100">
+
+            <!-- Window chrome -->
+            <div class="flex items-center gap-2 px-5 py-3.5 bg-[#1a1a1a] border-b border-white/5">
+              <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#28c840]"></div>
+              </div>
+              <span class="flex-1 text-center text-xs text-gray-500 font-mono -ml-14">vexa · live transcript</span>
+              <div class="flex items-center gap-1.5">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[11px] text-gray-400 font-mono font-medium">LIVE</span>
+              </div>
+            </div>
+
+            <!-- Transcript area -->
+            <div id="terminal-content"
+                 class="term-scroll bg-[#141414] text-left p-6 h-72 overflow-y-auto space-y-5 font-mono text-[13px] leading-relaxed">
+              <!-- JS-injected content -->
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Bottom fade into white -->
+        <div class="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ─── TRANSCRIPTION ANIMATION ─── -->
+  <script>
+    const speakers = [
+      { name: 'Alice Chen',     color: '#60a5fa' },   // blue
+      { name: 'Bob Rodriguez',  color: '#a78bfa' },   // purple
+      { name: 'Carol Kim',      color: '#34d399' },   // green
+      { name: 'David Wilson',   color: '#f87171' },   // red
+    ];
+    const phrases = [
+      "Let's review the quarterly metrics and discuss our roadmap for next quarter.",
+      "I think we should focus on improving our API response times first.",
+      "The user feedback has been really positive about the new dashboard features.",
+      "We need to prioritize security updates before the next release.",
+      "Can we schedule a follow-up meeting to discuss the implementation details?",
+      "The performance improvements we made last week are showing great results.",
+      "I'd like to propose a new feature that could increase user engagement.",
+      "We should consider the impact on existing customers before making this change.",
+      "Testing is going well — we're still on track for the deadline.",
+      "Let me share my screen to show you the latest prototype designs.",
+    ];
+
+    const el = document.getElementById('terminal-content');
+    let completed = [];
+    let speaking = false;
+    let phrase = '', speaker = null, wordIdx = 0;
+
+    function fmt(d) { return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+
+    function render() {
+      const MAX = 6;
+      let html = '';
+      for (const e of completed.slice(-MAX)) {
+        html += `
+          <div>
+            <div class="flex items-baseline gap-2 mb-1">
+              <span class="text-[11px] text-gray-600 tabular-nums">${e.time}</span>
+              <span class="font-semibold text-[13px]" style="color:${e.color}">${e.name}</span>
+            </div>
+            <p class="text-gray-300 ml-0 text-[13px]">${e.text}</p>
+          </div>`;
+      }
+      if (speaking) {
+        const words = phrase.split(' ');
+        const typed  = words.slice(0, wordIdx).join(' ');
+        const ghost  = words.slice(wordIdx).join(' ');
+        html += `
+          <div>
+            <div class="flex items-baseline gap-2 mb-1">
+              <span class="text-[11px] text-gray-600 tabular-nums">${fmt(new Date())}</span>
+              <span class="font-semibold text-[13px]" style="color:${speaker.color}">${speaker.name}</span>
+              <span class="text-[10px] text-gray-600">transcribing…</span>
+            </div>
+            <p class="text-gray-300 ml-0 text-[13px]">${typed}<span class="text-gray-700">${typed ? ' ' : ''}${ghost}</span><span class="animate-blink text-gray-300 ml-px">▌</span></p>
+          </div>`;
+      }
+      el.innerHTML = html || '<p class="text-gray-700 text-[13px]">Waiting for speakers…</p>';
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function tick() {
+      if (!speaking) {
+        if (Math.random() < 0.3) {
+          phrase   = phrases[Math.floor(Math.random() * phrases.length)];
+          speaker  = speakers[Math.floor(Math.random() * speakers.length)];
+          wordIdx  = 0;
+          speaking = true;
+        }
+      } else {
+        const total = phrase.split(' ').length;
+        if (wordIdx < total) {
+          wordIdx++;
+        } else {
+          completed.push({ name: speaker.name, color: speaker.color, text: phrase, time: fmt(new Date()) });
+          speaking = false;
+        }
+      }
+      render();
+    }
+
+    (function loop() {
+      setTimeout(() => { tick(); loop(); }, Math.random() * 160 + 55);
+    })();
+  </script>
+
+</body>
+</html>

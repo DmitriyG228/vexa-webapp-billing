@@ -5,10 +5,11 @@ const githubService = new GitHubContentService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
-    const assetPath = params.path.join('/');
+    const resolvedParams = await params;
+    const assetPath = resolvedParams.path.join('/');
     const fullAssetPath = `assets/${assetPath}`;
     
     // Get the asset content from GitHub using authenticated API

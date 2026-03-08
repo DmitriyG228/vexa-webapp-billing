@@ -12,6 +12,7 @@ export class GitHubContentService {
   private readonly token: string;
   private readonly owner: string;
   private readonly repo: string;
+  private readonly branch: string;
   private readonly basePath: string;
   private readonly baseUrl = 'https://api.github.com';
 
@@ -19,8 +20,9 @@ export class GitHubContentService {
     this.token = process.env.GITHUB_TOKEN!;
     this.owner = 'Vexa-ai';
     this.repo = 'blog_articles';
+    this.branch = process.env.GITHUB_BRANCH || 'seo/new-articles';
     // Handle empty path for root directory
-    this.basePath = process.env.GITHUB_REPO_PATH === '' ? '' : (process.env.GITHUB_REPO_PATH || 'blog');
+    this.basePath = process.env.GITHUB_REPO_PATH === '' ? '' : (process.env.GITHUB_REPO_PATH || '');
   }
 
   private get headers() {
@@ -31,22 +33,29 @@ export class GitHubContentService {
     };
   }
 
+  private addRef(url: string): string {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}ref=${encodeURIComponent(this.branch)}`;
+  }
+
   async getDirectoryContents(path: string = this.basePath): Promise<GitHubFile[]> {
     // Handle empty path for root directory
     const pathSegment = path === '' ? '' : `/${path}`;
-    const url = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents${pathSegment}`;
-    
+    const baseUrl = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents${pathSegment}`;
+    const url = this.addRef(baseUrl);
+
     // Debug logging
     console.log('GitHub API Debug:', {
       owner: this.owner,
       repo: this.repo,
+      branch: this.branch,
       basePath: this.basePath,
       path,
       pathSegment,
       url,
       hasToken: !!this.token
     });
-    
+
     const response = await fetch(url, {
       headers: this.headers,
       next: { revalidate: 3600 } // Cache for 1 hour
@@ -66,13 +75,14 @@ export class GitHubContentService {
       dataType: Array.isArray(data) ? 'array' : 'object',
       dataLength: Array.isArray(data) ? data.length : 1
     });
-    
+
     return Array.isArray(data) ? data : [data];
   }
 
   async getFileContent(path: string): Promise<string> {
-    const url = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${path}`;
-    
+    const baseUrl = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${path}`;
+    const url = this.addRef(baseUrl);
+
     const response = await fetch(url, {
       headers: this.headers,
       next: { revalidate: 3600 } // Cache for 1 hour
@@ -83,31 +93,32 @@ export class GitHubContentService {
     }
 
     const data = await response.json();
-    
+
     if (data.content) {
       // Content is base64 encoded
       return Buffer.from(data.content, 'base64').toString('utf-8');
     }
-    
+
     throw new Error('File content not found');
   }
 
   async getMarkdownFiles(): Promise<GitHubFile[]> {
     const files = await this.getDirectoryContents();
-    return files.filter(file => 
+    return files.filter(file =>
       file.name.endsWith('.md') || file.name.endsWith('.mdx')
     );
   }
 
   async getAssetUrl(assetPath: string): Promise<string> {
     // For authenticated access, construct the raw URL with the token
-    const rawUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${assetPath}`;
+    const rawUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${assetPath}`;
     return rawUrl;
   }
 
   async getAssetContent(assetPath: string): Promise<ArrayBuffer> {
-    const url = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${assetPath}`;
-    
+    const baseUrl = `${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${assetPath}`;
+    const url = this.addRef(baseUrl);
+
     const response = await fetch(url, {
       headers: this.headers,
       next: { revalidate: 3600 }
@@ -118,12 +129,12 @@ export class GitHubContentService {
     }
 
     const data = await response.json();
-    
+
     if (data.content) {
       // Content is base64 encoded
       return Buffer.from(data.content, 'base64').buffer;
     }
-    
+
     throw new Error('Asset content not found');
   }
 

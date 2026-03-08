@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vexa — Landing Page</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,300&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          animation: {
+            'blink':   'blink 1s step-end infinite',
+            'fade-up': 'fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both',
+          },
+          keyframes: {
+            'blink':   { '0%,100%': { opacity: '1' }, '50%': { opacity: '0' } },
+            'fade-up': { from: { opacity: '0', transform: 'translateY(20px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f8f8f7; color: #111; }
+
+    /* Dot grid */
+    .dot-grid {
+      background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    .dot-mask {
+      -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 55%, transparent 100%);
+              mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 55%, transparent 100%);
+    }
+
+    /* Terminal scroll */
+    .t-scroll::-webkit-scrollbar { width: 3px; }
+    .t-scroll::-webkit-scrollbar-track { background: transparent; }
+    .t-scroll::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+    /* Avatar stack */
+    .av + .av { margin-left: -7px; }
+
+    /* Animation delays */
+    .d1 { animation-delay: .04s }
+    .d2 { animation-delay: .12s }
+    .d3 { animation-delay: .20s }
+    .d4 { animation-delay: .28s }
+    .d5 { animation-delay: .36s }
+    .d6 { animation-delay: .44s }
+    .d7 { animation-delay: .10s }
+    .d8 { animation-delay: .52s }
+
+    /* Workflow nodes (n8n-inspired) */
+    .wf-node {
+      width: 64px; height: 64px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .wf-node:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .wf-node img { width: 28px; height: 28px; object-fit: contain; }
+    .wf-node svg { width: 28px; height: 28px; }
+    .wf-node-sm { width: 52px; height: 52px; border-radius: 10px; }
+    .wf-node-sm img, .wf-node-sm svg { width: 24px; height: 24px; }
+    .wf-node-primary {
+      width: 72px; height: 72px;
+      border-color: #d1d5db;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .wf-node-primary img, .wf-node-primary svg { width: 32px; height: 32px; }
+    .wf-label {
+      font-size: 11px; font-weight: 500; color: #6b7280;
+      text-align: center; margin-top: 6px; white-space: nowrap;
+    }
+    .wf-section-label {
+      font-size: 11px; font-weight: 500; color: #9ca3af;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Use-case tabs */
+    .uc-tab { color: #9ca3af; border: 1px solid transparent; background: transparent; cursor: pointer; }
+    .uc-tab:hover { color: #6b7280; background: #f3f4f6; }
+    .uc-tab-active { color: #111; background: #fff; border-color: #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+    /* Code tabs */
+    .code-tab { color: #9ca3af; background: transparent; border: 1px solid transparent; border-bottom: none; cursor: pointer; }
+    .code-tab:hover { color: #6b7280; }
+    .code-tab-active { color: #e5e7eb; background: #1a1a1a; border-color: #333; }
+
+    /* Slider thumb */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+      background: #111; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── ANNOUNCEMENT ──────────────────────────────── -->
+<div class="bg-gray-950 text-center py-2 px-4">
+  <p class="text-[11.5px] text-gray-400">
+    <span class="text-gray-200 font-medium">v0.6 is live</span>
+    <span class="mx-2 text-gray-700">·</span>
+    Microsoft Teams bot support has arrived
+    <a href="#" class="ml-3 text-white/70 hover:text-white underline underline-offset-2 transition-colors">Read more →</a>
+  </p>
+</div>
+
+<!-- ── NAV ───────────────────────────────────────── -->
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200/70">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+
+    <a href="/" class="flex items-center gap-2">
+      <img src="logodark.svg" alt="Vexa" class="h-[26px] w-[26px] rounded-[7px]" />
+      <span class="text-[15px] font-semibold tracking-[-0.01em] text-gray-950">vexa</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-1">
+      <a href="#" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-all">Docs</a>
+      <a href="#" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-all">Pricing</a>
+      <a href="https://github.com/Vexa-ai/vexa" target="_blank" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-all">GitHub</a>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href="#" class="hidden sm:block px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">Sign in</a>
+      <a href="/get-started" class="inline-flex items-center gap-1 h-8 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors">
+        Get started
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<main class="relative dot-grid dot-mask overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/50 to-transparent" style="height:280px"></div>
+
+  <div class="relative max-w-6xl mx-auto px-6 pt-16 lg:pt-24 pb-10 lg:pb-14">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+
+      <!-- ── LEFT ── -->
+      <div class="flex flex-col gap-6">
+
+        <!-- Badge -->
+        <div class="animate-fade-up d1">
+          <span class="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm">
+            <span class="w-[7px] h-[7px] rounded-full bg-emerald-400 flex-shrink-0"></span>
+            Open Source · Developer-first · API-first
+          </span>
+        </div>
+
+        <!-- Headline -->
+        <div class="animate-fade-up d2">
+          <h1 class="text-[52px] sm:text-[60px] lg:text-[64px] font-semibold leading-[1.03] tracking-[-0.03em] text-gray-950">
+            Meeting<br/>Intelligence<br/><em class="not-italic font-light text-gray-400 tracking-[-0.02em]">API</em>
+          </h1>
+        </div>
+
+        <!-- Subheading -->
+        <p class="animate-fade-up d3 text-[15.5px] text-gray-500 leading-[1.7] max-w-[420px]">
+          The developer toolkit for meeting intelligence. Real-time transcription, bot control, and open APIs for Google Meet and Microsoft Teams. Open source, self-hostable, REST + MCP.
+        </p>
+
+        <!-- CTAs -->
+        <div class="animate-fade-up d4 flex flex-col sm:flex-row gap-3">
+          <a href="/get-started" class="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full bg-gray-950 text-white text-[14px] font-medium hover:bg-gray-800 transition-colors shadow-sm">
+            Quick Start
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="https://github.com/Vexa-ai/vexa" target="_blank" class="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full border border-gray-200 bg-white text-gray-800 text-[14px] font-medium hover:border-gray-400 hover:bg-gray-50 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Social proof -->
+        <div class="animate-fade-up d5 flex items-center gap-3 pt-1">
+          <div class="flex items-center">
+            <img src="https://i.pravatar.cc/64?img=45" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=23" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=67" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=12" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=34" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+          </div>
+          <div class="h-4 w-px bg-gray-200"></div>
+          <div class="flex items-center gap-1.5 text-[13px] text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Starred by <span class="text-gray-700 font-semibold">1.3k+</span> developers
+          </div>
+        </div>
+
+      </div><!-- /left -->
+
+      <!-- ── RIGHT: terminal ── -->
+      <div class="animate-fade-up d7 w-full">
+        <div class="relative rounded-[16px] border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+
+          <!-- Chrome -->
+          <div class="relative flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
+            <div class="flex gap-[6px] flex-shrink-0">
+              <div class="w-[11px] h-[11px] rounded-full bg-[#ff5f57]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#febc2e]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="absolute inset-x-0 text-center text-[11px] text-gray-500 font-mono pointer-events-none">vexa · live transcript</span>
+            <div class="ml-auto flex items-center gap-[5px]">
+              <span class="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
+              <span class="text-[10.5px] text-gray-400 font-mono font-semibold tracking-widest">LIVE</span>
+            </div>
+          </div>
+
+          <!-- Live transcript -->
+          <div id="terminal-content"
+               class="t-scroll p-5 h-[400px] overflow-y-auto space-y-4 font-mono text-[12px] leading-relaxed text-left bg-[#111]">
+            <p class="text-gray-700 text-xs">Waiting for meeting participants…</p>
+          </div>
+
+          <!-- Status bar -->
+          <div class="flex items-center justify-between px-5 py-2 bg-[#161616] border-t border-white/[0.05]">
+            <div class="flex items-center gap-2 text-[10px] text-gray-600 font-mono">
+              <span class="w-[5px] h-[5px] rounded-full bg-emerald-500"></span>
+              Connected · Google Meet
+            </div>
+            <span class="text-[10px] text-gray-700 font-mono" id="status-time"></span>
+          </div>
+
+        </div>
+      </div><!-- /right -->
+
+    </div><!-- /grid -->
+
+    <!-- ── WORKFLOW DIAGRAM (Vercel-style infrastructure diagram) ── -->
+    <div class="animate-fade-up d8 mt-14 lg:mt-16">
+      <!-- Section heading -->
+      <p class="text-center text-[15px] text-gray-400 font-medium mb-6">Built for your <em class="not-italic font-light text-gray-300">stack</em></p>
+
+      <div class="rounded-2xl border border-gray-200 bg-[#fafafa] px-8 py-12 lg:py-16" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+
+        <!-- Desktop: Vercel-style diagram -->
+        <div id="workflow-container" class="relative hidden lg:flex items-center justify-center max-w-[720px] mx-auto" style="height: 320px">
+          <svg id="workflow-svg" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index:0"></svg>
+
+          <!-- Left: vertical pill with meeting platform icons -->
+          <div class="absolute left-0 top-1/2 -translate-y-1/2" style="z-index:1">
+            <div class="flex flex-col items-center rounded-2xl border border-gray-200 bg-white overflow-hidden" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+              <div id="node-teams" class="w-[60px] h-[60px] flex items-center justify-center border-b border-gray-100">
+                <img src="microsoft-teams-logo.png" alt="Teams" class="w-7 h-7 object-contain" />
+              </div>
+              <div id="node-meet" class="w-[60px] h-[60px] flex items-center justify-center">
+                <img src="google-meet-logo.png" alt="Meet" class="w-7 h-7 object-contain" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: Vexa hub node (larger, prominent) -->
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style="z-index:1">
+            <div id="node-vexa" class="w-[80px] h-[80px] rounded-2xl border border-gray-200 bg-white flex items-center justify-center" style="box-shadow: 0 2px 12px rgba(0,0,0,0.08)">
+              <img src="logodark.svg" alt="Vexa" class="w-10 h-10 rounded-[8px]" />
+            </div>
+          </div>
+
+          <!-- Right: scattered output nodes at different vertical positions -->
+          <!-- OpenAI — top right -->
+          <div id="node-openai" class="absolute" style="right: 40px; top: 16px; z-index:1">
+            <div class="w-[52px] h-[52px] rounded-xl border border-gray-200 bg-white flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-gray-700"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.843-3.369 2.02-1.168a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.402-.681zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>
+            </div>
+          </div>
+
+          <!-- Claude — upper-mid right -->
+          <div id="node-claude" class="absolute" style="right: 0; top: 108px; z-index:1">
+            <div class="w-[52px] h-[52px] rounded-xl border border-gray-200 bg-white flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-[#D97706]"><path d="M17.304 3H14.01L12 7.466 9.99 3H6.696L12 14.073 17.304 3zM6 21h3.13l1.07-2.617H13.8L14.87 21H18L12 6.948 6 21zm5.163-5.061 1.057-2.582.964 2.582h-2.02z" fill-rule="evenodd"/></svg>
+            </div>
+          </div>
+
+          <!-- n8n — lower-mid right -->
+          <div id="node-n8n" class="absolute" style="right: 20px; top: 200px; z-index:1">
+            <div class="w-[52px] h-[52px] rounded-xl border border-gray-200 bg-white flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+              <svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="M24 8.4c0 1.325-1.102 2.4-2.462 2.4-1.146 0-2.11-.765-2.384-1.8h-3.436c-.602 0-1.115.424-1.214 1.003l-.101.592a2.38 2.38 0 01-.8 1.405c.412.354.704.844.8 1.405l.1.592A1.222 1.222 0 0015.719 15h.975c.273-1.035 1.237-1.8 2.384-1.8 1.36 0 2.461 1.075 2.461 2.4S20.436 18 19.078 18c-1.147 0-2.11-.765-2.384-1.8h-.975c-1.204 0-2.23-.848-2.428-2.005l-.101-.592a1.222 1.222 0 00-1.214-1.003H10.97c-.308.984-1.246 1.7-2.356 1.7-1.11 0-2.048-.716-2.355-1.7H4.817c-.308.984-1.246 1.7-2.355 1.7C1.102 14.3 0 13.225 0 11.9s1.102-2.4 2.462-2.4c1.183 0 2.172.815 2.408 1.9h1.337c.236-1.085 1.225-1.9 2.408-1.9 1.184 0 2.172.815 2.408 1.9h.952c.601 0 1.115-.424 1.213-1.003l.102-.592c.198-1.157 1.225-2.005 2.428-2.005h3.436c.274-1.035 1.238-1.8 2.384-1.8C22.898 6 24 7.075 24 8.4zm-1.23 0c0 .663-.552 1.2-1.232 1.2-.68 0-1.23-.537-1.23-1.2 0-.663.55-1.2 1.23-1.2.68 0 1.231.537 1.231 1.2zM2.461 13.1c.68 0 1.23-.537 1.23-1.2 0-.663-.55-1.2-1.23-1.2-.68 0-1.231.537-1.231 1.2 0 .663.55 1.2 1.23 1.2zm6.153 0c.68 0 1.231-.537 1.231-1.2 0-.663-.55-1.2-1.23-1.2-.68 0-1.231.537-1.231 1.2 0 .663.55 1.2 1.23 1.2zm10.462 3.7c.68 0 1.23-.537 1.23-1.2 0-.663-.55-1.2-1.23-1.2-.68 0-1.23.537-1.23 1.2 0 .663.55 1.2 1.23 1.2z" fill="#EA4B71" fill-rule="evenodd"/></svg>
+            </div>
+          </div>
+
+          <!-- OpenClaw — bottom right -->
+          <div id="node-openclaw" class="absolute" style="right: 50px; top: 270px; z-index:1">
+            <div class="w-[52px] h-[52px] rounded-xl border border-gray-200 bg-white flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c0-1.5 1-3 3-3s3 1.5 3 3M13 8c0-1.5 1-3 3-3s3 1.5 3 3"/><path d="M3 10c0 1 .5 2 1.5 2.5L6 18h12l1.5-5.5c1-.5 1.5-1.5 1.5-2.5"/><path d="M8 18v2M16 18v2M10 18v2M14 18v2"/><circle cx="9" cy="10" r="1" fill="#ef4444" stroke="none"/><circle cx="15" cy="10" r="1" fill="#ef4444" stroke="none"/></svg>
+            </div>
+          </div>
+
+        </div><!-- /desktop -->
+
+        <!-- Mobile: simplified vertical flow -->
+        <div class="lg:hidden">
+          <div class="flex flex-col items-center gap-4">
+            <div class="flex items-center gap-3">
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="wf-node"><img src="microsoft-teams-logo.png" alt="" /></div>
+                <span class="wf-label">Teams</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="wf-node"><img src="google-meet-logo.png" alt="" /></div>
+                <span class="wf-label">Meet</span>
+              </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            <div class="flex flex-col items-center gap-1.5">
+              <div class="wf-node wf-node-primary"><img src="logodark.svg" alt="" class="rounded-[5px]" /></div>
+              <span class="wf-label font-semibold text-gray-700">vexa API</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            <div class="grid grid-cols-4 gap-3">
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="wf-node"><svg width="28" height="28" viewBox="0 0 24 24" fill="#374151"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073z"/></svg></div>
+                <span class="wf-label">OpenAI</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="wf-node"><svg width="28" height="28" viewBox="0 0 24 24" fill="#D97706"><path d="M17.304 3H14.01L12 7.466 9.99 3H6.696L12 14.073 17.304 3zM6 21h3.13l1.07-2.617H13.8L14.87 21H18L12 6.948 6 21z"/></svg></div>
+                <span class="wf-label">Claude</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="wf-node"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c0-1.5 1-3 3-3s3 1.5 3 3M13 8c0-1.5 1-3 3-3s3 1.5 3 3"/><path d="M3 10c0 1 .5 2 1.5 2.5L6 18h12l1.5-5.5c1-.5 1.5-1.5 1.5-2.5"/><path d="M8 18v2M16 18v2M10 18v2M14 18v2"/><circle cx="9" cy="10" r="1" fill="#ef4444" stroke="none"/><circle cx="15" cy="10" r="1" fill="#ef4444" stroke="none"/></svg></div>
+                <span class="wf-label">OpenClaw</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="wf-node"><svg height="28" width="28" viewBox="0 0 24 24"><path clip-rule="evenodd" d="M24 8.4c0 1.325-1.102 2.4-2.462 2.4-1.146 0-2.11-.765-2.384-1.8h-3.436c-.602 0-1.115.424-1.214 1.003l-.101.592a2.38 2.38 0 01-.8 1.405c.412.354.704.844.8 1.405l.1.592A1.222 1.222 0 0015.719 15h.975c.273-1.035 1.237-1.8 2.384-1.8 1.36 0 2.461 1.075 2.461 2.4S20.436 18 19.078 18c-1.147 0-2.11-.765-2.384-1.8h-.975c-1.204 0-2.23-.848-2.428-2.005l-.101-.592a1.222 1.222 0 00-1.214-1.003H10.97c-.308.984-1.246 1.7-2.356 1.7-1.11 0-2.048-.716-2.355-1.7H4.817c-.308.984-1.246 1.7-2.355 1.7C1.102 14.3 0 13.225 0 11.9s1.102-2.4 2.462-2.4c1.183 0 2.172.815 2.408 1.9h1.337c.236-1.085 1.225-1.9 2.408-1.9 1.184 0 2.172.815 2.408 1.9h.952c.601 0 1.115-.424 1.213-1.003l.102-.592c.198-1.157 1.225-2.005 2.428-2.005h3.436c.274-1.035 1.238-1.8 2.384-1.8C22.898 6 24 7.075 24 8.4z" fill="#EA4B71" fill-rule="evenodd"/></svg></div>
+                <span class="wf-label">n8n</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /mobile -->
+
+      </div>
+    </div><!-- /workflow diagram -->
+
+  </div><!-- /container -->
+</main>
+
+<!-- ── COMPONENTS — Vercel bento grid ──────────────── -->
+<section class="py-24 lg:py-32">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <!-- Row 1: Heading + 2 feature cards (bento grid) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+      <!-- Left: big heading (spans 2 rows on desktop) -->
+      <div class="lg:row-span-2 flex flex-col justify-center py-4">
+        <h2 class="text-[36px] sm:text-[44px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 mb-4">
+          All the components to build exactly what you need.
+        </h2>
+        <p class="text-[15.5px] text-gray-500 leading-[1.7]">
+          Everything to integrate AI into meetings. Use the full platform or pick individual primitives.
+        </p>
+      </div>
+
+      <!-- Real-time Transcription -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Real-time Transcription</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">Sub-second latency, speaker-diarized, delivered via WebSocket. Feed directly into LLMs.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <!-- Mini terminal -->
+        <div class="rounded-lg bg-[#111] border border-gray-800 p-3 font-mono text-[10.5px] leading-[1.7] space-y-1.5">
+          <div><span class="text-[#7dd3fc] font-semibold">Alice</span> <span class="text-gray-300">We need to finalize the API contracts.</span></div>
+          <div><span class="text-[#c4b5fd] font-semibold">Bob</span> <span class="text-gray-300">I'll have the spec ready by</span><span class="text-gray-600"> tomorrow.</span><span class="animate-blink text-gray-500">▌</span></div>
+        </div>
+      </div>
+
+      <!-- Interactive Bot -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Interactive Bot</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">Conversational, bi-directional. Speaks via TTS, listens, responds in real time.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <!-- Capability pills -->
+        <div class="flex flex-wrap gap-2">
+          <span class="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">TTS Speak</span>
+          <span class="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">Listen</span>
+          <span class="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">Respond</span>
+          <span class="px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">Screenshare</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Row 2: 3 equal cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+      <!-- Recording -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Recording</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">Capture full meeting audio. Post-meeting transcription from recordings.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="rounded-lg bg-gray-50 border border-gray-100 h-[100px] flex items-center justify-center">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-red-400 animate-pulse"></div>
+            <span class="text-[12px] text-gray-400 font-mono">REC · 00:34:12</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Screenshare -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Screenshare</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">Present slides and dashboards into the meeting programmatically from your backend.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="rounded-lg bg-gray-50 border border-gray-100 h-[100px] flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+      </div>
+
+      <!-- Storage -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Storage</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">All data in Postgres. Query history, search conversations, export via API. Your database.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="rounded-lg bg-gray-50 border border-gray-100 h-[100px] flex items-center justify-center">
+          <span class="text-[11px] text-gray-400 font-mono">PostgreSQL · S3 · MinIO</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Row 3: MCP Server (full width, like the Framework-Defined Infrastructure section) -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-8" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <span class="text-[13px] text-gray-400 font-medium">MCP Server</span>
+          </div>
+          <h3 class="text-[22px] font-semibold text-gray-950 mb-2 tracking-[-0.01em]">AI-native interface via Model Context Protocol.</h3>
+          <p class="text-[14.5px] text-gray-500 leading-[1.7]">
+            Give Claude, GPT, or any MCP-compatible agent direct access to meeting data, bot control, and live transcripts. REST API + WebSocket + MCP — everything is composable.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 justify-center lg:justify-end">
+          <span class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-600 font-medium" style="box-shadow: 0 1px 2px rgba(0,0,0,0.04)">REST API</span>
+          <span class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-600 font-medium" style="box-shadow: 0 1px 2px rgba(0,0,0,0.04)">WebSocket</span>
+          <span class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-600 font-medium" style="box-shadow: 0 1px 2px rgba(0,0,0,0.04)">MCP</span>
+          <span class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-600 font-medium" style="box-shadow: 0 1px 2px rgba(0,0,0,0.04)">Webhooks</span>
+          <span class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-600 font-medium" style="box-shadow: 0 1px 2px rgba(0,0,0,0.04)">SDKs</span>
+          <span class="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[13px] text-gray-600 font-medium" style="box-shadow: 0 1px 2px rgba(0,0,0,0.04)">Self-hosted</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── INTEGRATE — Agentic-first ─────────────────── -->
+<section class="py-24 lg:py-32 border-t border-gray-200">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <!-- Bento grid: heading left + 2 cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left: heading -->
+      <div class="flex flex-col justify-center py-4">
+        <h2 class="text-[36px] sm:text-[44px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 mb-4">
+          Agentic-first by design.
+        </h2>
+        <p class="text-[15.5px] text-gray-500 leading-[1.7]">
+          Built for the age of AI agents. Connect meeting intelligence to coding assistants, automation workflows, and custom agents.
+        </p>
+      </div>
+
+      <!-- Skills — coding agents -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Skills</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">Give AI coding agents access to meeting context. Decisions and requirements as tool calls.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8c0-1.5 1-3 3-3s3 1.5 3 3M13 8c0-1.5 1-3 3-3s3 1.5 3 3"/><path d="M3 10c0 1 .5 2 1.5 2.5L6 18h12l1.5-5.5c1-.5 1.5-1.5 1.5-2.5"/></svg>
+            OpenClaw
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#D97706"><path d="M17.304 3H14.01L12 7.466 9.99 3H6.696L12 14.073 17.304 3zM6 21h3.13l1.07-2.617H13.8L14.87 21H18L12 6.948 6 21z"/></svg>
+            Claude Code
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#374151"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073z"/></svg>
+            Codex
+          </span>
+        </div>
+      </div>
+
+      <!-- n8n / Workflow automation -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-7" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <h3 class="text-[17px] font-semibold text-gray-950 mb-1">Integrations</h3>
+        <p class="text-[14px] text-gray-500 leading-[1.6] mb-3">Trigger n8n workflows when meetings end. Push to CRM, create tickets, send summaries.</p>
+        <a href="#" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 hover:border-gray-400 transition-colors mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">
+            <svg height="14" width="14" viewBox="0 0 24 24"><path d="M24 8.4c0 1.325-1.102 2.4-2.462 2.4-1.146 0-2.11-.765-2.384-1.8h-3.436c-.602 0-1.115.424-1.214 1.003l-.101.592a2.38 2.38 0 01-.8 1.405c.412.354.704.844.8 1.405l.1.592A1.222 1.222 0 0015.719 15h.975c.273-1.035 1.237-1.8 2.384-1.8 1.36 0 2.461 1.075 2.461 2.4S20.436 18 19.078 18c-1.147 0-2.11-.765-2.384-1.8h-.975c-1.204 0-2.23-.848-2.428-2.005l-.101-.592a1.222 1.222 0 00-1.214-1.003H10.97c-.308.984-1.246 1.7-2.356 1.7-1.11 0-2.048-.716-2.355-1.7H4.817c-.308.984-1.246 1.7-2.355 1.7C1.102 14.3 0 13.225 0 11.9s1.102-2.4 2.462-2.4c1.183 0 2.172.815 2.408 1.9h1.337c.236-1.085 1.225-1.9 2.408-1.9 1.184 0 2.172.815 2.408 1.9h.952c.601 0 1.115-.424 1.213-1.003l.102-.592c.198-1.157 1.225-2.005 2.428-2.005h3.436c.274-1.035 1.238-1.8 2.384-1.8C22.898 6 24 7.075 24 8.4z" fill="#EA4B71" fill-rule="evenodd"/></svg>
+            n8n
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">Webhooks</span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">Zapier</span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-100 bg-gray-50 text-[12px] text-gray-500 font-medium">Custom</span>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+  </div>
+</section>
+
+<!-- ── MEETING BOTS ──────────────────────────────── -->
+<section class="py-24 lg:py-32 border-t border-gray-200">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+
+      <!-- Left: copy -->
+      <div>
+        <span class="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm mb-4">Meeting Bots</span>
+        <h2 class="text-[40px] sm:text-[48px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950 mb-6">
+          One API, every<br/><em class="not-italic font-light text-gray-400">meeting platform</em>
+        </h2>
+        <p class="text-[15.5px] text-gray-500 leading-[1.7] mb-8 max-w-[440px]">
+          Deploy meeting bots to Google Meet and Microsoft Teams with a single API call. The bot joins, records, transcribes, and can even speak — all controlled from your backend.
+        </p>
+
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <p class="text-[14.5px] text-gray-800 font-medium">Automatic join & leave</p>
+              <p class="text-[13.5px] text-gray-500">Bots join via meeting URL, stay for the meeting duration, and leave automatically.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <p class="text-[14.5px] text-gray-800 font-medium">Custom bot identity</p>
+              <p class="text-[13.5px] text-gray-500">Set the bot's display name, avatar, and branding for each meeting.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <p class="text-[14.5px] text-gray-800 font-medium">Platform-agnostic API</p>
+              <p class="text-[13.5px] text-gray-500">Same API surface for Meet and Teams. Zoom support coming soon.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: visual placeholder -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-8 h-[420px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <div class="text-center">
+          <div class="flex items-center justify-center gap-6 mb-6">
+            <img src="microsoft-teams-logo.png" alt="Teams" class="w-12 h-12 object-contain" />
+            <div class="w-px h-10 bg-gray-200"></div>
+            <img src="google-meet-logo.png" alt="Meet" class="w-12 h-12 object-contain" />
+          </div>
+          <span class="text-[13px] text-gray-300 font-mono">bot interaction visual</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── USE CASES (Vercel-style tabs) ──────────────── -->
+<section class="py-24 lg:py-32 border-t border-gray-200">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="text-center mb-12">
+      <span class="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm mb-4">Use Cases</span>
+      <h2 class="text-[40px] sm:text-[48px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950">
+        Intelligence for every<br/><em class="not-italic font-light text-gray-400">meeting</em>
+      </h2>
+    </div>
+
+    <!-- Tab pills -->
+    <div class="flex flex-wrap justify-center gap-2 mb-10" id="usecase-tabs">
+      <button data-tab="sales" class="uc-tab uc-tab-active px-4 py-2 rounded-full text-[13px] font-medium transition-all">Sales</button>
+      <button data-tab="hr" class="uc-tab px-4 py-2 rounded-full text-[13px] font-medium transition-all">HR & Recruiting</button>
+      <button data-tab="engineering" class="uc-tab px-4 py-2 rounded-full text-[13px] font-medium transition-all">Engineering</button>
+      <button data-tab="video" class="uc-tab px-4 py-2 rounded-full text-[13px] font-medium transition-all">Video Production</button>
+      <button data-tab="medical" class="uc-tab px-4 py-2 rounded-full text-[13px] font-medium transition-all">Medical</button>
+      <button data-tab="education" class="uc-tab px-4 py-2 rounded-full text-[13px] font-medium transition-all">Education</button>
+      <button data-tab="legal" class="uc-tab px-4 py-2 rounded-full text-[13px] font-medium transition-all">Legal</button>
+    </div>
+
+    <!-- Tab content panels -->
+    <div id="usecase-panels">
+
+      <div data-panel="sales" class="uc-panel">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Close faster with meeting intelligence</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Auto-capture discovery calls, demos, and negotiations. Surface objections, competitor mentions, and next steps — then push structured insights to your CRM in real time.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-log call notes to Salesforce & HubSpot</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Track competitor mentions and pricing discussions</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Coach reps with talk-ratio and question analytics</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">sales dashboard visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="hr" class="uc-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Structured interviews, less bias</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Transcribe every interview automatically. Generate structured scorecards, compare candidates consistently, and ensure compliance with an auditable record of every conversation.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-generate interview scorecards</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Push candidate notes to your ATS</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Compliance-ready transcript archives</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">interview scorecard visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="engineering" class="uc-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Ship faster with async standups</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Turn daily standups and sprint retros into structured action items. Auto-create Jira tickets, flag blockers, and keep distributed teams in sync — without anyone taking notes.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-create Jira/Linear tickets from decisions</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Track blockers and ownership across sprints</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Post summaries to Slack and Notion</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">standup summary visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="video" class="uc-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Production dailies on autopilot</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Capture notes from production meetings and dailies. Track creative feedback, revision requests, and delivery timelines — then distribute structured notes to the crew automatically.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Log feedback per shot/scene/asset</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-distribute daily notes to crew</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Track delivery timelines across departments</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">production daily visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="medical" class="uc-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Clinical notes without the admin burden</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Transcribe telehealth consultations with speaker-diarized, HIPAA-ready transcripts. Generate structured SOAP notes and push them to your EHR — so clinicians can focus on patients.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-generate SOAP notes from consultations</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Self-host for full HIPAA compliance</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Push structured data to EHR systems</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">clinical notes visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="education" class="uc-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Every lecture, searchable and summarized</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Record online lectures, office hours, and group sessions. Generate study guides, highlight key concepts, and make every class accessible with accurate multilingual transcripts.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-generate study guides from lectures</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">100+ language support for global classrooms</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Accessibility-ready transcripts for ADA compliance</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">lecture summary visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="legal" class="uc-panel hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h3 class="text-[24px] font-semibold text-gray-950 mb-3 tracking-[-0.02em]">Billable hours captured, not estimated</h3>
+            <p class="text-[15px] text-gray-500 leading-[1.7] mb-6">Transcribe client calls, depositions, and mediations. Auto-tag billable vs. admin time, extract action items, and maintain a defensible record of every client interaction.</p>
+            <div class="space-y-3">
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Auto-tag billable time from call transcripts</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Defensible audit trail for every interaction</span></div>
+              <div class="flex items-center gap-2.5"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-[14px] text-gray-600">Self-host for client privilege and confidentiality</span></div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white h-[280px] flex items-center justify-center" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04)">
+            <span class="text-[13px] text-gray-300 font-mono">legal notes visual</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panels -->
+  </div>
+</section>
+
+<!-- ── API EXAMPLE (Vercel-style code showcase) ──── -->
+<section class="py-24 lg:py-32 border-t border-gray-200">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="text-center mb-12">
+      <span class="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm mb-4">Developer Experience</span>
+      <h2 class="text-[40px] sm:text-[48px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950">
+        Three API calls to<br/><em class="not-italic font-light text-gray-400">meeting intelligence</em>
+      </h2>
+      <p class="mt-4 text-[15.5px] text-gray-500 leading-[1.7] max-w-lg mx-auto">
+        Join a meeting, get the transcript, run it through your AI. That's it.
+      </p>
+    </div>
+
+    <!-- Code tabs -->
+    <div class="max-w-3xl mx-auto">
+      <div class="flex gap-1 mb-0" id="code-tabs">
+        <button data-codetab="python" class="code-tab code-tab-active px-4 py-2 rounded-t-lg text-[13px] font-medium font-mono transition-all">Python</button>
+        <button data-codetab="curl" class="code-tab px-4 py-2 rounded-t-lg text-[13px] font-medium font-mono transition-all">cURL</button>
+        <button data-codetab="typescript" class="code-tab px-4 py-2 rounded-t-lg text-[13px] font-medium font-mono transition-all">TypeScript</button>
+      </div>
+
+      <!-- Python -->
+      <div data-codepanel="python" class="code-panel">
+        <div class="rounded-b-2xl rounded-tr-2xl border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+          <div class="flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
+            <div class="flex gap-[6px]">
+              <div class="w-[11px] h-[11px] rounded-full bg-[#ff5f57]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#febc2e]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="ml-4 text-[11px] text-gray-500 font-mono">main.py</span>
+          </div>
+          <pre class="p-5 bg-[#111] text-[12.5px] leading-[1.8] font-mono overflow-x-auto"><code><span class="text-gray-500">import</span> <span class="text-[#7dd3fc]">requests</span>
+
+<span class="text-gray-600"># 1. Join a meeting</span>
+<span class="text-gray-300">bot</span> <span class="text-gray-500">=</span> <span class="text-gray-300">requests</span><span class="text-gray-500">.</span><span class="text-gray-300">post</span><span class="text-gray-500">(</span><span class="text-[#6ee7b7]">"https://api.cloud.vexa.ai/bots"</span><span class="text-gray-500">,</span>
+    <span class="text-gray-300">headers</span><span class="text-gray-500">={</span><span class="text-[#6ee7b7]">"X-API-Key"</span><span class="text-gray-500">:</span> <span class="text-gray-300">API_KEY</span><span class="text-gray-500">},</span>
+    <span class="text-gray-300">json</span><span class="text-gray-500">={</span>
+        <span class="text-[#6ee7b7]">"platform"</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"google_meet"</span><span class="text-gray-500">,</span>
+        <span class="text-[#6ee7b7]">"native_meeting_id"</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"abc-defg-hij"</span><span class="text-gray-500">,</span>
+        <span class="text-[#6ee7b7]">"bot_name"</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"Vexa Notetaker"</span>
+    <span class="text-gray-500">}</span>
+<span class="text-gray-500">)</span>
+
+<span class="text-gray-600"># 2. Get the transcript</span>
+<span class="text-gray-300">transcript</span> <span class="text-gray-500">=</span> <span class="text-gray-300">requests</span><span class="text-gray-500">.</span><span class="text-gray-300">get</span><span class="text-gray-500">(</span>
+    <span class="text-[#6ee7b7]">"https://api.cloud.vexa.ai/transcripts/google_meet/abc-defg-hij"</span><span class="text-gray-500">,</span>
+    <span class="text-gray-300">headers</span><span class="text-gray-500">={</span><span class="text-[#6ee7b7]">"X-API-Key"</span><span class="text-gray-500">:</span> <span class="text-gray-300">API_KEY</span><span class="text-gray-500">}</span>
+<span class="text-gray-500">)</span>
+
+<span class="text-gray-600"># 3. Run through your AI</span>
+<span class="text-gray-300">summary</span> <span class="text-gray-500">=</span> <span class="text-gray-300">openai</span><span class="text-gray-500">.</span><span class="text-gray-300">chat</span><span class="text-gray-500">.</span><span class="text-gray-300">completions</span><span class="text-gray-500">.</span><span class="text-gray-300">create</span><span class="text-gray-500">(</span>
+    <span class="text-gray-300">model</span><span class="text-gray-500">=</span><span class="text-[#6ee7b7]">"gpt-4o"</span><span class="text-gray-500">,</span>
+    <span class="text-gray-300">messages</span><span class="text-gray-500">=[{</span><span class="text-[#6ee7b7]">"role"</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"user"</span><span class="text-gray-500">,</span> <span class="text-[#6ee7b7]">"content"</span><span class="text-gray-500">:</span> <span class="text-gray-300">transcript</span><span class="text-gray-500">.</span><span class="text-gray-300">text</span><span class="text-gray-500">()</span><span class="text-gray-500">}]</span>
+<span class="text-gray-500">)</span></code></pre>
+        </div>
+      </div>
+
+      <!-- cURL -->
+      <div data-codepanel="curl" class="code-panel hidden">
+        <div class="rounded-b-2xl rounded-tr-2xl border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+          <div class="flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
+            <div class="flex gap-[6px]">
+              <div class="w-[11px] h-[11px] rounded-full bg-[#ff5f57]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#febc2e]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="ml-4 text-[11px] text-gray-500 font-mono">terminal</span>
+          </div>
+          <pre class="p-5 bg-[#111] text-[12.5px] leading-[1.8] font-mono overflow-x-auto"><code><span class="text-gray-600"># 1. Join a meeting</span>
+<span class="text-gray-500">$</span> <span class="text-gray-300">curl -X POST https://api.cloud.vexa.ai/bots</span> <span class="text-gray-500">\</span>
+    <span class="text-gray-300">-H</span> <span class="text-[#6ee7b7]">"X-API-Key: YOUR_API_KEY"</span> <span class="text-gray-500">\</span>
+    <span class="text-gray-300">-H</span> <span class="text-[#6ee7b7]">"Content-Type: application/json"</span> <span class="text-gray-500">\</span>
+    <span class="text-gray-300">-d</span> <span class="text-[#6ee7b7]">'{
+      "platform": "google_meet",
+      "native_meeting_id": "abc-defg-hij",
+      "bot_name": "Vexa Notetaker"
+    }'</span>
+
+<span class="text-gray-600"># 2. Get the transcript</span>
+<span class="text-gray-500">$</span> <span class="text-gray-300">curl https://api.cloud.vexa.ai/transcripts/google_meet/abc-defg-hij</span> <span class="text-gray-500">\</span>
+    <span class="text-gray-300">-H</span> <span class="text-[#6ee7b7]">"X-API-Key: YOUR_API_KEY"</span>
+
+<span class="text-gray-600"># 3. Stop the bot</span>
+<span class="text-gray-500">$</span> <span class="text-gray-300">curl -X DELETE https://api.cloud.vexa.ai/bots/google_meet/abc-defg-hij</span> <span class="text-gray-500">\</span>
+    <span class="text-gray-300">-H</span> <span class="text-[#6ee7b7]">"X-API-Key: YOUR_API_KEY"</span></code></pre>
+        </div>
+      </div>
+
+      <!-- TypeScript -->
+      <div data-codepanel="typescript" class="code-panel hidden">
+        <div class="rounded-b-2xl rounded-tr-2xl border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+          <div class="flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
+            <div class="flex gap-[6px]">
+              <div class="w-[11px] h-[11px] rounded-full bg-[#ff5f57]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#febc2e]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="ml-4 text-[11px] text-gray-500 font-mono">app.ts</span>
+          </div>
+          <pre class="p-5 bg-[#111] text-[12.5px] leading-[1.8] font-mono overflow-x-auto"><code><span class="text-gray-600">// 1. Join a meeting</span>
+<span class="text-gray-500">const</span> <span class="text-gray-300">bot</span> <span class="text-gray-500">=</span> <span class="text-gray-500">await</span> <span class="text-gray-300">fetch</span><span class="text-gray-500">(</span><span class="text-[#6ee7b7]">"https://api.cloud.vexa.ai/bots"</span><span class="text-gray-500">,</span> <span class="text-gray-500">{</span>
+  <span class="text-gray-300">method</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"POST"</span><span class="text-gray-500">,</span>
+  <span class="text-gray-300">headers</span><span class="text-gray-500">: {</span>
+    <span class="text-[#6ee7b7]">"X-API-Key"</span><span class="text-gray-500">:</span> <span class="text-gray-300">API_KEY</span><span class="text-gray-500">,</span>
+    <span class="text-[#6ee7b7]">"Content-Type"</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"application/json"</span>
+  <span class="text-gray-500">},</span>
+  <span class="text-gray-300">body</span><span class="text-gray-500">:</span> <span class="text-gray-300">JSON</span><span class="text-gray-500">.</span><span class="text-gray-300">stringify</span><span class="text-gray-500">({</span>
+    <span class="text-gray-300">platform</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"google_meet"</span><span class="text-gray-500">,</span>
+    <span class="text-gray-300">native_meeting_id</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"abc-defg-hij"</span><span class="text-gray-500">,</span>
+    <span class="text-gray-300">bot_name</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"Vexa Notetaker"</span>
+  <span class="text-gray-500">})</span>
+<span class="text-gray-500">});</span>
+
+<span class="text-gray-600">// 2. Get the transcript</span>
+<span class="text-gray-500">const</span> <span class="text-gray-300">transcript</span> <span class="text-gray-500">=</span> <span class="text-gray-500">await</span> <span class="text-gray-300">fetch</span><span class="text-gray-500">(</span>
+  <span class="text-[#6ee7b7]">"https://api.cloud.vexa.ai/transcripts/google_meet/abc-defg-hij"</span><span class="text-gray-500">,</span>
+  <span class="text-gray-500">{</span> <span class="text-gray-300">headers</span><span class="text-gray-500">: {</span> <span class="text-[#6ee7b7]">"X-API-Key"</span><span class="text-gray-500">:</span> <span class="text-gray-300">API_KEY</span> <span class="text-gray-500">} }</span>
+<span class="text-gray-500">).</span><span class="text-gray-300">then</span><span class="text-gray-500">(</span><span class="text-gray-300">r</span> <span class="text-gray-500">=></span> <span class="text-gray-300">r</span><span class="text-gray-500">.</span><span class="text-gray-300">json</span><span class="text-gray-500">());</span>
+
+<span class="text-gray-600">// 3. Process with AI</span>
+<span class="text-gray-500">const</span> <span class="text-gray-300">result</span> <span class="text-gray-500">=</span> <span class="text-gray-500">await</span> <span class="text-gray-300">anthropic</span><span class="text-gray-500">.</span><span class="text-gray-300">messages</span><span class="text-gray-500">.</span><span class="text-gray-300">create</span><span class="text-gray-500">({</span>
+  <span class="text-gray-300">model</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"claude-sonnet-4-20250514"</span><span class="text-gray-500">,</span>
+  <span class="text-gray-300">messages</span><span class="text-gray-500">: [{</span> <span class="text-gray-300">role</span><span class="text-gray-500">:</span> <span class="text-[#6ee7b7]">"user"</span><span class="text-gray-500">,</span> <span class="text-gray-300">content</span><span class="text-gray-500">:</span> <span class="text-gray-300">transcript</span><span class="text-gray-500">.</span><span class="text-gray-300">text</span> <span class="text-gray-500">}]</span>
+<span class="text-gray-500">});</span></code></pre>
+        </div>
+      </div>
+    </div><!-- /max-w-3xl -->
+  </div>
+</section>
+
+<!-- ── PRICING ───────────────────────────────────── -->
+<section id="pricing" class="py-24 lg:py-32 border-t border-gray-200">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="text-center mb-16">
+      <span class="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm mb-4">Pricing</span>
+      <h2 class="text-[40px] sm:text-[48px] font-semibold leading-[1.08] tracking-[-0.03em] text-gray-950">
+        Pay per<br/><em class="not-italic font-light text-gray-400">concurrent bot</em>
+      </h2>
+      <p class="mt-4 text-[15.5px] text-gray-500 leading-[1.7] max-w-lg mx-auto">
+        Unlimited meetings and minutes. You only pay for the number of bots running at the same time. Volume discounts kick in automatically.
+      </p>
+    </div>
+
+    <!-- Pricing cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+      <!-- Free Trial -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-8" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <div class="mb-6">
+          <div class="text-[13px] font-medium text-gray-400 uppercase tracking-[0.06em] mb-2">Free Trial</div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[40px] font-semibold tracking-[-0.03em] text-gray-950">$0</span>
+          </div>
+          <p class="text-[14px] text-gray-400 mt-1">1 hour of transcription</p>
+        </div>
+        <a href="#" class="flex items-center justify-center h-[44px] rounded-full border border-gray-200 bg-white text-gray-800 text-[14px] font-medium hover:border-gray-400 hover:bg-gray-50 transition-all mb-8">
+          Start free trial
+        </a>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">1 concurrent bot</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">Google Meet + Teams</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">Real-time transcription</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">No credit card required</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Startup — highlighted -->
+      <div class="rounded-2xl border-2 border-gray-950 bg-white p-8 relative" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.10)">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span class="inline-block px-3 py-0.5 rounded-full bg-gray-950 text-white text-[11px] font-medium tracking-wide">POPULAR</span>
+        </div>
+        <div class="mb-6">
+          <div class="text-[13px] font-medium text-gray-400 uppercase tracking-[0.06em] mb-2">Startup</div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[40px] font-semibold tracking-[-0.03em] text-gray-950">$12</span>
+            <span class="text-[15px] text-gray-400">/bot/mo</span>
+          </div>
+          <p class="text-[14px] text-gray-400 mt-1">Volume discounts from 6+ bots</p>
+        </div>
+
+        <!-- Bot count selector -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[13px] text-gray-500 font-medium">Concurrent bots</span>
+            <span id="bot-count-display" class="text-[13px] text-gray-950 font-semibold tabular-nums">1</span>
+          </div>
+          <input type="range" id="bot-slider" min="1" max="50" value="1" step="1" class="w-full h-1 bg-gray-200 rounded-full appearance-none cursor-pointer accent-gray-950" />
+          <div class="flex justify-between mt-1">
+            <span class="text-[10px] text-gray-300">1</span>
+            <span class="text-[10px] text-gray-300">50</span>
+          </div>
+        </div>
+
+        <div class="flex items-baseline gap-1 mb-4 pb-4 border-b border-gray-100">
+          <span class="text-[13px] text-gray-500">Estimated:</span>
+          <span id="price-display" class="text-[16px] font-semibold text-gray-950 tabular-nums">$12</span>
+          <span class="text-[13px] text-gray-400">/mo</span>
+        </div>
+
+        <a href="#" class="flex items-center justify-center gap-1 h-[44px] rounded-full bg-gray-950 text-white text-[14px] font-medium hover:bg-gray-800 transition-colors mb-8">
+          Get started
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-600">Unlimited meetings & minutes</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-600">100+ languages</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-600">REST API + WebSocket + MCP</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-600">Bot speak + screenshare</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-600">EU / US / APAC regions</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-600">7-day rolling storage</span>
+          </div>
+        </div>
+
+        <!-- Volume tiers -->
+        <div class="mt-6 pt-5 border-t border-gray-100">
+          <p class="text-[11px] text-gray-400 uppercase tracking-[0.06em] font-medium mb-3">Volume pricing</p>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-[13px]"><span class="text-gray-500">1–5 bots</span><span class="text-gray-700 font-medium tabular-nums">$12–24/bot</span></div>
+            <div class="flex justify-between text-[13px]"><span class="text-gray-500">6–50 bots</span><span class="text-gray-700 font-medium tabular-nums">$20/bot</span></div>
+            <div class="flex justify-between text-[13px]"><span class="text-gray-500">51–200 bots</span><span class="text-gray-700 font-medium tabular-nums">$15/bot</span></div>
+            <div class="flex justify-between text-[13px]"><span class="text-gray-500">201+ bots</span><span class="text-gray-700 font-medium tabular-nums">$10/bot</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="rounded-2xl border border-gray-200 bg-white p-8" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)">
+        <div class="mb-6">
+          <div class="text-[13px] font-medium text-gray-400 uppercase tracking-[0.06em] mb-2">Enterprise</div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-[40px] font-semibold tracking-[-0.03em] text-gray-950">Custom</span>
+          </div>
+          <p class="text-[14px] text-gray-400 mt-1">Dedicated cloud or your VPC</p>
+        </div>
+        <a href="#" class="flex items-center justify-center h-[44px] rounded-full border border-gray-200 bg-white text-gray-800 text-[14px] font-medium hover:border-gray-400 hover:bg-gray-50 transition-all mb-8">
+          Contact team
+        </a>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">50+ concurrent bot fleets</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">Same open-source code</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">Fully managed deployment</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">1h P1 SLA + monthly review</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">Full data sovereignty</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="text-[14px] text-gray-500">Custom storage retention</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- Open source callout -->
+    <div class="mt-10 text-center">
+      <p class="text-[14px] text-gray-400">
+        Open source under Apache-2.0 — <a href="https://github.com/Vexa-ai/vexa" class="text-gray-600 underline underline-offset-2 hover:text-gray-900 transition-colors">self-host for free</a>, forever.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────── -->
+<footer class="border-t border-gray-200 py-12">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <img src="logodark.svg" alt="Vexa" class="h-5 w-5 rounded-[5px]" />
+      <span class="text-[13px] text-gray-400">vexa</span>
+    </div>
+    <div class="flex items-center gap-6 text-[13px] text-gray-400">
+      <a href="#" class="hover:text-gray-600 transition-colors">Docs</a>
+      <a href="#" class="hover:text-gray-600 transition-colors">GitHub</a>
+      <a href="#" class="hover:text-gray-600 transition-colors">Pricing</a>
+      <a href="#" class="hover:text-gray-600 transition-colors">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ── SCRIPT ─────────────────────────────────────── -->
+<script>
+  // ── Clock
+  const clock = document.getElementById('status-time');
+  const ts = () => new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  setInterval(() => { if (clock) clock.textContent = ts(); }, 1000);
+  if (clock) clock.textContent = ts();
+
+  // ── Transcript animation
+  const speakers = [
+    { name: 'Alice Chen',    color: '#7dd3fc' },
+    { name: 'Bob Rodriguez', color: '#c4b5fd' },
+    { name: 'Carol Kim',     color: '#6ee7b7' },
+    { name: 'David Wilson',  color: '#fca5a5' },
+  ];
+
+  const phrases = [
+    "We need to ship the new API before the end of Q3.",
+    "Let's target June 15th as the hard deadline for the release.",
+    "I can own the integration tests — Carol, can you handle docs?",
+    "The performance improvements we made last sprint are solid.",
+    "We should loop in the design team before the next sprint review.",
+    "I think we're aligned on the roadmap for meeting intelligence.",
+    "Can we confirm the self-hosted deployment strategy today?",
+    "The OpenAI integration works, n8n pipeline looks good too.",
+    "Let's prioritize the real-time transcript endpoint first.",
+    "We should open source the core SDK as part of the launch.",
+  ];
+
+  const termEl = document.getElementById('terminal-content');
+
+  let done = [], speaking = false, phrase = '', spkr = null, wi = 0;
+
+  function renderTerm() {
+    let html = '';
+    for (const e of done.slice(-8)) {
+      html += `
+        <div class="space-y-[4px]">
+          <div class="flex items-center gap-2">
+            <span class="text-[9.5px] text-gray-600 tabular-nums">${e.t}</span>
+            <span class="font-semibold text-[11.5px]" style="color:${e.c}">${e.n}</span>
+          </div>
+          <p class="text-gray-300 text-[12px]">${e.text}</p>
+        </div>`;
+    }
+    if (speaking) {
+      const words  = phrase.split(' ');
+      const typed  = words.slice(0, wi).join(' ');
+      const ghost  = words.slice(wi).join(' ');
+      html += `
+        <div class="space-y-[4px]">
+          <div class="flex items-center gap-2">
+            <span class="text-[9.5px] text-gray-600 tabular-nums">${ts()}</span>
+            <span class="font-semibold text-[11.5px]" style="color:${spkr.color}">${spkr.name}</span>
+            <span class="text-[9px] text-gray-600 tracking-wider">transcribing</span>
+          </div>
+          <p class="text-gray-300 text-[12px]">${typed}<span class="text-gray-700">${typed ? ' ':''}${ghost}</span><span class="animate-blink text-gray-400">▌</span></p>
+        </div>`;
+    }
+    termEl.innerHTML = html || '<p class="text-gray-700 text-xs">Waiting for meeting participants…</p>';
+    termEl.scrollTop = termEl.scrollHeight;
+  }
+
+  function tick() {
+    if (!speaking) {
+      if (Math.random() < 0.3) {
+        phrase   = phrases[Math.floor(Math.random() * phrases.length)];
+        spkr     = speakers[Math.floor(Math.random() * speakers.length)];
+        wi       = 0;
+        speaking = true;
+      }
+    } else {
+      const total = phrase.split(' ').length;
+      if (wi < total) { wi++; }
+      else {
+        done.push({ n: spkr.name, c: spkr.color, text: phrase, t: ts() });
+        speaking = false;
+      }
+    }
+    renderTerm();
+  }
+
+  (function loop() {
+    setTimeout(() => { tick(); loop(); }, Math.random() * 150 + 55);
+  })();
+
+  // ── Workflow SVG connections (Vercel-style colorful curves)
+  function drawWorkflow() {
+    const container = document.getElementById('workflow-container');
+    const svg = document.getElementById('workflow-svg');
+    if (!container || !svg) return;
+
+    const cRect = container.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${cRect.width} ${cRect.height}`);
+    svg.innerHTML = '';
+
+    function getCenter(id) {
+      const el = document.getElementById(id);
+      if (!el) return { x: 0, y: 0 };
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2 - cRect.left, y: r.top + r.height / 2 - cRect.top };
+    }
+
+    function getEdge(id, side) {
+      const el = document.getElementById(id);
+      if (!el) return { x: 0, y: 0 };
+      const r = el.getBoundingClientRect();
+      const x = side === 'right' ? r.right - cRect.left : r.left - cRect.left;
+      const y = r.top + r.height / 2 - cRect.top;
+      return { x, y };
+    }
+
+    // Gray straight line from left pill to vexa center
+    const pillRight = getEdge('node-meet', 'right');
+    // Use the midpoint between teams and meet for the line start Y
+    const teamsCenter = getCenter('node-teams');
+    const meetCenter = getCenter('node-meet');
+    const pillMidY = (teamsCenter.y + meetCenter.y) / 2;
+    const vexaCenter = getCenter('node-vexa');
+
+    // Straight gray connector: pill → vexa
+    const grayLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    grayLine.setAttribute('x1', pillRight.x);
+    grayLine.setAttribute('y1', pillMidY);
+    grayLine.setAttribute('x2', vexaCenter.x - 40);
+    grayLine.setAttribute('y2', vexaCenter.y);
+    grayLine.setAttribute('stroke', '#9ca3af');
+    grayLine.setAttribute('stroke-width', '2');
+    svg.appendChild(grayLine);
+
+    // Colorful curves from vexa to each output node
+    const targets = [
+      { id: 'node-openai',   color: '#3b82f6' },  // blue
+      { id: 'node-claude',   color: '#ef4444' },  // red
+      { id: 'node-n8n',      color: '#f59e0b' },  // amber/orange
+      { id: 'node-openclaw', color: '#14b8a6' },  // teal
+    ];
+
+    const vexaR = getEdge('node-vexa', 'right');
+
+    targets.forEach(({ id, color }) => {
+      const to = getEdge(id, 'left');
+      const dx = Math.abs(to.x - vexaR.x);
+      const cp1x = vexaR.x + dx * 0.35;
+      const cp2x = to.x - dx * 0.35;
+      const d = `M${vexaR.x},${vexaR.y} C${cp1x},${vexaR.y} ${cp2x},${to.y} ${to.x},${to.y}`;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(path);
+    });
+  }
+
+  window.addEventListener('load', drawWorkflow);
+  window.addEventListener('resize', drawWorkflow);
+
+  // ── Use-case tabs
+  document.querySelectorAll('.uc-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.uc-tab').forEach(b => b.classList.remove('uc-tab-active'));
+      btn.classList.add('uc-tab-active');
+      document.querySelectorAll('.uc-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelector(`[data-panel="${btn.dataset.tab}"]`)?.classList.remove('hidden');
+    });
+  });
+
+  // ── Code tabs
+  document.querySelectorAll('.code-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.code-tab').forEach(b => b.classList.remove('code-tab-active'));
+      btn.classList.add('code-tab-active');
+      document.querySelectorAll('.code-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelector(`[data-codepanel="${btn.dataset.codetab}"]`)?.classList.remove('hidden');
+    });
+  });
+
+  // ── Pricing slider
+  (function() {
+    const slider = document.getElementById('bot-slider');
+    const countEl = document.getElementById('bot-count-display');
+    const priceEl = document.getElementById('price-display');
+    if (!slider || !countEl || !priceEl) return;
+
+    // Graduated tiers matching pricing_tiers.json
+    function calcPrice(bots) {
+      let total = 0;
+      const tiers = [
+        { up: 1, unit: 1200 },
+        { up: 2, unit: 3600 },
+        { up: 5, unit: 2400 },
+        { up: 50, unit: 2000 },
+        { up: 200, unit: 1500 },
+        { up: Infinity, unit: 1000 },
+      ];
+      let prev = 0;
+      for (const t of tiers) {
+        if (bots <= prev) break;
+        const qty = Math.min(bots, t.up) - prev;
+        total += qty * t.unit;
+        prev = t.up;
+      }
+      return Math.round(total / 100);
+    }
+
+    slider.addEventListener('input', () => {
+      const n = parseInt(slider.value);
+      countEl.textContent = n;
+      priceEl.textContent = '$' + calcPrice(n).toLocaleString();
+    });
+  })();
+</script>
+
+</body>
+</html>

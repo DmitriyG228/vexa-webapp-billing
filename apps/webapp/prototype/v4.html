@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vexa — Meeting Intelligence API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,300&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          animation: {
+            'blink':   'blink 1s step-end infinite',
+            'fade-up': 'fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both',
+          },
+          keyframes: {
+            'blink':   { '0%,100%': { opacity: '1' }, '50%': { opacity: '0' } },
+            'fade-up': { from: { opacity: '0', transform: 'translateY(20px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f8f8f7; color: #111; }
+
+    /* Dot grid */
+    .dot-grid {
+      background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    .dot-mask {
+      -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 55%, transparent 100%);
+              mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 55%, transparent 100%);
+    }
+
+    /* Terminal scroll */
+    .t-scroll::-webkit-scrollbar { width: 3px; }
+    .t-scroll::-webkit-scrollbar-track { background: transparent; }
+    .t-scroll::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+    /* Avatar stack */
+    .av + .av { margin-left: -7px; }
+
+    /* Animation delays */
+    .d1 { animation-delay: .04s }
+    .d2 { animation-delay: .12s }
+    .d3 { animation-delay: .20s }
+    .d4 { animation-delay: .28s }
+    .d5 { animation-delay: .36s }
+    .d6 { animation-delay: .44s }
+    .d7 { animation-delay: .10s }
+
+    /* Ecosystem strip */
+    .eco-logo {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 9px; border-radius: 7px;
+      border: 1px solid #e5e7eb; background: #fff;
+      font-size: 11.5px; color: #444; font-weight: 500;
+      white-space: nowrap;
+    }
+    .eco-logo img { height: 14px; width: 14px; object-fit: contain; }
+
+    /* AI insight block */
+    .ai-block {
+      border-left: 2px solid #6366f1;
+      padding: 10px 14px;
+      background: rgba(99,102,241,0.06);
+      border-radius: 0 6px 6px 0;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── ANNOUNCEMENT ──────────────────────────────── -->
+<div class="bg-gray-950 text-center py-2 px-4">
+  <p class="text-[11.5px] text-gray-400">
+    <span class="text-gray-200 font-medium">v0.6 is live</span>
+    <span class="mx-2 text-gray-700">·</span>
+    Microsoft Teams bot support has arrived
+    <a href="#" class="ml-3 text-white/70 hover:text-white underline underline-offset-2 transition-colors">Read more →</a>
+  </p>
+</div>
+
+<!-- ── NAV ───────────────────────────────────────── -->
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200/70">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+
+    <a href="/" class="flex items-center gap-2">
+      <img src="logodark.svg" alt="Vexa" class="h-[26px] w-[26px] rounded-[7px]" />
+      <span class="text-[15px] font-semibold tracking-[-0.01em] text-gray-950">vexa</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-1">
+      <a href="#" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-all">Docs</a>
+      <a href="#" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-all">Pricing</a>
+      <a href="https://github.com/Vexa-ai/vexa" target="_blank" class="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-all">GitHub</a>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href="#" class="hidden sm:block px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">Sign in</a>
+      <a href="/get-started" class="inline-flex items-center gap-1 h-8 px-4 rounded-full bg-gray-950 text-white text-[13.5px] font-medium hover:bg-gray-800 transition-colors">
+        Get started
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ── HERO ───────────────────────────────────────── -->
+<main class="relative dot-grid dot-mask overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/50 to-transparent" style="height:280px"></div>
+
+  <div class="relative max-w-6xl mx-auto px-6 py-16 lg:py-24">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+
+      <!-- ── LEFT ── -->
+      <div class="flex flex-col gap-6">
+
+        <!-- Badge -->
+        <div class="animate-fade-up d1">
+          <span class="inline-flex items-center gap-1.5 px-3 py-[5px] rounded-full border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium shadow-sm">
+            <span class="w-[7px] h-[7px] rounded-full bg-emerald-400 flex-shrink-0"></span>
+            New release · Teams &amp; Meet now supported
+          </span>
+        </div>
+
+        <!-- Headline -->
+        <div class="animate-fade-up d2">
+          <h1 class="text-[52px] sm:text-[60px] lg:text-[64px] font-semibold leading-[1.03] tracking-[-0.03em] text-gray-950">
+            Meeting<br/>Transcription<br/><em class="not-italic font-light text-gray-400 tracking-[-0.02em]">API</em>
+          </h1>
+        </div>
+
+        <!-- Subheading -->
+        <p class="animate-fade-up d3 text-[15.5px] text-gray-500 leading-[1.7] max-w-[420px]">
+          Plug live meetings into your AI stack. Real-time transcription for Google Meet and Microsoft Teams via one simple REST API.
+        </p>
+
+        <!-- Platform + feature tags -->
+        <div class="animate-fade-up d4 flex flex-wrap items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-[11.5px] text-gray-600 font-medium">
+            <img src="microsoft-teams-logo.png" alt="" class="h-3.5 w-3.5 object-contain" />
+            Microsoft Teams
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-[11.5px] text-gray-600 font-medium">
+            <img src="google-meet-logo.png" alt="" class="h-3.5 w-3.5 object-contain" />
+            Google Meet
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Apache 2.0
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-200 bg-white text-[11.5px] text-gray-500 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Self-hosted
+          </span>
+        </div>
+
+        <!-- CTAs -->
+        <div class="animate-fade-up d5 flex flex-col sm:flex-row gap-3">
+          <a href="/get-started" class="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full bg-gray-950 text-white text-[14px] font-medium hover:bg-gray-800 transition-colors shadow-sm">
+            Quick Start
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="https://github.com/Vexa-ai/vexa" target="_blank" class="inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-full border border-gray-200 bg-white text-gray-800 text-[14px] font-medium hover:border-gray-400 hover:bg-gray-50 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Social proof -->
+        <div class="animate-fade-up d6 flex items-center gap-3 pt-1">
+          <div class="flex items-center">
+            <img src="https://i.pravatar.cc/64?img=45" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=23" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=67" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=12" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+            <img src="https://i.pravatar.cc/64?img=34" alt="" class="av h-6 w-6 rounded-full ring-[2px] ring-white object-cover" />
+          </div>
+          <div class="h-4 w-px bg-gray-200"></div>
+          <div class="flex items-center gap-1.5 text-[13px] text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Starred by <span class="text-gray-700 font-semibold">1.3k+</span> developers
+          </div>
+        </div>
+
+      </div><!-- /left -->
+
+      <!-- ── RIGHT: terminal ── -->
+      <div class="animate-fade-up d7 w-full">
+        <div class="relative rounded-[16px] border border-gray-200/80 overflow-hidden shadow-[0_24px_64px_-12px_rgba(0,0,0,0.13)]">
+
+          <!-- Chrome -->
+          <div class="relative flex items-center px-5 py-[11px] bg-[#1a1a1a] border-b border-white/[0.06]">
+            <div class="flex gap-[6px] flex-shrink-0">
+              <div class="w-[11px] h-[11px] rounded-full bg-[#ff5f57]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#febc2e]"></div>
+              <div class="w-[11px] h-[11px] rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="absolute inset-x-0 text-center text-[11px] text-gray-500 font-mono pointer-events-none">vexa · live transcript</span>
+            <div class="ml-auto flex items-center gap-[5px]">
+              <span class="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
+              <span class="text-[10.5px] text-gray-400 font-mono font-semibold tracking-widest">LIVE</span>
+            </div>
+          </div>
+
+          <!-- Live transcript -->
+          <div id="terminal-content"
+               class="t-scroll p-5 h-[400px] overflow-y-auto space-y-4 font-mono text-[12px] leading-relaxed text-left bg-[#111]">
+            <p class="text-gray-700 text-xs">Waiting for meeting participants…</p>
+          </div>
+
+          <!-- Status bar -->
+          <div class="flex items-center justify-between px-5 py-2 bg-[#161616] border-t border-white/[0.05]">
+            <div class="flex items-center gap-2 text-[10px] text-gray-600 font-mono">
+              <span class="w-[5px] h-[5px] rounded-full bg-emerald-500"></span>
+              Connected · Google Meet
+            </div>
+            <span class="text-[10px] text-gray-700 font-mono" id="status-time"></span>
+          </div>
+
+        </div>
+      </div><!-- /right -->
+
+    </div>
+  </div>
+</main>
+
+<!-- ── SCRIPT ─────────────────────────────────────── -->
+<script>
+  // ── Clock
+  const clock = document.getElementById('status-time');
+  const ts = () => new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  setInterval(() => { if (clock) clock.textContent = ts(); }, 1000);
+  if (clock) clock.textContent = ts();
+
+  // ── Transcript animation
+  const speakers = [
+    { name: 'Alice Chen',    color: '#7dd3fc' },
+    { name: 'Bob Rodriguez', color: '#c4b5fd' },
+    { name: 'Carol Kim',     color: '#6ee7b7' },
+    { name: 'David Wilson',  color: '#fca5a5' },
+  ];
+
+  const phrases = [
+    "We need to ship the new API before the end of Q3.",
+    "Let's target June 15th as the hard deadline for the release.",
+    "I can own the integration tests — Carol, can you handle docs?",
+    "The performance improvements we made last sprint are solid.",
+    "We should loop in the design team before the next sprint review.",
+    "I think we're aligned on the roadmap for meeting intelligence.",
+    "Can we confirm the self-hosted deployment strategy today?",
+    "The OpenAI integration works, n8n pipeline looks good too.",
+    "Let's prioritize the real-time transcript endpoint first.",
+    "We should open source the core SDK as part of the launch.",
+  ];
+
+  const termEl = document.getElementById('terminal-content');
+
+  let done = [], speaking = false, phrase = '', spkr = null, wi = 0;
+
+  function renderTerm() {
+    let html = '';
+    for (const e of done.slice(-8)) {
+      html += `
+        <div class="space-y-[4px]">
+          <div class="flex items-center gap-2">
+            <span class="text-[9.5px] text-gray-600 tabular-nums">${e.t}</span>
+            <span class="font-semibold text-[11.5px]" style="color:${e.c}">${e.n}</span>
+          </div>
+          <p class="text-gray-300 text-[12px]">${e.text}</p>
+        </div>`;
+    }
+    if (speaking) {
+      const words  = phrase.split(' ');
+      const typed  = words.slice(0, wi).join(' ');
+      const ghost  = words.slice(wi).join(' ');
+      html += `
+        <div class="space-y-[4px]">
+          <div class="flex items-center gap-2">
+            <span class="text-[9.5px] text-gray-600 tabular-nums">${ts()}</span>
+            <span class="font-semibold text-[11.5px]" style="color:${spkr.color}">${spkr.name}</span>
+            <span class="text-[9px] text-gray-600 tracking-wider">transcribing</span>
+          </div>
+          <p class="text-gray-300 text-[12px]">${typed}<span class="text-gray-700">${typed ? ' ':''}${ghost}</span><span class="animate-blink text-gray-400">▌</span></p>
+        </div>`;
+    }
+    termEl.innerHTML = html || '<p class="text-gray-700 text-xs">Waiting for meeting participants…</p>';
+    termEl.scrollTop = termEl.scrollHeight;
+  }
+
+  function tick() {
+    if (!speaking) {
+      if (Math.random() < 0.3) {
+        phrase   = phrases[Math.floor(Math.random() * phrases.length)];
+        spkr     = speakers[Math.floor(Math.random() * speakers.length)];
+        wi       = 0;
+        speaking = true;
+      }
+    } else {
+      const total = phrase.split(' ').length;
+      if (wi < total) { wi++; }
+      else {
+        done.push({ n: spkr.name, c: spkr.color, text: phrase, t: ts() });
+        speaking = false;
+      }
+    }
+    renderTerm();
+  }
+
+  (function loop() {
+    setTimeout(() => { tick(); loop(); }, Math.random() * 150 + 55);
+  })();
+</script>
+
+</body>
+</html>
