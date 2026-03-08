@@ -164,28 +164,29 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('[NextAuth] signIn callback triggered');
-      // Mock provider: user already has id set from authorize()
-      if (account?.provider === "mock" && user.email) {
-        console.log(`[NextAuth] Mock sign in for: ${user.email}`);
-        return true;
-      }
-
+      const isMock = account?.provider === "mock";
       const isOAuth = account?.provider === "google" || account?.provider === "microsoft";
 
-      if (isOAuth && user.email) {
+      if ((isMock || isOAuth) && user.email) {
         console.log(`[NextAuth] ${account!.provider} sign in attempt for: ${user.email}`);
-        const dbUser = await findOrCreateUser(user.email, user.name, user.image);
 
-        if (!dbUser) {
-          console.error(`[NextAuth] Failed to find or create user in DB for ${user.email}. Denying sign in.`);
-          return false;
+        // Mock provider already resolved the DB user in authorize(), but we still
+        // need to create API token + SSO cookies for Dashboard integration.
+        // OAuth needs full findOrCreateUser flow.
+        let dbUserId = isMock ? Number(user.id) : 0;
+
+        if (isOAuth) {
+          const dbUser = await findOrCreateUser(user.email, user.name, user.image);
+          if (!dbUser) {
+            console.error(`[NextAuth] Failed to find or create user in DB for ${user.email}. Denying sign in.`);
+            return false;
+          }
+          user.id = String(dbUser.id);
+          dbUserId = dbUser.id;
         }
 
-        // Add the database user ID to the user object for the JWT callback
-        user.id = String(dbUser.id);
-
         // Create API token and set shared cookies for SSO with Dashboard
-        const apiToken = await createApiToken(dbUser.id);
+        const apiToken = await createApiToken(dbUserId);
         if (apiToken) {
           const cookieStore = await cookies();
 
@@ -194,9 +195,9 @@ export const authOptions: AuthOptions = {
 
           // Set vexa-user-info cookie (user metadata for Dashboard)
           const userInfo = JSON.stringify({
-            id: dbUser.id,
-            email: dbUser.email,
-            name: dbUser.name || user.name || dbUser.email.split("@")[0],
+            id: dbUserId,
+            email: user.email,
+            name: user.name || user.email.split("@")[0],
           });
           cookieStore.set("vexa-user-info", userInfo, getCookieOptions());
 
@@ -206,7 +207,7 @@ export const authOptions: AuthOptions = {
           console.warn(`[NextAuth] API token creation failed for ${user.email}, SSO cookies not set`);
         }
 
-        console.log(`[NextAuth] User ${user.email} synced with DB ID: ${user.id}. Allowing sign in.`);
+        console.log(`[NextAuth] User ${user.email} synced with DB ID: ${dbUserId}. Allowing sign in.`);
         return true;
       }
       console.log('[NextAuth] signIn condition not met or email missing.');
