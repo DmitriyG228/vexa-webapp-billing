@@ -559,7 +559,7 @@ function BotsTab({
 }: {
   userData: UserData | null
   meetingsData: MeetingsData | null
-  botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number } | null
+  botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null
   onOpenPortal: () => void
   isOpeningPortal: boolean
 }) {
@@ -975,11 +975,27 @@ function BotsTab({
               <span className="text-gray-400">Usage this period</span>
               <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
             </div>
+            {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes) ? (
+              <div className="mt-2 space-y-0.5">
+                {(botBalanceData.bot_minutes ?? 0) > 0 && (
+                  <div className="flex items-center justify-between text-[12px]">
+                    <span className="text-gray-400 pl-2">Bot minutes</span>
+                    <span className="text-gray-400">{botBalanceData.bot_minutes} min</span>
+                  </div>
+                )}
+                {(botBalanceData.tx_minutes ?? 0) > 0 && (
+                  <div className="flex items-center justify-between text-[12px]">
+                    <span className="text-gray-400 pl-2">Transcription minutes</span>
+                    <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
+                  </div>
+                )}
+              </div>
+            ) : null}
             {botBalanceData?.has_subscription && (
               <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gray-950 dark:bg-gray-200"
-                  style={{ width: `${botBalanceData.initial_credit_cents > 0 ? Math.min((botBalanceData.usage_cents / botBalanceData.initial_credit_cents) * 100, 100) : 0}%` }}
+                  style={{ width: `${(botBalanceData.usage_cents + botBalanceData.balance_cents) > 0 ? Math.min((botBalanceData.usage_cents / (botBalanceData.usage_cents + botBalanceData.balance_cents)) * 100, 100) : 0}%` }}
                 />
               </div>
             )}
