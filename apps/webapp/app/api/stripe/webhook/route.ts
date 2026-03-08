@@ -192,10 +192,13 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
   await patchUser(userId, patch)
 
   // Welcome credit for new PAYG bot_service subscriptions
+  // Check Stripe customer metadata (not Admin API data which gets wiped by JSONB replacement)
   if (planType === 'bot_service' && ['active', 'trialing'].includes(sub.status)) {
     const custId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
-    if (!user.data?.bot_welcome_credit_given) {
-      try {
+    try {
+      const cust = await stripe.customers.retrieve(custId)
+      const alreadyGranted = !cust.deleted && !!(cust as Stripe.Customer).metadata?.welcome_credit_cents
+      if (!alreadyGranted) {
         await stripe.billing.creditGrants.create({
           customer: custId,
           name: 'Welcome credit — $5 bot',
@@ -203,11 +206,13 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
           amount: { type: 'monetary', monetary: { currency: 'usd', value: INITIAL_BOT_CREDIT_CENTS } },
           applicability_config: { scope: { price_type: 'metered' } },
         } as Stripe.Billing.CreditGrantCreateParams)
-        await patchUser(userId, { data: { bot_welcome_credit_given: true } })
+        await stripe.customers.update(custId, {
+          metadata: { welcome_credit_cents: String(INITIAL_BOT_CREDIT_CENTS) },
+        })
         console.log(`[WEBHOOK] Applied $${(INITIAL_BOT_CREDIT_CENTS / 100).toFixed(2)} welcome credit for ${email}`)
-      } catch (err) {
-        console.error(`[WEBHOOK] Welcome credit failed for ${email}:`, err)
       }
+    } catch (err) {
+      console.error(`[WEBHOOK] Welcome credit failed for ${email}:`, err)
     }
   }
 

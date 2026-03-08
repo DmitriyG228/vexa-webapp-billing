@@ -102,7 +102,12 @@ export async function POST() {
     })
 
     // Step 4: Grant $5 welcome credit (if not already given)
-    let creditGranted = !!user.data?.bot_welcome_credit_given
+    // Check Stripe customer metadata (not Admin API data which gets wiped by JSONB replacement)
+    let creditGranted = false
+    try {
+      const cust = await stripe.customers.retrieve(customerId)
+      creditGranted = !cust.deleted && !!(cust as Stripe.Customer).metadata?.welcome_credit_cents
+    } catch {}
     if (!creditGranted) {
       try {
         await stripe.billing.creditGrants.create({
@@ -126,7 +131,7 @@ export async function POST() {
 
     // Step 5: Update Admin API — single patch to avoid data replacement race
     await patchUser(userId, {
-      max_concurrent_bots: 100,
+      max_concurrent_bots: 5,
       data: {
         subscription_status: subscription.status === 'incomplete' ? 'active' : subscription.status,
         subscription_tier: 'bot_service',
@@ -134,7 +139,8 @@ export async function POST() {
         stripe_subscription_id: subscription.id,
         subscription_current_period_end: subscription.current_period_end,
         subscription_current_period_start: subscription.current_period_start,
-        ...(creditGranted ? { bot_welcome_credit_given: true } : {}),
+        // Note: welcome credit tracking is in Stripe customer metadata (welcome_credit_cents),
+        // not here, to survive JSONB replacement.
       },
     })
 

@@ -35,6 +35,7 @@ export function getStripeIds(): Record<string, StripePlanIds> {
   if (!_stripeIds) {
     const candidates = [
       path.join(process.cwd(), 'product', 'stripe_ids.json'),
+      path.join(process.cwd(), '..', '..', 'product', 'stripe_ids.json'),
       path.join(__dirname, '..', '..', '..', 'product', 'stripe_ids.json'),
     ]
     for (const p of candidates) {
