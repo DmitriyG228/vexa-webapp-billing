@@ -15,11 +15,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://vexa.ai'),
-  title: 'Vexa — Open-Source Meeting Transcription API',
-  description: 'Open-source meeting bot infrastructure for Google Meet, Microsoft Teams, and Zoom. Real-time transcription, bot control, and meeting data via REST API, WebSocket, and MCP. Self-host or use our cloud. From $0.45/hr.',
+  title: 'Vexa — Open-Source Meeting Bot API | Self-Hosted Transcription',
+  description: 'Open-source meeting bot API for Google Meet, Microsoft Teams, and Zoom. Real-time transcription, bot control, and meeting data via REST API, WebSocket, and MCP. Self-host or use our cloud. Bot from $0.30/hr.',
   openGraph: {
-    title: 'Vexa — Open-Source Meeting Transcription API',
-    description: 'Deploy meeting bots that record, transcribe, and deliver real-time data. Open source, self-hostable, ~37% cheaper than Recall.ai.',
+    title: 'Vexa — Open-Source Meeting Bot API | Self-Hosted Transcription',
+    description: 'Open-source meeting bot API. Deploy bots that record, transcribe, and deliver real-time meeting data. Self-hostable, 40% cheaper. Bot from $0.30/hr.',
     url: 'https://vexa.ai',
     siteName: 'Vexa',
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         url: '/images/og-default.png',
         width: 1200,
         height: 630,
-        alt: 'Vexa — Open-Source Meeting Transcription API',
+        alt: 'Vexa — Open-Source Meeting Bot API',
       },
     ],
     locale: 'en_US',
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vexa — Open-Source Meeting Transcription API',
-    description: 'Meeting bots for Google Meet, Teams & Zoom. Open source, self-hostable, from $0.45/hr.',
+    title: 'Vexa — Open-Source Meeting Bot API | Self-Hosted Transcription',
+    description: 'Open-source meeting bot API. Bots for Google Meet, Teams & Zoom. Self-hostable, from $0.30/hr.',
     images: ['/images/og-default.png'],
     site: '@veaborhq',
   },
@@ -44,7 +44,10 @@ export const metadata: Metadata = {
     canonical: 'https://vexa.ai',
   },
   icons: {
-    icon: [{ url: '/logodark.svg', href: '/logodark.svg' }],
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
+      { url: '/logodark.svg', type: 'image/svg+xml' },
+    ],
     apple: [{ url: '/logodark.svg', href: '/logodark.svg' }],
   },
 }

@@ -4,12 +4,12 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Vexa vs Recall.ai — Open-Source Meeting Bot API Comparison (2026)',
   description:
-    'Compare Vexa and Recall.ai side by side. Vexa is open source, self-hostable, and ~37% cheaper. Feature comparison, pricing breakdown, and migration guide.',
+    'Compare Vexa and Recall.ai side by side. Vexa is open source, self-hostable, and 40% cheaper. Bot: $0.30/hr vs $0.50/hr. Feature comparison, pricing breakdown, and migration guide.',
   alternates: { canonical: 'https://vexa.ai/compare/recall-ai' },
   openGraph: {
     title: 'Vexa vs Recall.ai — Which Meeting Bot API?',
     description:
-      'Open source vs closed source. $0.45/hr vs $0.72/hr. Self-host option vs cloud-only. See the full comparison.',
+      'Open source vs closed source. Bot: $0.30/hr vs $0.50/hr. Self-host option vs cloud-only. See the full comparison.',
     url: 'https://vexa.ai/compare/recall-ai',
     images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
   },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Vexa vs Recall.ai — Open-Source Meeting Bot API',
     description:
-      '~37% cheaper, open source, self-hostable. Compare Vexa and Recall.ai side by side.',
+      '40% cheaper, open source, self-hostable. Compare Vexa and Recall.ai side by side.',
   },
 };
 
@@ -89,9 +89,8 @@ export default function CompareRecallAiPage() {
           Vexa vs Recall.ai
         </h1>
         <p className="mt-4 text-[15.5px] text-gray-500 dark:text-gray-400 leading-[1.7] max-w-xl mx-auto">
-          Open source vs closed source. Self-hostable vs cloud-only. ~37%
-          cheaper. See how Vexa compares to Recall.ai for meeting bot
-          infrastructure.
+          Open source vs closed source. Self-hostable vs cloud-only. 40%
+          cheaper on bot infrastructure. See how Vexa compares to Recall.ai.
         </p>
       </div>
 
@@ -107,18 +106,18 @@ export default function CompareRecallAiPage() {
           </div>
           <div className="flex items-baseline gap-1 mb-1">
             <span className="text-[30px] font-semibold tracking-[-0.03em] text-gray-950 dark:text-gray-50">
-              $0.45
+              $0.30
             </span>
             <span className="text-[14px] text-gray-400 dark:text-gray-500">
               /hr
             </span>
           </div>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-4">
-            Bot + real-time transcription + 12-month audio storage
+            Bot infrastructure + 12-month audio storage. Transcription: +$0.10/hr
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-300">
-              <CheckIcon active /> Real-time transcription included
+              <CheckIcon active /> Transcription add-on: +$0.10/hr
             </div>
             <div className="flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-300">
               <CheckIcon active /> Open source — self-host free
@@ -219,11 +218,11 @@ export default function CompareRecallAiPage() {
             style={{ boxShadow: cardShadow }}
           >
             <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
-              ~37% cheaper
+              40% cheaper
             </h3>
             <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6]">
-              $0.45/hr all-in vs Recall.ai&apos;s ~$0.72/hr at
-              volume commitments. Same capabilities, lower cost.
+              Bot: $0.30/hr vs Recall.ai&apos;s ~$0.50/hr. With transcription:
+              $0.40/hr vs ~$0.72/hr. Same capabilities, lower cost.
             </p>
           </div>
           <div
@@ -356,13 +355,12 @@ export default function CompareRecallAiPage() {
           </div>
           <div className="py-5">
             <h3 className="text-[14px] font-semibold text-gray-950 dark:text-gray-50 mb-2">
-              How is Vexa ~37% cheaper?
+              How is Vexa 40% cheaper?
             </h3>
             <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-              Vexa&apos;s full-service rate (bot + real-time transcription) is
-              $0.45/hr compared to Recall.ai&apos;s equivalent at ~$0.72/hr at
-              volume. We keep costs low with efficient infrastructure and
-              open-source development.
+              Bot infrastructure: Vexa $0.30/hr vs Recall.ai ~$0.50/hr (40% cheaper).
+              With transcription: Vexa $0.40/hr vs Recall.ai ~$0.72/hr (44% cheaper).
+              We keep costs low with efficient infrastructure and open-source development.
             </p>
           </div>
           <div className="py-5">
@@ -370,7 +368,7 @@ export default function CompareRecallAiPage() {
               Can I start with Vexa cloud and move to self-hosted later?
             </h3>
             <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-              Yes. Start with our managed cloud at $0.45/hr. When you&apos;re
+              Yes. Start with our managed cloud at $0.30/hr. When you&apos;re
               ready to scale or need data sovereignty, deploy the same
               open-source code on your own infrastructure with Docker,
               Kubernetes, or OpenShift.
@@ -397,10 +395,10 @@ export default function CompareRecallAiPage() {
               },
               {
                 '@type': 'Question',
-                name: 'How is Vexa ~37% cheaper than Recall.ai?',
+                name: 'How is Vexa 40% cheaper than Recall.ai?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: "Vexa's full-service rate (bot + real-time transcription) is $0.45/hr compared to Recall.ai's equivalent at approximately $0.72/hr at volume. We keep costs low with efficient infrastructure and open-source development.",
+                  text: "Bot infrastructure: Vexa $0.30/hr vs Recall.ai approximately $0.50/hr (40% cheaper). With transcription: Vexa $0.40/hr vs Recall.ai approximately $0.72/hr (44% cheaper). We keep costs low with efficient infrastructure and open-source development.",
                 },
               },
               {
@@ -408,7 +406,7 @@ export default function CompareRecallAiPage() {
                 name: 'Can I start with Vexa cloud and move to self-hosted later?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: 'Yes. Start with our managed cloud at $0.45/hr. When you are ready to scale or need data sovereignty, deploy the same open-source code on your own infrastructure with Docker, Kubernetes, or OpenShift.',
+                  text: 'Yes. Start with our managed cloud at $0.30/hr. When you are ready to scale or need data sovereignty, deploy the same open-source code on your own infrastructure with Docker, Kubernetes, or OpenShift.',
                 },
               },
             ],
