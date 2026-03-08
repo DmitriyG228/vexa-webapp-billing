@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 export default async function middleware(req: NextRequest) {
-  const useSecureCookies = process.env.NODE_ENV === 'production';
-  const token = await getToken({ req, secureCookie: useSecureCookies });
+  const token = await getToken({ req });
   if (!token) {
     const baseUrl = process.env.NEXTAUTH_URL || req.nextUrl.origin;
     const signInUrl = new URL("/signin", baseUrl);

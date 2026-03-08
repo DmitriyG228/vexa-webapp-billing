@@ -252,7 +252,9 @@ export const authOptions: AuthOptions = {
     signIn: "/signin",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  useSecureCookies: process.env.NODE_ENV === 'production',
+  // Behind HTTPS reverse proxy, getToken() infers secure cookies from X-Forwarded-Proto.
+  // Match that inference: use secure cookies when NEXTAUTH_URL starts with https://.
+  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith('https://') || process.env.NODE_ENV === 'production',
 };
 
 const handler = NextAuth(authOptions);
