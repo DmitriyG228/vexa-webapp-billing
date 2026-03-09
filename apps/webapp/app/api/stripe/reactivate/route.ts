@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST() {
   try {
     const session = await getServerSession(authOptions)

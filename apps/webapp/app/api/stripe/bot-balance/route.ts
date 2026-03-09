@@ -4,6 +4,8 @@ import { authOptions } from '../../auth/[...nextauth]/route'
 import Stripe from 'stripe'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 
+export const dynamic = 'force-dynamic'
+
 function formatUsd(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
 }

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import Stripe from 'stripe'
+
+export const dynamic = 'force-dynamic'
+
 import {
   getStripe,
   getPriceId,
