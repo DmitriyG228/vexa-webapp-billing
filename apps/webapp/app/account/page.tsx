@@ -4,8 +4,10 @@ import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink } from "lucide-react"
+import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle } from "lucide-react"
 import { getDashboardUrl } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -521,6 +523,7 @@ function AccountPage() {
           <TranscriptionTab
             balanceData={balanceData}
             usageData={usageData}
+            onRefreshBalance={fetchBalance}
           />
         )}
 
@@ -768,13 +771,11 @@ function BotsTab({
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
-      // If billing returns a checkout URL, redirect to Stripe Checkout
       if (data.url) {
         window.location.href = data.url
         return
       }
-      alert(`Added $${(data.charged_cents / 100).toFixed(2)} to your bot balance.`)
-      window.location.reload()
+      await onRefreshBalance()
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to add funds")
     } finally {
@@ -803,12 +804,23 @@ function BotsTab({
                   {subTier === 'bot_service' ? `${botCount} concurrent` : subTier === 'individual' ? `${botCount} concurrent` : `${botCount} with API key`}
                 </span>
                 {subTier === 'bot_service' && (
-                  <a
-                    href={`mailto:dmitry@vexa.ai?subject=Bot%20Limit%20Increase%20Request&body=Hi%2C%0A%0AI'd%20like%20to%20request%20an%20increase%20to%20my%20concurrent%20bot%20limit.%0A%0ACurrent%20limit%3A%20${botCount}%0ARequested%20limit%3A%20%0ACompany%3A%20%0A%0AThanks`}
-                    className="text-[12px] text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    Request more
-                  </a>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="text-[12px] text-blue-600 dark:text-blue-400 hover:underline">
+                        Request more
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-64 p-4">
+                      <p className="text-[13px] font-medium text-gray-950 dark:text-gray-50 mb-3">Request bot limit increase</p>
+                      <p className="text-[12px] text-gray-500 mb-3">Current limit: {botCount} concurrent bots</p>
+                      <a
+                        href={`mailto:dmitry@vexa.ai?subject=Bot%20Limit%20Increase%20Request&body=Hi%2C%0A%0AI'd%20like%20to%20request%20an%20increase%20to%20my%20concurrent%20bot%20limit.%0A%0ACurrent%20limit%3A%20${botCount}%0ARequested%20limit%3A%20%0ACompany%3A%20%0A%0AThanks`}
+                        className="inline-flex items-center justify-center w-full h-8 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[12px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                      >
+                        Contact us
+                      </a>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
             </div>
@@ -1007,7 +1019,18 @@ function BotsTab({
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
-                <span className="text-[12px] text-gray-400 dark:text-gray-500 cursor-help" title={product.detail}>?</span>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs max-w-[200px]">
+                      {product.detail}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           ))}
@@ -1223,9 +1246,11 @@ function BotsTab({
 function TranscriptionTab({
   balanceData,
   usageData,
+  onRefreshBalance,
 }: {
   balanceData: BalanceData | null
   usageData: UsageData | null
+  onRefreshBalance: () => Promise<void>
 }) {
   const history = usageData?.usage_history || []
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
@@ -1300,13 +1325,11 @@ function TranscriptionTab({
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
-      // If billing returns a checkout URL, redirect to Stripe Checkout
       if (data.url) {
         window.location.href = data.url
         return
       }
-      alert(`Added $${(data.charged_cents / 100).toFixed(2)} to your transcription balance.`)
-      window.location.reload()
+      await onRefreshBalance()
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to add funds")
     } finally {
