@@ -777,14 +777,14 @@ function BotsTab({
               {isReactivating ? "Reactivating..." : "Re-activate subscription"}
             </button>
           )}
-          {/* Cancel link — Individual only, switches to PAYG instead of full cancel */}
+          {/* Cancel link — Individual only. Cancels via Stripe portal; auto-provision creates PAYG on next visit */}
           {subTier !== 'bot_service' && subStatus && ["active", "trialing"].includes(subStatus) && !userData?.data?.subscription_scheduled_to_cancel && !botBalanceData?.cancel_at_period_end && (
             <button
-              onClick={() => handleSwitchPlan("bot_service")}
-              disabled={isSwitching}
+              onClick={onOpenPortal}
+              disabled={isOpeningPortal}
               className="mt-4 text-[13px] text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors underline underline-offset-2 disabled:opacity-50"
             >
-              {isSwitching ? "Switching..." : "Cancel subscription"}
+              {isOpeningPortal ? "Opening..." : "Cancel subscription"}
             </button>
           )}
           {/* Past due — update payment method CTA */}

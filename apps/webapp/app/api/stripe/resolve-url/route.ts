@@ -90,7 +90,11 @@ export async function POST(request: NextRequest) {
       subMetadata.replaces_sub = currentSubId
     }
 
-    const lineItems: { price: string; quantity: number }[] = [{ price: priceId, quantity: 1 }]
+    // Metered prices (bot_service) must NOT have quantity; flat-rate prices require it
+    const isMetered = planType === 'bot_service'
+    const lineItems: { price: string; quantity?: number }[] = [
+      isMetered ? { price: priceId } : { price: priceId, quantity: 1 },
+    ]
 
     const checkout = await stripe.checkout.sessions.create({
       mode: 'subscription',
