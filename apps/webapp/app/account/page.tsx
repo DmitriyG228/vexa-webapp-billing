@@ -744,9 +744,7 @@ function BotsTab({
                 </span>
                 {subTier === 'bot_service' && (
                   <a
-                    href="https://forms.gle/PLACEHOLDER_BOT_LIMIT_FORM"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`mailto:support@vexa.ai?subject=Bot%20Limit%20Increase%20Request&body=Hi%2C%0A%0AI'd%20like%20to%20request%20an%20increase%20to%20my%20concurrent%20bot%20limit.%0A%0ACurrent%20limit%3A%20${botCount}%0ARequested%20limit%3A%20%0ACompany%3A%20%0A%0AThanks`}
                     className="text-[12px] text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     Request more
@@ -754,7 +752,7 @@ function BotsTab({
                 )}
               </div>
             </div>
-            {periodEnd && (
+            {periodEnd && subTier !== 'bot_service' && (
               <div className="flex justify-between">
                 <span className="text-gray-400">Period ends</span>
                 <span className="text-gray-700">{formatDate(periodEnd)}</span>
@@ -769,8 +767,8 @@ function BotsTab({
               </div>
             )}
           </div>
-          {/* Re-activate — when scheduled to cancel */}
-          {(subStatus === "scheduled_to_cancel" || userData?.data?.subscription_scheduled_to_cancel || botBalanceData?.cancel_at_period_end) && (
+          {/* Re-activate — when scheduled to cancel (Individual only) */}
+          {subTier !== 'bot_service' && (subStatus === "scheduled_to_cancel" || userData?.data?.subscription_scheduled_to_cancel || botBalanceData?.cancel_at_period_end) && (
             <button
               onClick={handleReactivate}
               disabled={isReactivating}
@@ -779,14 +777,14 @@ function BotsTab({
               {isReactivating ? "Reactivating..." : "Re-activate subscription"}
             </button>
           )}
-          {/* Cancel link — only when active and not already cancelling */}
-          {subStatus && ["active", "trialing"].includes(subStatus) && !userData?.data?.subscription_scheduled_to_cancel && !botBalanceData?.cancel_at_period_end && (
+          {/* Cancel link — Individual only, switches to PAYG instead of full cancel */}
+          {subTier !== 'bot_service' && subStatus && ["active", "trialing"].includes(subStatus) && !userData?.data?.subscription_scheduled_to_cancel && !botBalanceData?.cancel_at_period_end && (
             <button
-              onClick={onOpenPortal}
-              disabled={isOpeningPortal}
+              onClick={() => handleSwitchPlan("bot_service")}
+              disabled={isSwitching}
               className="mt-4 text-[13px] text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors underline underline-offset-2 disabled:opacity-50"
             >
-              {isOpeningPortal ? "Opening..." : "Cancel subscription"}
+              {isSwitching ? "Switching..." : "Cancel subscription"}
             </button>
           )}
           {/* Past due — update payment method CTA */}
