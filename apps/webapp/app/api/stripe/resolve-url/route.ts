@@ -117,7 +117,6 @@ export async function POST(request: NextRequest) {
             : returnUrl,
           cancel_url: `${origin}/pricing`,
           allow_promotion_codes: true,
-          payment_method_collection: 'if_required',
           subscription_data: { metadata: subMetadata },
         })
 
