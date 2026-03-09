@@ -800,7 +800,7 @@ function BotsTab({
                 </span>
                 {subTier === 'bot_service' && (
                   <a
-                    href={`mailto:support@vexa.ai?subject=Bot%20Limit%20Increase%20Request&body=Hi%2C%0A%0AI'd%20like%20to%20request%20an%20increase%20to%20my%20concurrent%20bot%20limit.%0A%0ACurrent%20limit%3A%20${botCount}%0ARequested%20limit%3A%20%0ACompany%3A%20%0A%0AThanks`}
+                    href={`mailto:dmitry@vexa.ai?subject=Bot%20Limit%20Increase%20Request&body=Hi%2C%0A%0AI'd%20like%20to%20request%20an%20increase%20to%20my%20concurrent%20bot%20limit.%0A%0ACurrent%20limit%3A%20${botCount}%0ARequested%20limit%3A%20%0ACompany%3A%20%0A%0AThanks`}
                     className="text-[12px] text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     Request more
