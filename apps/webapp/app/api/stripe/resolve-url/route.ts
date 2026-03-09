@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
           success_url: currentSubId
             ? `${returnUrl}?switched=${planType}`
             : returnUrl,
-          cancel_url: `${origin}/pricing`,
+          cancel_url: returnUrl,
           allow_promotion_codes: true,
           subscription_data: { metadata: subMetadata },
         })

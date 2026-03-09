@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const origin = request.headers.get('origin') || request.nextUrl.origin
     const successUrl = `${origin}/account`
-    const cancelUrl = `${origin}/pricing`
+    const cancelUrl = `${origin}/account`
 
     // Look up or create user + Stripe customer
     const user = await getUserByEmail(email)

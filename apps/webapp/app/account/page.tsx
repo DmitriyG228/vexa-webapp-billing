@@ -877,7 +877,7 @@ function BotsTab({
           {/* Canceled — re-subscribe CTA */}
           {subStatus === "canceled" && (
             <a
-              href="/pricing"
+              href="/account"
               className="mt-4 inline-flex h-9 px-4 items-center rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
               Re-subscribe
