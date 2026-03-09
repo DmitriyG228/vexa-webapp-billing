@@ -78,6 +78,20 @@ export async function POST(request: NextRequest) {
       if (subs.data.length > 0) {
         currentSubId = subs.data[0].id
       }
+
+      // Ensure default payment method is set (required for if_required to skip card form)
+      const customer = await stripe.customers.retrieve(customerId)
+      if (!customer.deleted) {
+        const cust = customer as import('stripe').Stripe.Customer
+        if (!cust.invoice_settings?.default_payment_method) {
+          const pms = await stripe.paymentMethods.list({ customer: customerId, type: 'card', limit: 1 })
+          if (pms.data.length > 0) {
+            await stripe.customers.update(customerId, {
+              invoice_settings: { default_payment_method: pms.data[0].id },
+            })
+          }
+        }
+      }
     }
 
     const priceId = getPriceId(planType)
@@ -117,6 +131,7 @@ export async function POST(request: NextRequest) {
             : returnUrl,
           cancel_url: returnUrl,
           allow_promotion_codes: true,
+          payment_method_collection: 'if_required',
           subscription_data: { metadata: subMetadata },
         })
 
