@@ -87,6 +87,17 @@ export async function checkAutoTopup(stripe: Stripe, customerId: string, email: 
     // Balance below threshold — charge and create credit grant
     let pmId = cust.invoice_settings?.default_payment_method
     if (typeof pmId === 'object' && pmId !== null) pmId = pmId.id
+    // Fallback: find any saved payment method on the customer
+    if (!pmId) {
+      const pms = await stripe.paymentMethods.list({ customer: customerId, type: 'card', limit: 1 })
+      if (pms.data.length > 0) {
+        pmId = pms.data[0].id
+        // Save as default for future use
+        await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: pmId },
+        })
+      }
+    }
     if (!pmId) {
       console.log(`[AUTO-TOPUP] No payment method for ${email}`)
       return
