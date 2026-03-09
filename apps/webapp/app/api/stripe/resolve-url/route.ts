@@ -79,19 +79,6 @@ export async function POST(request: NextRequest) {
         currentSubId = subs.data[0].id
       }
 
-      // Ensure default payment method is set (required for if_required to skip card form)
-      const customer = await stripe.customers.retrieve(customerId)
-      if (!customer.deleted) {
-        const cust = customer as import('stripe').Stripe.Customer
-        if (!cust.invoice_settings?.default_payment_method) {
-          const pms = await stripe.paymentMethods.list({ customer: customerId, type: 'card', limit: 1 })
-          if (pms.data.length > 0) {
-            await stripe.customers.update(customerId, {
-              invoice_settings: { default_payment_method: pms.data[0].id },
-            })
-          }
-        }
-      }
     }
 
     const priceId = getPriceId(planType)
@@ -111,28 +98,71 @@ export async function POST(request: NextRequest) {
       isMetered ? { price: priceId } : { price: priceId, quantity: 1 },
     ]
 
-    const checkout = isOneTime
-      ? await stripe.checkout.sessions.create({
-          mode: 'payment',
-          customer: customerId,
-          line_items: [{ price: priceId, quantity: 1 }],
-          success_url: `${returnUrl}?consultation=success`,
-          cancel_url: returnUrl,
-          payment_method_collection: 'if_required',
-          payment_intent_data: { setup_future_usage: 'off_session' },
-          metadata: subMetadata,
-        })
-      : await stripe.checkout.sessions.create({
-          mode: 'subscription',
-          customer: customerId,
-          line_items: lineItems,
-          success_url: currentSubId
+    if (isOneTime) {
+      const checkout = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        success_url: `${returnUrl}?consultation=success`,
+        cancel_url: returnUrl,
+        payment_intent_data: { setup_future_usage: 'off_session' },
+        metadata: subMetadata,
+      })
+      return NextResponse.json({ url: checkout.url })
+    }
+
+    // If customer has a saved payment method, create subscription directly
+    // This avoids Stripe Checkout's currency-conversion rounding issues (e.g. €0.01 remainder)
+    if (customerId) {
+      const customer = await stripe.customers.retrieve(customerId)
+      if (!customer.deleted) {
+        const cust = customer as import('stripe').Stripe.Customer
+        let defaultPm = cust.invoice_settings?.default_payment_method
+        if (typeof defaultPm === 'object' && defaultPm !== null) defaultPm = defaultPm.id
+        if (!defaultPm) {
+          const pms = await stripe.paymentMethods.list({ customer: customerId, type: 'card', limit: 1 })
+          if (pms.data.length > 0) defaultPm = pms.data[0].id
+        }
+
+        if (defaultPm) {
+          // Cancel existing subscription if switching plans
+          if (currentSubId) {
+            await stripe.subscriptions.cancel(currentSubId, { prorate: true })
+          }
+
+          const subItems = lineItems.map(li => ({
+            price: li.price,
+            ...(li.quantity !== undefined ? { quantity: li.quantity } : {}),
+          }))
+
+          const sub = await stripe.subscriptions.create({
+            customer: customerId,
+            items: subItems,
+            default_payment_method: defaultPm as string,
+            metadata: subMetadata,
+          })
+
+          console.log(`[RESOLVE-URL] Created subscription ${sub.id} directly for ${email} (plan: ${planType})`)
+          const redirectUrl = currentSubId
             ? `${returnUrl}?switched=${planType}`
-            : returnUrl,
-          cancel_url: returnUrl,
-          allow_promotion_codes: true,
-          subscription_data: { metadata: subMetadata },
-        })
+            : `${returnUrl}?subscribed=${planType}`
+          return NextResponse.json({ url: redirectUrl })
+        }
+      }
+    }
+
+    // Fallback: no saved payment method — use Stripe Checkout
+    const checkout = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      line_items: lineItems,
+      success_url: currentSubId
+        ? `${returnUrl}?switched=${planType}`
+        : returnUrl,
+      cancel_url: returnUrl,
+      allow_promotion_codes: true,
+      subscription_data: { metadata: subMetadata },
+    })
 
     return NextResponse.json({ url: checkout.url })
   } catch (error) {

@@ -98,7 +98,7 @@ const BOT_PLANS = [
 
 // Add-on products — can be added alongside any bot plan
 const ADDON_PRODUCTS = [
-  { id: "transcription_addon", name: "Transcription (bot add-on)", price: "+$0.10/hr", detail: "Enabled per meeting via API" },
+  { id: "transcription_addon", name: "Real-time transcription", price: "+$0.10/hr", detail: "Enabled per meeting via API" },
 ]
 
 // All plans for display in getPlanLabel
@@ -986,6 +986,29 @@ function BotsTab({
               </div>
             )
           })}
+          {/* Add-on: transcription — inline row, hidden for Individual (included) */}
+          {subTier !== 'individual' && ADDON_PRODUCTS.map((product) => (
+            <div key={product.id} className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] font-medium text-gray-500 dark:text-gray-400">{product.name}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs max-w-[200px]">
+                      {product.detail}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Switch plan confirmation dialog */}
@@ -1023,39 +1046,7 @@ function BotsTab({
         })()}
       </div>
 
-      {/* Add-on products — can be added alongside bot plan */}
-      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <div className="mb-4">
-          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Add-ons</h3>
-          <p className="text-[13px] text-gray-400 mt-0.5">
-            Use alongside any bot plan
-          </p>
-        </div>
-        <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-          {ADDON_PRODUCTS.map((product) => (
-            <div key={product.id} className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] font-medium text-gray-500 dark:text-gray-400">{product.name}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                        <HelpCircle className="w-3.5 h-3.5" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs max-w-[200px]">
-                      {product.detail}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Add-ons moved inline into Bot Plans card above */}
 
       {/* Auto-topup & spending limit (pay-as-you-go only) */}
       {subTier === "bot_service" && subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus) && (
