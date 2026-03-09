@@ -155,8 +155,9 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
   // Set max_concurrent_bots for bot plans
   let maxBots = entitlements.maxBots as number | null
   if (maxBots !== null) {
-    // For bot_service, preserve current max if higher (custom limit set by admin)
-    if (planType === 'bot_service' && user.max_concurrent_bots > maxBots) {
+    // For active bot_service, preserve current max if higher (custom limit set by admin)
+    // Don't preserve on cancellation — must revoke access
+    if (planType === 'bot_service' && maxBots > 0 && user.max_concurrent_bots > maxBots) {
       maxBots = user.max_concurrent_bots
     }
     patch.max_concurrent_bots = maxBots
