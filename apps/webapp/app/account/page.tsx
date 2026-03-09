@@ -841,7 +841,7 @@ function BotsTab({
                 </span>
               </div>
             )}
-            {botBalanceData && (
+            {botBalanceData && subTier === 'bot_service' && (
               <div className="flex justify-between">
                 <span className="text-gray-400">Credit balance</span>
                 <span className="text-gray-950 dark:text-gray-50 font-medium">
@@ -939,41 +939,50 @@ function BotsTab({
             const canSwitch = hasActiveSub && !isCurrent
             const canSubscribe = !hasActiveSub
             return (
-              <div key={plan.id} className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
-                    {plan.name}
-                  </span>
-                  <span className="text-[12px] text-gray-400 dark:text-gray-500">{plan.detail}</span>
-                  {isCurrent && (
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950">
-                      Current
+              <div key={plan.id}>
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
+                      {plan.name}
                     </span>
-                  )}
+                    <span className="text-[12px] text-gray-400 dark:text-gray-500">{plan.detail}</span>
+                    {isCurrent && (
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"}`}>
+                      {plan.price}
+                    </span>
+                    {canSwitch && (
+                      <button
+                        onClick={() => setShowSwitchConfirm(plan.id)}
+                        disabled={isSwitching}
+                        className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
+                      >
+                        {isSwitching ? "Switching..." : "Switch"}
+                      </button>
+                    )}
+                    {canSubscribe && (
+                      <button
+                        onClick={() => handleSubscribe(plan.id)}
+                        disabled={isSubscribing}
+                        className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all disabled:opacity-50"
+                      >
+                        {isSubscribing ? "Loading..." : "Subscribe"}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"}`}>
-                    {plan.price}
-                  </span>
-                  {canSwitch && (
-                    <button
-                      onClick={() => setShowSwitchConfirm(plan.id)}
-                      disabled={isSwitching}
-                      className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
-                    >
-                      {isSwitching ? "Switching..." : "Switch"}
-                    </button>
-                  )}
-                  {canSubscribe && (
-                    <button
-                      onClick={() => handleSubscribe(plan.id)}
-                      disabled={isSubscribing}
-                      className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all disabled:opacity-50"
-                    >
-                      {isSubscribing ? "Loading..." : "Subscribe"}
-                    </button>
-                  )}
-                </div>
+                {/* Show usage credit under PAYG row when user is on a non-PAYG plan */}
+                {plan.id === 'bot_service' && !isCurrent && botBalanceData && botBalanceData.balance_cents > 0 && (
+                  <div className="flex items-center justify-between pb-3 -mt-1">
+                    <span className="text-[12px] text-gray-400 pl-0">Usage credit available</span>
+                    <span className="text-[12px] font-medium text-gray-500">{botBalanceData.balance_usd}</span>
+                  </div>
+                )}
               </div>
             )
           })}
