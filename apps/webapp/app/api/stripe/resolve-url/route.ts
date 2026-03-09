@@ -90,10 +90,7 @@ export async function POST(request: NextRequest) {
       subMetadata.replaces_sub = currentSubId
     }
 
-    const lineItems: { price: string; quantity?: number }[] = [{ price: priceId }]
-    if (planType === 'individual') {
-      lineItems[0].quantity = 1
-    }
+    const lineItems: { price: string; quantity: number }[] = [{ price: priceId, quantity: 1 }]
 
     const checkout = await stripe.checkout.sessions.create({
       mode: 'subscription',
