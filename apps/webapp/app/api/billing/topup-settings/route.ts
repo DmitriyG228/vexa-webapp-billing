@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
+import { checkAutoTopup } from '@/lib/auto-topup'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -38,7 +39,14 @@ export async function PUT(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ success: true })
+    // If enabled, immediately check if balance is already below threshold
+    let topped_up = false
+    if (body.enabled) {
+      const result = await checkAutoTopup(stripe, customerId, email)
+      topped_up = !!result?.topped_up
+    }
+
+    return NextResponse.json({ success: true, topped_up })
   } catch (error) {
     console.error('[TOPUP-SETTINGS] Error:', error)
     const message = error instanceof Error ? error.message : 'Failed to update settings'
