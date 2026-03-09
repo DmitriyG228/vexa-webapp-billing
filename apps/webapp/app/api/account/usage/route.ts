@@ -42,11 +42,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(emptyUsage)
     }
 
-    // Call Transcription GW
+    // Call Transcription GW (with timeout to prevent hanging the account page)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
     const resp = await fetch(`${TRANSCRIPTION_GW_URL}/usage?days=${days}`, {
       headers: { 'X-API-Key': apiKey },
       cache: 'no-store',
+      signal: controller.signal,
     })
+    clearTimeout(timeoutId)
     const data = await resp.json().catch(() => ({}))
     if (!resp.ok) {
       return NextResponse.json(emptyUsage)
