@@ -559,10 +559,10 @@ function CancelToPAYGButton() {
     try {
       const resp = await fetch("/api/stripe/cancel-to-payg", { method: "POST" })
       const data = await resp.json()
-      if (!resp.ok) throw new Error(data.error || "Failed to switch plan")
+      if (!resp.ok) throw new Error(data.error || "Failed to cancel subscription")
       window.location.reload()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to switch plan")
+      alert(err instanceof Error ? err.message : "Failed to cancel subscription")
     } finally {
       setIsCanceling(false)
     }
@@ -573,29 +573,32 @@ function CancelToPAYGButton() {
       <button
         onClick={() => setShowConfirm(true)}
         disabled={isCanceling}
-        className="mt-4 text-[13px] text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors underline underline-offset-2 disabled:opacity-50"
+        className="mt-4 text-[13px] text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors underline underline-offset-2 disabled:opacity-50"
       >
-        {isCanceling ? "Switching..." : "Switch to Pay-as-you-go"}
+        {isCanceling ? "Canceling..." : "Cancel subscription"}
       </button>
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Switch to Pay-as-you-go</h3>
-            <p className="text-[14px] text-gray-500 mb-4">
-              Your Individual subscription will be canceled and you&apos;ll be moved to the usage-based plan with a $5 welcome credit.
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Cancel subscription</h3>
+            <p className="text-[14px] text-gray-500 mb-2">
+              Your Individual subscription will be canceled immediately and you&apos;ll be switched to the Pay-as-you-go plan.
+            </p>
+            <p className="text-[13px] text-gray-400 mb-4">
+              Any remaining balance from your subscription will be prorated as credit on your account.
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowConfirm(false)}
                 className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
-                Keep Individual
+                Keep subscription
               </button>
               <button
                 onClick={handleConfirm}
-                className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                className="h-9 px-4 rounded-full bg-red-600 text-white text-[13.5px] font-medium hover:bg-red-700 transition-colors"
               >
-                Switch to PAYG
+                Cancel &amp; switch to PAYG
               </button>
             </div>
           </div>
@@ -835,6 +838,14 @@ function BotsTab({
                 <span className="text-gray-400">Cancellation</span>
                 <span className="text-amber-600 font-medium">
                   {formatDate(userData.data.subscription_cancellation_date)}
+                </span>
+              </div>
+            )}
+            {botBalanceData && (
+              <div className="flex justify-between">
+                <span className="text-gray-400">Credit balance</span>
+                <span className="text-gray-950 dark:text-gray-50 font-medium">
+                  {botBalanceData.has_subscription ? botBalanceData.balance_usd : "$0.00"}
                 </span>
               </div>
             )}
