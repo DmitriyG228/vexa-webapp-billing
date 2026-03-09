@@ -546,6 +546,62 @@ function AccountPage() {
   )
 }
 
+function CancelToPAYGButton() {
+  const [isCanceling, setIsCanceling] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const handleConfirm = async () => {
+    setShowConfirm(false)
+    setIsCanceling(true)
+    try {
+      const resp = await fetch("/api/stripe/cancel-to-payg", { method: "POST" })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error || "Failed to switch plan")
+      window.location.reload()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to switch plan")
+    } finally {
+      setIsCanceling(false)
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setShowConfirm(true)}
+        disabled={isCanceling}
+        className="mt-4 text-[13px] text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors underline underline-offset-2 disabled:opacity-50"
+      >
+        {isCanceling ? "Switching..." : "Switch to Pay-as-you-go"}
+      </button>
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Switch to Pay-as-you-go</h3>
+            <p className="text-[14px] text-gray-500 mb-4">
+              Your Individual subscription will be canceled and you&apos;ll be moved to the usage-based plan with a $5 welcome credit.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                Keep Individual
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+              >
+                Switch to PAYG
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TAB: Bots
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -777,15 +833,9 @@ function BotsTab({
               {isReactivating ? "Reactivating..." : "Re-activate subscription"}
             </button>
           )}
-          {/* Cancel link — Individual only. Cancels via Stripe portal; auto-provision creates PAYG on next visit */}
+          {/* Cancel link — Individual only. Cancels sub immediately → auto-provision creates PAYG on reload */}
           {subTier !== 'bot_service' && subStatus && ["active", "trialing"].includes(subStatus) && !userData?.data?.subscription_scheduled_to_cancel && !botBalanceData?.cancel_at_period_end && (
-            <button
-              onClick={onOpenPortal}
-              disabled={isOpeningPortal}
-              className="mt-4 text-[13px] text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors underline underline-offset-2 disabled:opacity-50"
-            >
-              {isOpeningPortal ? "Opening..." : "Cancel subscription"}
-            </button>
+            <CancelToPAYGButton />
           )}
           {/* Past due — update payment method CTA */}
           {subStatus === "past_due" && (
