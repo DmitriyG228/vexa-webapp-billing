@@ -90,24 +90,34 @@ export async function POST(request: NextRequest) {
       subMetadata.replaces_sub = currentSubId
     }
 
-    // Metered prices (bot_service) must NOT have quantity; flat-rate prices require it
+    // One-time prices (consultation) use 'payment' mode; metered omit quantity; flat-rate needs quantity
+    const isOneTime = planType === 'consultation'
     const isMetered = planType === 'bot_service'
     const lineItems: { price: string; quantity?: number }[] = [
       isMetered ? { price: priceId } : { price: priceId, quantity: 1 },
     ]
 
-    const checkout = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      customer: customerId,
-      line_items: lineItems,
-      success_url: currentSubId
-        ? `${returnUrl}?switched=${planType}`
-        : returnUrl,
-      cancel_url: `${origin}/pricing`,
-      allow_promotion_codes: true,
-      payment_method_collection: 'if_required',
-      subscription_data: { metadata: subMetadata },
-    })
+    const checkout = isOneTime
+      ? await stripe.checkout.sessions.create({
+          mode: 'payment',
+          customer: customerId,
+          line_items: [{ price: priceId, quantity: 1 }],
+          success_url: `${returnUrl}?consultation=success`,
+          cancel_url: `${origin}/pricing`,
+          metadata: subMetadata,
+        })
+      : await stripe.checkout.sessions.create({
+          mode: 'subscription',
+          customer: customerId,
+          line_items: lineItems,
+          success_url: currentSubId
+            ? `${returnUrl}?switched=${planType}`
+            : returnUrl,
+          cancel_url: `${origin}/pricing`,
+          allow_promotion_codes: true,
+          payment_method_collection: 'if_required',
+          subscription_data: { metadata: subMetadata },
+        })
 
     return NextResponse.json({ url: checkout.url })
   } catch (error) {
