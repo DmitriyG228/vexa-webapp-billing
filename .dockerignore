@@ -1,0 +1,19 @@
+# Local env files (MUST NOT be baked into Docker images)
+.env*.local
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# Node modules at root (deps installed inside container)
+node_modules/
+
+# Build output
+apps/webapp/.next/
+apps/webapp/out/
