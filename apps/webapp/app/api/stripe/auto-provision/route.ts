@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
+
+export const dynamic = 'force-dynamic'
 import Stripe from 'stripe'
 import {
   getStripe,
   getUserByEmail,
   patchUser,
   getPriceId,
+  identifyPlan,
+  computeEntitlements,
   INITIAL_BOT_CREDIT_CENTS,
 } from '@/lib/stripe-billing'
 
@@ -26,6 +30,7 @@ export async function POST() {
     const email = session.user.email
 
     const user = await getUserByEmail(email)
+    console.log('[AUTO-PROVISION] getUserByEmail result:', JSON.stringify({ email, tier: user?.data?.subscription_tier, status: user?.data?.subscription_status, max_bots: user?.max_concurrent_bots }))
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
@@ -36,6 +41,7 @@ export async function POST() {
 
     // Already has an active subscription — nothing to do
     if (subStatus && ['active', 'trialing'].includes(subStatus)) {
+      console.log(`[AUTO-PROVISION] Early return — already_active (tier=${user.data?.subscription_tier})`)
       return NextResponse.json({ provisioned: false, reason: 'already_active' })
     }
 
@@ -68,12 +74,16 @@ export async function POST() {
     const hasActiveBotSub = existingSubs.data.length > 0
     if (hasActiveBotSub) {
       // Stripe has a sub but Admin API doesn't know — sync it
-      // The webhook will handle this eventually, but let's update now
+      // Use identifyPlan to detect actual plan type (not hardcode bot_service)
       const sub = existingSubs.data[0]
+      const planType = identifyPlan(sub)
+      const entitlements = computeEntitlements(sub, planType)
+      const maxBots = entitlements.maxBots as number | null
       await patchUser(userId, {
+        ...(maxBots !== null ? { max_concurrent_bots: maxBots } : {}),
         data: {
           subscription_status: 'active',
-          subscription_tier: 'bot_service',
+          subscription_tier: planType,
           stripe_customer_id: customerId,
           stripe_subscription_id: sub.id,
           subscription_current_period_end: sub.current_period_end,
