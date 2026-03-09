@@ -61,8 +61,10 @@ interface BalanceData {
   remaining_minutes: number
   total_purchased_minutes: number
   total_used_minutes: number
+  balance_cents?: number
+  balance_usd?: string
   topup_enabled?: boolean
-  topup_threshold_min?: number
+  topup_threshold_cents?: number
   topup_amount_cents?: number
 }
 
@@ -210,7 +212,7 @@ function AccountPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [balanceData, setBalanceData] = useState<BalanceData | null>(null)
-  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number } | null>(null)
+  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null>(null)
   const [meetingsData, setMeetingsData] = useState<MeetingsData | null>(null)
 
   // Loading states
@@ -226,6 +228,16 @@ function AccountPage() {
 
   // Billing states
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+
+  // Shared usage controls state (shown on Bots + Transcription tabs)
+  const [autoTopup, setAutoTopup] = useState(true)
+  const [topupThresholdStr, setTopupThresholdStr] = useState("1")
+  const [topupAmountStr, setTopupAmountStr] = useState("5")
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
+  const [isAddingFunds, setIsAddingFunds] = useState(false)
+  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
+  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
 
   const userId = (session?.user as any)?.id
 
@@ -343,6 +355,56 @@ function AccountPage() {
     }
     provision()
   }, [userData, hasAutoProvisioned, fetchUserData, fetchBotBalance])
+
+  // ─── Shared usage controls (synced from botBalanceData) ─────────────────
+
+  useEffect(() => {
+    if (botBalanceData) {
+      setAutoTopup(botBalanceData.topup_enabled ?? true)
+      setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
+      setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
+    }
+  }, [botBalanceData])
+
+  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
+
+  const handleSaveSettings = async () => {
+    const threshold = parseInt(topupThresholdStr, 10) || 0
+    const amount = parseInt(topupAmountStr, 10) || 0
+    if (autoTopup && threshold < 1) { alert("Threshold must be at least $1."); return }
+    if (autoTopup && amount < 2) { alert("Top-up amount must be at least $2."); return }
+    setIsSavingSettings(true)
+    setSettingsSaved(false)
+    try {
+      const resp = await fetch("/api/billing/topup-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: "bot", enabled: autoTopup, threshold: threshold * 100, amount_cents: amount * 100 }),
+      })
+      if (!resp.ok) { const data = await resp.json().catch(() => ({})); throw new Error(data.detail || data.error || "Failed to save settings") }
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+      await fetchBotBalance()
+    } catch (err) { alert(err instanceof Error ? err.message : "Failed to save settings") }
+    finally { setIsSavingSettings(false) }
+  }
+
+  const handleAddFundsConfirmed = async () => {
+    setShowAddFundsConfirm(false)
+    setIsAddingFunds(true)
+    try {
+      const resp = await fetch("/api/billing/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: "bot", amount_cents: addFundsAmount * 100 }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
+      if (data.url) { window.location.href = data.url; return }
+      await fetchBotBalance()
+    } catch (err) { alert(err instanceof Error ? err.message : "Failed to add funds") }
+    finally { setIsAddingFunds(false) }
+  }
 
   // ─── API Key actions ─────────────────────────────────────────────────────
 
@@ -515,7 +577,6 @@ function AccountPage() {
             botBalanceData={botBalanceData}
             onOpenPortal={handleOpenStripePortal}
             isOpeningPortal={isOpeningPortal}
-            onRefreshBalance={fetchBotBalance}
           />
         )}
 
@@ -523,7 +584,6 @@ function AccountPage() {
           <TranscriptionTab
             balanceData={balanceData}
             usageData={usageData}
-            onRefreshBalance={fetchBalance}
           />
         )}
 
@@ -543,6 +603,206 @@ function AccountPage() {
             onShowRevokeDialog={setShowRevokeDialog}
             hasActiveSubscription={!!userData?.data?.subscription_status && ["active", "trialing", "scheduled_to_cancel"].includes(userData.data.subscription_status)}
           />
+        )}
+
+        {/* Shared Usage Controls — shown on Bots + Transcription tabs, not Individual or API Keys */}
+        {(activeTab === "bots" || activeTab === "transcription") && userData?.data?.subscription_tier !== "individual" && (
+          <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 mt-6" style={{ boxShadow: cardShadow }}>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Usage Controls</h3>
+            <p className="text-[13px] text-gray-400 mb-5">Manage spending limits and auto-topup for usage-based billing.</p>
+
+            {/* Balance & usage display */}
+            <div className="mb-5">
+              <div className="flex items-center justify-between text-[14px] mb-2">
+                <span className="text-gray-400">Balance</span>
+                <span className="text-gray-950 dark:text-gray-50 font-semibold text-[16px]">
+                  {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[13px] mb-1">
+                <span className="text-gray-400">Initial credit</span>
+                <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.initial_credit_usd : "$5.00"}</span>
+              </div>
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-gray-400">Usage this period</span>
+                <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
+              </div>
+              {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes) ? (
+                <div className="mt-2 space-y-0.5">
+                  {(botBalanceData.bot_minutes ?? 0) > 0 && (
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-gray-400 pl-2">Bot minutes</span>
+                      <span className="text-gray-400">{botBalanceData.bot_minutes} min</span>
+                    </div>
+                  )}
+                  {(botBalanceData.tx_minutes ?? 0) > 0 && (
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-gray-400 pl-2">Transcription minutes</span>
+                      <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+              {botBalanceData?.has_subscription && (
+                <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gray-950 dark:bg-gray-200"
+                    style={{ width: `${(botBalanceData.usage_cents + botBalanceData.balance_cents) > 0 ? Math.min((botBalanceData.usage_cents / (botBalanceData.usage_cents + botBalanceData.balance_cents)) * 100, 100) : 0}%` }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Add Funds */}
+            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5">
+              <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds amount</label>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] text-gray-400">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={addFundsAmountStr}
+                    onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="5"
+                    className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                  />
+                </div>
+                <button
+                  onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
+                  disabled={isAddingFunds || addFundsAmount < 2}
+                  className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                >
+                  {isAddingFunds ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Add Funds"
+                  )}
+                </button>
+              </div>
+              <p className="text-[12px] text-gray-400 mt-2">Minimum $2. Charges your saved payment method.</p>
+            </div>
+
+            {/* Auto-topup toggle */}
+            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
+                  <p className="text-[13px] text-gray-400">Automatically charge your payment method as usage accrues.</p>
+                </div>
+                <button
+                  onClick={() => setAutoTopup(!autoTopup)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
+                </button>
+              </div>
+
+              {/* Auto-topup settings */}
+              {autoTopup && (
+                <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 space-y-4">
+                  <div>
+                    <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when balance drops below</label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] text-gray-400">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={topupThresholdStr}
+                        onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
+                        placeholder="1"
+                        className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] text-gray-400">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={topupAmountStr}
+                        onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                        placeholder="5"
+                        className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                      />
+                      <span className="text-[13px] text-gray-400">min $2</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSaveSettings}
+                    disabled={isSavingSettings}
+                    className="mt-3 h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                  >
+                    {isSavingSettings ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
+                    ) : settingsSaved ? (
+                      <><Check className="h-3 w-3" /> Saved</>
+                    ) : (
+                      "Save Settings"
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Add Funds confirmation dialog */}
+            {showAddFundsConfirm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+                  <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
+                  <p className="text-[14px] text-gray-500 mb-4">
+                    This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setShowAddFundsConfirm(false)}
+                      className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddFundsConfirmed}
+                      className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                    >
+                      Confirm — ${addFundsAmount}.00
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Priority Support — shown on Bots + Transcription tabs */}
+        {(activeTab === "bots" || activeTab === "transcription") && (
+          <Link
+            href="/support"
+            className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors group"
+            style={{ boxShadow: cardShadow }}
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" x2="19" y1="8" y2="14" />
+                <line x1="22" x2="16" y1="11" y2="11" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-[14px] font-semibold text-gray-950 dark:text-gray-50">Priority Support</p>
+              <p className="text-[13px] text-gray-400 dark:text-gray-500">
+                Get dedicated help building with Vexa — $240/hr
+              </p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </Link>
         )}
       </div>
     </section>
@@ -618,14 +878,12 @@ function BotsTab({
   botBalanceData,
   onOpenPortal,
   isOpeningPortal,
-  onRefreshBalance,
 }: {
   userData: UserData | null
   meetingsData: MeetingsData | null
   botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null
   onOpenPortal: () => void
   isOpeningPortal: boolean
-  onRefreshBalance: () => Promise<void>
 }) {
   const subStatus = userData?.data?.subscription_status
   const subTier = userData?.data?.subscription_tier
@@ -700,89 +958,6 @@ function BotsTab({
       alert(err instanceof Error ? err.message : "Failed to switch plan")
     } finally {
       setIsSwitching(false)
-    }
-  }
-
-  // Auto-topup state — default ON for Pay-as-you-go per user-flows.md
-  const [autoTopup, setAutoTopup] = useState(true)
-  const [topupThresholdStr, setTopupThresholdStr] = useState(String(Math.round((botBalanceData?.topup_threshold_cents ?? 100) / 100)))
-  const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((botBalanceData?.topup_amount_cents ?? 500) / 100)))
-  const [isSavingSettings, setIsSavingSettings] = useState(false)
-  const [settingsSaved, setSettingsSaved] = useState(false)
-  const [isAddingFunds, setIsAddingFunds] = useState(false)
-  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
-  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
-
-  // Sync state when server data arrives — only override if user has explicitly configured topup
-  useEffect(() => {
-    if (botBalanceData) {
-      setAutoTopup(botBalanceData.topup_enabled ?? true)
-      setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
-      setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
-    }
-  }, [botBalanceData])
-
-  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
-
-  const handleSaveSettings = async () => {
-    const threshold = parseInt(topupThresholdStr, 10) || 0
-    const amount = parseInt(topupAmountStr, 10) || 0
-    if (autoTopup && threshold < 1) {
-      alert("Threshold must be at least $1.")
-      return
-    }
-    if (autoTopup && amount < 2) {
-      alert("Top-up amount must be at least $2.")
-      return
-    }
-    setIsSavingSettings(true)
-    setSettingsSaved(false)
-    try {
-      const resp = await fetch("/api/billing/topup-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product: "bot",
-          enabled: autoTopup,
-          threshold: threshold * 100,
-          amount_cents: amount * 100,
-        }),
-      })
-      if (!resp.ok) {
-        const data = await resp.json().catch(() => ({}))
-        throw new Error(data.detail || data.error || "Failed to save settings")
-      }
-      setSettingsSaved(true)
-      setTimeout(() => setSettingsSaved(false), 2000)
-      // Refresh balance — auto-topup may have triggered
-      await onRefreshBalance()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to save settings")
-    } finally {
-      setIsSavingSettings(false)
-    }
-  }
-
-  const handleAddFundsConfirmed = async () => {
-    setShowAddFundsConfirm(false)
-    setIsAddingFunds(true)
-    try {
-      const resp = await fetch("/api/billing/topup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "bot", amount_cents: addFundsAmount * 100 }),
-      })
-      const data = await resp.json()
-      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
-      if (data.url) {
-        window.location.href = data.url
-        return
-      }
-      await onRefreshBalance()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to add funds")
-    } finally {
-      setIsAddingFunds(false)
     }
   }
 
@@ -1046,205 +1221,6 @@ function BotsTab({
         })()}
       </div>
 
-      {/* Add-ons moved inline into Bot Plans card above */}
-
-      {/* Auto-topup & spending limit (pay-as-you-go only) */}
-      {subTier === "bot_service" && subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus) && (
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Usage Controls</h3>
-          <p className="text-[13px] text-gray-400 mb-5">Manage spending limits and auto-topup for usage-based billing.</p>
-
-          {/* Balance & usage display — show first so user sees their balance immediately */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between text-[14px] mb-2">
-              <span className="text-gray-400">Balance</span>
-              <span className="text-gray-950 dark:text-gray-50 font-semibold text-[16px]">
-                {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-[13px] mb-1">
-              <span className="text-gray-400">Initial credit</span>
-              <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.initial_credit_usd : "$5.00"}</span>
-            </div>
-            <div className="flex items-center justify-between text-[13px]">
-              <span className="text-gray-400">Usage this period</span>
-              <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
-            </div>
-            {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes) ? (
-              <div className="mt-2 space-y-0.5">
-                {(botBalanceData.bot_minutes ?? 0) > 0 && (
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span className="text-gray-400 pl-2">Bot minutes</span>
-                    <span className="text-gray-400">{botBalanceData.bot_minutes} min</span>
-                  </div>
-                )}
-                {(botBalanceData.tx_minutes ?? 0) > 0 && (
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span className="text-gray-400 pl-2">Transcription minutes</span>
-                    <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
-                  </div>
-                )}
-              </div>
-            ) : null}
-            {botBalanceData?.has_subscription && (
-              <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gray-950 dark:bg-gray-200"
-                  style={{ width: `${(botBalanceData.usage_cents + botBalanceData.balance_cents) > 0 ? Math.min((botBalanceData.usage_cents / (botBalanceData.usage_cents + botBalanceData.balance_cents)) * 100, 100) : 0}%` }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Add Funds */}
-          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5">
-            <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds amount</label>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] text-gray-400">$</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={addFundsAmountStr}
-                  onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                  placeholder="5"
-                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                />
-              </div>
-              <button
-                onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
-                disabled={isAddingFunds || addFundsAmount < 2}
-                className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-              >
-                {isAddingFunds ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Add Funds"
-                )}
-              </button>
-            </div>
-            <p className="text-[12px] text-gray-400 mt-2">Minimum $2. Charges your saved payment method.</p>
-          </div>
-
-          {/* Auto-topup toggle */}
-          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
-                <p className="text-[13px] text-gray-400">Automatically charge your payment method as usage accrues.</p>
-              </div>
-              <button
-                onClick={() => setAutoTopup(!autoTopup)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
-              >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
-              </button>
-            </div>
-
-            {/* Auto-topup settings */}
-            {autoTopup && (
-              <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 space-y-4">
-                <div>
-                  <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when balance drops below</label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[14px] text-gray-400">$</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={topupThresholdStr}
-                      onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
-                      placeholder="1"
-                      className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[14px] text-gray-400">$</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={topupAmountStr}
-                      onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                      placeholder="5"
-                      className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                    />
-                    <span className="text-[13px] text-gray-400">min $2</span>
-                  </div>
-                </div>
-                <button
-                  onClick={handleSaveSettings}
-                  disabled={isSavingSettings}
-                  className="mt-3 h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
-                >
-                  {isSavingSettings ? (
-                    <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
-                  ) : settingsSaved ? (
-                    <><Check className="h-3 w-3" /> Saved</>
-                  ) : (
-                    "Save Settings"
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Add Funds confirmation dialog */}
-          {showAddFundsConfirm && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
-                <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
-                <p className="text-[14px] text-gray-500 mb-4">
-                  This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method.
-                </p>
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setShowAddFundsConfirm(false)}
-                    className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddFundsConfirmed}
-                    className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                  >
-                    Confirm — ${addFundsAmount}.00
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Priority Support upsell */}
-      <Link
-        href="/support"
-        className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors group"
-        style={{ boxShadow: cardShadow }}
-      >
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <line x1="19" x2="19" y1="8" y2="14" />
-            <line x1="22" x2="16" y1="11" y2="11" />
-          </svg>
-        </div>
-        <div className="flex-1">
-          <p className="text-[14px] font-semibold text-gray-950 dark:text-gray-50">Priority Support</p>
-          <p className="text-[13px] text-gray-400 dark:text-gray-500">
-            Get dedicated help building with Vexa — $240/hr
-          </p>
-        </div>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </Link>
 
     </div>
   )
@@ -1257,96 +1233,13 @@ function BotsTab({
 function TranscriptionTab({
   balanceData,
   usageData,
-  onRefreshBalance,
 }: {
   balanceData: BalanceData | null
   usageData: UsageData | null
-  onRefreshBalance: () => Promise<void>
 }) {
   const history = usageData?.usage_history || []
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
   const stats = usageData?.statistics
-
-  // Auto-topup state — default ON for Pay-as-you-go per user-flows.md
-  const [autoTopup, setAutoTopup] = useState(true)
-  const [thresholdStr, setThresholdStr] = useState(String(Math.round(balanceData?.topup_threshold_min ?? 100)))
-  const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((balanceData?.topup_amount_cents ?? 500) / 100)))
-  const [isAddingFunds, setIsAddingFunds] = useState(false)
-  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
-  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
-  const [isSavingSettings, setIsSavingSettings] = useState(false)
-  const [settingsSaved, setSettingsSaved] = useState(false)
-
-  // Sync state when server data arrives
-  useEffect(() => {
-    if (balanceData) {
-      setAutoTopup(balanceData.topup_enabled ?? true)
-      setThresholdStr(String(Math.round(balanceData.topup_threshold_min ?? 100)))
-      setTopupAmountStr(String(Math.round((balanceData.topup_amount_cents ?? 500) / 100)))
-    }
-  }, [balanceData])
-
-  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
-
-  const handleSaveSettings = async () => {
-    const threshold = parseInt(thresholdStr, 10) || 0
-    const amount = parseInt(topupAmountStr, 10) || 0
-    if (autoTopup && threshold < 1) {
-      alert("Threshold must be at least 1 minute.")
-      return
-    }
-    if (autoTopup && amount < 2) {
-      alert("Top-up amount must be at least $2.")
-      return
-    }
-    setIsSavingSettings(true)
-    setSettingsSaved(false)
-    try {
-      const resp = await fetch("/api/billing/topup-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product: "tx",
-          enabled: autoTopup,
-          threshold: threshold,
-          amount_cents: amount * 100,
-        }),
-      })
-      if (!resp.ok) {
-        const data = await resp.json().catch(() => ({}))
-        throw new Error(data.detail || data.error || "Failed to save settings")
-      }
-      setSettingsSaved(true)
-      setTimeout(() => setSettingsSaved(false), 2000)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to save settings")
-    } finally {
-      setIsSavingSettings(false)
-    }
-  }
-
-  const handleAddFundsConfirmed = async () => {
-    setShowAddFundsConfirm(false)
-    setIsAddingFunds(true)
-    try {
-      const resp = await fetch("/api/billing/topup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "tx", amount_cents: addFundsAmount * 100 }),
-      })
-      const data = await resp.json()
-      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
-      if (data.url) {
-        window.location.href = data.url
-        return
-      }
-      await onRefreshBalance()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to add funds")
-    } finally {
-      setIsAddingFunds(false)
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -1354,180 +1247,29 @@ function TranscriptionTab({
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-gray-50 to-white dark:from-neutral-900 dark:to-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
         <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Transcription API</h3>
         <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-relaxed">
-          Send audio to Vexa&apos;s API and get accurate transcripts back — no local GPU required.
+          Offload transcription to Vexa&apos;s cloud — no need to self-host GPU infrastructure.
         </p>
       </div>
 
       {/* Balance cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <p className="text-[13px] text-gray-400 mb-1">Balance</p>
+          <p className="text-[13px] text-gray-400 mb-1">Credit balance</p>
           <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {Math.round(balanceData?.balance_minutes ?? 0)}
+            {balanceData?.balance_usd ?? '$0.00'}
           </p>
-          <p className="text-[13px] text-gray-400">minutes remaining</p>
+          <p className="text-[13px] text-gray-400">~{Math.round(balanceData?.balance_minutes ?? 0).toLocaleString()} minutes at $0.002/min</p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <p className="text-[13px] text-gray-400 mb-1">Total Purchased</p>
+          <p className="text-[13px] text-gray-400 mb-1">TX minutes used</p>
           <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {Math.round(balanceData?.total_purchased_minutes ?? 0)}
+            {Math.round(balanceData?.total_used_minutes ?? 0).toLocaleString()}
           </p>
-          <p className="text-[13px] text-gray-400">minutes all time</p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <p className="text-[13px] text-gray-400 mb-1">Total Used</p>
-          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {Math.round(balanceData?.total_used_minutes ?? 0)}
-          </p>
-          <p className="text-[13px] text-gray-400">minutes all time</p>
+          <p className="text-[13px] text-gray-400">this billing period</p>
         </div>
       </div>
 
-      {/* Balance bar */}
-      {balanceData?.total_purchased_minutes != null && balanceData.total_purchased_minutes > 0 && (
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[15px] font-semibold text-gray-950 dark:text-gray-50">Balance</h3>
-            <span className="text-[13px] text-gray-400">
-              {Math.round(((balanceData.remaining_minutes ?? 0) / balanceData.total_purchased_minutes) * 100)}% remaining
-            </span>
-          </div>
-          <div className="h-3 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gray-950 dark:bg-gray-200 transition-all"
-              style={{
-                width: `${Math.min(((balanceData.remaining_minutes ?? 0) / balanceData.total_purchased_minutes) * 100, 100)}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Auto-topup & Add funds */}
-      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Balance Management</h3>
-        <p className="text-[13px] text-gray-400 mb-5">Manage auto-topup and add funds manually.</p>
-
-        {/* Auto-topup toggle */}
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
-            <p className="text-[13px] text-gray-400">Automatically add funds when balance is low.</p>
-          </div>
-          <button
-            onClick={() => setAutoTopup(!autoTopup)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
-          </button>
-        </div>
-
-        {/* Auto-topup settings (shown when enabled) */}
-        {autoTopup && (
-          <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5 space-y-4">
-            <div>
-              <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when below (minutes)</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={thresholdStr}
-                onChange={(e) => setThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
-                placeholder="100"
-                className="w-32 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-              />
-            </div>
-            <div>
-              <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] text-gray-400">$</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={topupAmountStr}
-                  onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                  placeholder="5"
-                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                />
-                <span className="text-[13px] text-gray-400">min $2</span>
-              </div>
-            </div>
-            <button
-              onClick={handleSaveSettings}
-              disabled={isSavingSettings}
-              className="mt-3 h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
-            >
-              {isSavingSettings ? (
-                <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
-              ) : settingsSaved ? (
-                <><Check className="h-3 w-3" /> Saved</>
-              ) : (
-                "Save Settings"
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Add funds button */}
-        <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-          <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds amount</label>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-[14px] text-gray-400">$</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={addFundsAmountStr}
-                onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                placeholder="5"
-                className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-              />
-            </div>
-            <button
-              onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
-              disabled={isAddingFunds || addFundsAmount < 2}
-              className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-            >
-              {isAddingFunds ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Add Funds"
-              )}
-            </button>
-          </div>
-          <p className="text-[12px] text-gray-400 mt-2">Minimum $2. Charges your saved payment method.</p>
-        </div>
-
-        {/* Add Funds confirmation dialog */}
-        {showAddFundsConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
-              <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
-              <p className="text-[14px] text-gray-500 mb-4">
-                This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method for transcription minutes.
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setShowAddFundsConfirm(false)}
-                  className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddFundsConfirmed}
-                  className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                >
-                  Confirm — ${addFundsAmount}.00
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Usage chart (last 30 days) */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>

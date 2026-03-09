@@ -1,16 +1,46 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
+import Stripe from 'stripe'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
+
+export const dynamic = 'force-dynamic'
+
+// TX rate: $0.002/min = 0.2 cents/min
+const TX_CENTS_PER_MIN = 0.2
 
 const EMPTY = {
   balance_minutes: 0,
   remaining_minutes: 0,
-  total_purchased_minutes: 0,
   total_used_minutes: 0,
+  balance_cents: 0,
+  balance_usd: '$0.00',
   topup_enabled: false,
-  topup_threshold_min: 100,
+  topup_threshold_cents: 100,
   topup_amount_cents: 500,
+}
+
+async function getTxMeterUsage(
+  stripe: Stripe,
+  customerId: string,
+  periodStart: number,
+  periodEnd: number,
+): Promise<number> {
+  try {
+    const meters = await stripe.billing.meters.list({ limit: 10 })
+    const meter = meters.data.find(m => m.event_name === 'vexa_tx_minutes')
+    if (!meter) return 0
+    const summaries = await stripe.billing.meters.listEventSummaries(meter.id, {
+      customer: customerId,
+      start_time: periodStart,
+      end_time: periodEnd,
+    })
+    let total = 0
+    for (const s of summaries.data) total += s.aggregated_value
+    return total
+  } catch {
+    return 0
+  }
 }
 
 export async function GET() {
@@ -26,32 +56,73 @@ export async function GET() {
 
     if (!customerId) return NextResponse.json(EMPTY)
 
-    // Read topup preferences from Customer metadata
+    // Shared credit pool — same Stripe Billing Credits as bot balance
+    let creditBalanceCents = 0
+    try {
+      const summary = await stripe.billing.creditBalanceSummary.retrieve({
+        customer: customerId,
+        filter: { type: 'applicability_scope', applicability_scope: { price_type: 'metered' } },
+      } as Stripe.Billing.CreditBalanceSummaryRetrieveParams)
+      const balances = (summary as unknown as { balances: Array<{ available_balance: { monetary: { value: number } } }> }).balances || []
+      for (const bal of balances) {
+        creditBalanceCents += bal.available_balance?.monetary?.value || 0
+      }
+    } catch (err) {
+      console.error('[ACCOUNT/BALANCE] CreditBalanceSummary error:', err)
+    }
+
+    // Proration credits (negative customer.balance = credit)
+    let customerBalanceCents = 0
     let topupEnabled = false
-    let topupThresholdMin = 100
+    let topupThresholdCents = 100
     let topupAmountCents = 500
 
     try {
       const customer = await stripe.customers.retrieve(customerId)
       if (!customer.deleted) {
-        const meta = customer.metadata || {}
-        topupEnabled = meta.tx_topup_enabled === 'true'
-        if (meta.tx_topup_threshold_min) topupThresholdMin = parseInt(meta.tx_topup_threshold_min, 10)
-        if (meta.tx_topup_amount_cents) topupAmountCents = parseInt(meta.tx_topup_amount_cents, 10)
+        const cust = customer as Stripe.Customer
+        const meta = cust.metadata || {}
+        if (cust.balance < 0) customerBalanceCents = Math.abs(cust.balance)
+        topupEnabled = meta.topup_enabled === 'true'
+        if (meta.topup_threshold_cents) topupThresholdCents = parseInt(meta.topup_threshold_cents, 10)
+        if (meta.topup_amount_cents) topupAmountCents = parseInt(meta.topup_amount_cents, 10)
       }
     } catch (err) {
       console.error('[ACCOUNT/BALANCE] Customer retrieve error:', err)
     }
 
-    // TX balance comes from usage endpoint / transcription gateway
-    // This route provides the topup config; actual minutes come from /api/account/usage
+    // Get subscription period for meter queries
+    let periodStart = 0
+    let periodEnd = 0
+    try {
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
+      if (subs.data.length > 0) {
+        periodStart = subs.data[0].current_period_start
+        periodEnd = subs.data[0].current_period_end
+      }
+    } catch (err) {
+      console.error('[ACCOUNT/BALANCE] Subscription list error:', err)
+    }
+
+    // Query TX meter usage for this period
+    let txMinutesUsed = 0
+    if (periodStart > 0 && periodEnd > 0) {
+      txMinutesUsed = await getTxMeterUsage(stripe, customerId, periodStart, periodEnd)
+    }
+
+    const totalCreditCents = creditBalanceCents + customerBalanceCents
+    const usageCents = Math.round(txMinutesUsed * TX_CENTS_PER_MIN)
+    const effectiveCents = Math.max(totalCreditCents - usageCents, 0)
+    const balanceMinutes = effectiveCents / TX_CENTS_PER_MIN
+
     return NextResponse.json({
-      balance_minutes: 0,
-      remaining_minutes: 0,
-      total_purchased_minutes: 0,
-      total_used_minutes: 0,
+      balance_minutes: Math.round(balanceMinutes),
+      remaining_minutes: Math.round(balanceMinutes),
+      total_used_minutes: Math.round(txMinutesUsed),
+      balance_cents: effectiveCents,
+      balance_usd: `$${(effectiveCents / 100).toFixed(2)}`,
       topup_enabled: topupEnabled,
-      topup_threshold_min: topupThresholdMin,
+      topup_threshold_cents: topupThresholdCents,
       topup_amount_cents: topupAmountCents,
     })
   } catch (error) {
