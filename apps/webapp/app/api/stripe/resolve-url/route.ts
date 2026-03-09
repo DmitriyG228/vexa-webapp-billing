@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
           customer: customerId,
           line_items: [{ price: priceId, quantity: 1 }],
           success_url: `${returnUrl}?consultation=success`,
-          cancel_url: `${origin}/pricing`,
+          cancel_url: returnUrl,
           payment_method_collection: 'if_required',
           payment_intent_data: { setup_future_usage: 'off_session' },
           metadata: subMetadata,
