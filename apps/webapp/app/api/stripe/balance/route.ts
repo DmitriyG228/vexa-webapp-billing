@@ -4,6 +4,8 @@ import { authOptions } from '../../auth/[...nextauth]/route'
 import Stripe from 'stripe'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 
+export const dynamic = 'force-dynamic'
+
 const EMPTY_BALANCE = {
   balance_cents: 0,
   balance_usd: '$0.00',
@@ -29,6 +31,7 @@ export async function GET() {
 
     // Look up user from Admin API
     const user = await getUserByEmail(email)
+    console.log('[BALANCE] getUserByEmail result:', JSON.stringify({ email, tier: user?.data?.subscription_tier, status: user?.data?.subscription_status, max_bots: user?.max_concurrent_bots }))
     if (!user) {
       return NextResponse.json(EMPTY_BALANCE)
     }
@@ -50,10 +53,13 @@ export async function GET() {
         customer: customerId,
         filter: { type: 'applicability_scope', applicability_scope: { price_type: 'metered' } },
       } as Stripe.Billing.CreditBalanceSummaryRetrieveParams)
-      // Balance is in the balances array
-      for (const bal of (summary as unknown as { balances: Array<{ monetary: { available: { amount: number } } }> }).balances || []) {
-        balanceCents += bal.monetary?.available?.amount || 0
+      console.log('[BALANCE] CreditBalanceSummary raw:', JSON.stringify(summary))
+      // Balance is in the balances array — each has available_balance.monetary.value
+      const balances = (summary as unknown as { balances: Array<{ available_balance: { monetary: { value: number } } }> }).balances || []
+      for (const bal of balances) {
+        balanceCents += bal.available_balance?.monetary?.value || 0
       }
+      console.log('[BALANCE] Computed balanceCents:', balanceCents)
     } catch (err) {
       console.error('[BALANCE] CreditBalanceSummary error:', err)
       // Fall through with 0 balance
