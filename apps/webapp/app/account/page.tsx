@@ -647,6 +647,7 @@ function BotsTab({
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [isAddingFunds, setIsAddingFunds] = useState(false)
   const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
+  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
 
   // Sync state when server data arrives — only override if user has explicitly configured topup
   useEffect(() => {
@@ -656,6 +657,8 @@ function BotsTab({
       setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
     }
   }, [botBalanceData])
+
+  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
 
   const handleSaveSettings = async () => {
     const threshold = parseInt(topupThresholdStr, 10) || 0
@@ -701,7 +704,7 @@ function BotsTab({
       const resp = await fetch("/api/billing/topup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "bot" }),
+        body: JSON.stringify({ product: "bot", amount_cents: addFundsAmount * 100 }),
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
@@ -733,11 +736,23 @@ function BotsTab({
               <span className="text-gray-400">Plan</span>
               <span className="text-gray-950 dark:text-gray-50 font-medium">{getPlanLabel(subTier)}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-gray-400">Bot limit</span>
-              <span className="text-gray-700">
-                {subTier === 'bot_service' ? 'Usage-based' : subTier === 'individual' ? `${botCount} concurrent` : `${botCount} with API key`}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-700 dark:text-gray-300">
+                  {subTier === 'bot_service' ? `${botCount} concurrent` : subTier === 'individual' ? `${botCount} concurrent` : `${botCount} with API key`}
+                </span>
+                {subTier === 'bot_service' && (
+                  <a
+                    href="https://forms.gle/PLACEHOLDER_BOT_LIMIT_FORM"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[12px] text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Request more
+                  </a>
+                )}
+              </div>
             </div>
             {periodEnd && (
               <div className="flex justify-between">
@@ -1003,21 +1018,35 @@ function BotsTab({
 
           {/* Add Funds */}
           <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5">
-            <button
-              onClick={() => setShowAddFundsConfirm(true)}
-              disabled={isAddingFunds}
-              className="w-full sm:w-auto h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-            >
-              {isAddingFunds ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Add Funds"
-              )}
-            </button>
-            <p className="text-[12px] text-gray-400 mt-2">Adds $5.00 to your bot balance.</p>
+            <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds amount</label>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] text-gray-400">$</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={addFundsAmountStr}
+                  onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="5"
+                  className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                />
+              </div>
+              <button
+                onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
+                disabled={isAddingFunds || addFundsAmount < 2}
+                className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              >
+                {isAddingFunds ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Add Funds"
+                )}
+              </button>
+            </div>
+            <p className="text-[12px] text-gray-400 mt-2">Minimum $2. Charges your saved payment method.</p>
           </div>
 
           {/* Auto-topup toggle */}
@@ -1090,7 +1119,7 @@ function BotsTab({
               <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
                 <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
                 <p className="text-[14px] text-gray-500 mb-4">
-                  This will charge <span className="font-medium text-gray-950 dark:text-gray-50">$5.00</span> to your saved payment method.
+                  This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method.
                 </p>
                 <div className="flex justify-end gap-2">
                   <button
@@ -1103,7 +1132,7 @@ function BotsTab({
                     onClick={handleAddFundsConfirmed}
                     className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                   >
-                    Confirm — $5.00
+                    Confirm — ${addFundsAmount}.00
                   </button>
                 </div>
               </div>
@@ -1162,6 +1191,7 @@ function TranscriptionTab({
   const [topupAmountStr, setTopupAmountStr] = useState(String(Math.round((balanceData?.topup_amount_cents ?? 500) / 100)))
   const [isAddingFunds, setIsAddingFunds] = useState(false)
   const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
+  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
 
@@ -1173,6 +1203,8 @@ function TranscriptionTab({
       setTopupAmountStr(String(Math.round((balanceData.topup_amount_cents ?? 500) / 100)))
     }
   }, [balanceData])
+
+  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
 
   const handleSaveSettings = async () => {
     const threshold = parseInt(thresholdStr, 10) || 0
@@ -1218,7 +1250,7 @@ function TranscriptionTab({
       const resp = await fetch("/api/billing/topup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "tx" }),
+        body: JSON.stringify({ product: "tx", amount_cents: addFundsAmount * 100 }),
       })
       const data = await resp.json()
       if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
@@ -1227,7 +1259,7 @@ function TranscriptionTab({
         window.location.href = data.url
         return
       }
-      alert(`Added ${Math.round(data.new_balance)} minutes to your transcription balance.`)
+      alert(`Added $${(data.charged_cents / 100).toFixed(2)} to your transcription balance.`)
       window.location.reload()
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to add funds")
@@ -1359,21 +1391,35 @@ function TranscriptionTab({
 
         {/* Add funds button */}
         <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-          <button
-            onClick={() => setShowAddFundsConfirm(true)}
-            disabled={isAddingFunds}
-            className="w-full sm:w-auto h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-          >
-            {isAddingFunds ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Add Funds"
-            )}
-          </button>
-          <p className="text-[12px] text-gray-400 mt-2">Adds $5.00 to your transcription balance.</p>
+          <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds amount</label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] text-gray-400">$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={addFundsAmountStr}
+                onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="5"
+                className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+              />
+            </div>
+            <button
+              onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
+              disabled={isAddingFunds || addFundsAmount < 2}
+              className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {isAddingFunds ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Add Funds"
+              )}
+            </button>
+          </div>
+          <p className="text-[12px] text-gray-400 mt-2">Minimum $2. Charges your saved payment method.</p>
         </div>
 
         {/* Add Funds confirmation dialog */}
@@ -1382,7 +1428,7 @@ function TranscriptionTab({
             <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
               <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
               <p className="text-[14px] text-gray-500 mb-4">
-                This will charge <span className="font-medium text-gray-950 dark:text-gray-50">$5.00</span> to your saved payment method for transcription minutes.
+                This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method for transcription minutes.
               </p>
               <div className="flex justify-end gap-2">
                 <button
@@ -1395,7 +1441,7 @@ function TranscriptionTab({
                   onClick={handleAddFundsConfirmed}
                   className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                 >
-                  Confirm — $5.00
+                  Confirm — ${addFundsAmount}.00
                 </button>
               </div>
             </div>
