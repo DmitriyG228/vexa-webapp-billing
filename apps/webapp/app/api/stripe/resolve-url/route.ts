@@ -104,6 +104,8 @@ export async function POST(request: NextRequest) {
           line_items: [{ price: priceId, quantity: 1 }],
           success_url: `${returnUrl}?consultation=success`,
           cancel_url: `${origin}/pricing`,
+          payment_method_collection: 'if_required',
+          payment_intent_data: { setup_future_usage: 'off_session' },
           metadata: subMetadata,
         })
       : await stripe.checkout.sessions.create({
