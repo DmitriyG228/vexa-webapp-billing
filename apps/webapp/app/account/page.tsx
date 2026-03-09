@@ -513,6 +513,7 @@ function AccountPage() {
             botBalanceData={botBalanceData}
             onOpenPortal={handleOpenStripePortal}
             isOpeningPortal={isOpeningPortal}
+            onRefreshBalance={fetchBotBalance}
           />
         )}
 
@@ -611,12 +612,14 @@ function BotsTab({
   botBalanceData,
   onOpenPortal,
   isOpeningPortal,
+  onRefreshBalance,
 }: {
   userData: UserData | null
   meetingsData: MeetingsData | null
   botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null
   onOpenPortal: () => void
   isOpeningPortal: boolean
+  onRefreshBalance: () => Promise<void>
 }) {
   const subStatus = userData?.data?.subscription_status
   const subTier = userData?.data?.subscription_tier
@@ -745,6 +748,8 @@ function BotsTab({
       }
       setSettingsSaved(true)
       setTimeout(() => setSettingsSaved(false), 2000)
+      // Refresh balance — auto-topup may have triggered
+      await onRefreshBalance()
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to save settings")
     } finally {
