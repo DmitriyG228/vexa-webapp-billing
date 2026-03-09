@@ -999,16 +999,10 @@ function BotsTab({
             <div key={product.id} className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
                 <span className="text-[14px] font-medium text-gray-500 dark:text-gray-400">{product.name}</span>
-                <span className="text-[12px] text-gray-400 dark:text-gray-500">{product.detail}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
-                <a
-                  href="/pricing"
-                  className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
-                >
-                  Learn more
-                </a>
+                <span className="text-[12px] text-gray-400 dark:text-gray-500 cursor-help" title={product.detail}>?</span>
               </div>
             </div>
           ))}
