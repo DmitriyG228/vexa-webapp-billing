@@ -1,3 +1,4 @@
+import { BOT_RATE_CENTS_PER_MIN, TX_RATE_CENTS_PER_MIN } from '@/lib/billing-rates'
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
@@ -12,11 +13,9 @@ function formatUsd(cents: number): string {
 
 // Meter event names — must match what meeting-completed hook reports
 const BOT_METER = 'vexa_bot_minutes'
-const TX_METER = 'vexa_tx_minutes'
+const TX_METER = 'vexa_tx_addon_minutes'
 
 // Pricing per minute (in cents) — must match Stripe price configuration
-const BOT_RATE_PER_MIN = 0.5   // $0.30/hr = $0.005/min = 0.5 cents/min
-const TX_RATE_PER_MIN = 0.1667 // $0.10/hr = $0.001667/min ≈ 0.1667 cents/min
 
 const EMPTY = {
   balance_cents: 0,
@@ -97,8 +96,8 @@ export async function GET() {
       cancelAtPeriodEnd = subs.data.some(s => s.cancel_at_period_end)
       // Use the first active subscription's billing period
       if (subs.data.length > 0) {
-        periodStart = subs.data[0].current_period_start
-        periodEnd = subs.data[0].current_period_end
+        periodStart = subs.data[0].items.data[0].current_period_start
+        periodEnd = subs.data[0].items.data[0].current_period_end
       }
     } catch (err) {
       console.error('[BOT-BALANCE] Subscription list error:', err)
@@ -158,7 +157,7 @@ export async function GET() {
     }
 
     // Calculate accrued usage cost from meter data
-    const meteredUsageCents = Math.round(botMinutes * BOT_RATE_PER_MIN + txMinutes * TX_RATE_PER_MIN)
+    const meteredUsageCents = Math.round(botMinutes * BOT_RATE_CENTS_PER_MIN + txMinutes * TX_RATE_CENTS_PER_MIN)
 
     // Total balance = credit grants + proration credits
     // initial_credit stays as welcome credit only (not inflated by prorations)

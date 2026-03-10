@@ -7,6 +7,7 @@ import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 export const dynamic = 'force-dynamic'
 
 // TX rate: $0.002/min = 0.2 cents/min
+// Rate from product catalog: PRODUCTS.transcription_api.rate_cents_per_min
 const TX_CENTS_PER_MIN = 0.2
 
 const EMPTY = {
@@ -28,7 +29,7 @@ async function getTxMeterUsage(
 ): Promise<number> {
   try {
     const meters = await stripe.billing.meters.list({ limit: 10 })
-    const meter = meters.data.find(m => m.event_name === 'vexa_tx_minutes')
+    const meter = meters.data.find(m => m.event_name === 'vexa_tx_api_minutes')
     if (!meter) return 0
     const summaries = await stripe.billing.meters.listEventSummaries(meter.id, {
       customer: customerId,
@@ -97,8 +98,8 @@ export async function GET() {
     try {
       const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
       if (subs.data.length > 0) {
-        periodStart = subs.data[0].current_period_start
-        periodEnd = subs.data[0].current_period_end
+        periodStart = subs.data[0].items.data[0].current_period_start
+        periodEnd = subs.data[0].items.data[0].current_period_end
       }
     } catch (err) {
       console.error('[ACCOUNT/BALANCE] Subscription list error:', err)
@@ -118,7 +119,7 @@ export async function GET() {
     return NextResponse.json({
       balance_minutes: Math.round(balanceMinutes),
       remaining_minutes: Math.round(balanceMinutes),
-      total_used_minutes: Math.round(txMinutesUsed),
+      total_used_minutes: Math.round(txMinutesUsed * 100) / 100,
       balance_cents: effectiveCents,
       balance_usd: `$${(effectiveCents / 100).toFixed(2)}`,
       topup_enabled: topupEnabled,
