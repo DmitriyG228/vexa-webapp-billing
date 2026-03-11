@@ -86,7 +86,7 @@ async function createApiToken(userId: number): Promise<string | null> {
     const { getAdminAPIClient } = await import('@/lib/admin-api-client');
     const adminAPI = getAdminAPIClient();
 
-    const response = await adminAPI.fetch(`/admin/users/${userId}/tokens`, {
+    const response = await adminAPI.fetch(`/admin/users/${userId}/tokens?scope=user`, {
       method: 'POST',
     });
 
