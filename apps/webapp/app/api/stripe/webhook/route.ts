@@ -14,6 +14,7 @@ import {
   TX_WELCOME_CREDIT_CENTS,
   getPriceId,
 } from '@/lib/stripe-billing'
+import { checkAutoTopup } from '@/lib/auto-topup'
 
 // Idempotency set (in-memory; upgrade to Redis if needed)
 const _processedEvents = new Set<string>()
@@ -314,53 +315,9 @@ async function handleCreditDepleted(stripe: Stripe, creditGrant: Record<string, 
     const customer = await stripe.customers.retrieve(custId)
     if (customer.deleted) return
     const cust = customer as Stripe.Customer
-    const meta = cust.metadata || {}
+    const email = cust.email || custId
 
-    if (meta.topup_enabled !== 'true') {
-      console.log(`[WEBHOOK] Auto-topup disabled for ${cust.email}`)
-      return
-    }
-
-    const topupAmountCents = parseInt(meta.topup_amount_cents || '500', 10)
-    const monthlyCap = meta.monthly_cap_cents ? parseInt(meta.monthly_cap_cents, 10) : null
-
-    // Check monthly cap if set
-    if (monthlyCap !== null) {
-      // Read current month's meter usage to check spend
-      // For simplicity, we check the customer's credit grant total for the month
-      // In practice, you'd check Stripe Meter event summaries
-      console.log(`[WEBHOOK] Monthly cap check: cap=${monthlyCap}`)
-    }
-
-    // Get default payment method
-    let pmId = cust.invoice_settings?.default_payment_method
-    if (typeof pmId === 'object' && pmId !== null) pmId = pmId.id
-    if (!pmId) {
-      console.log(`[WEBHOOK] No payment method for auto-topup: ${cust.email}`)
-      return
-    }
-
-    // Charge off-session
-    const pi = await stripe.paymentIntents.create({
-      amount: topupAmountCents,
-      currency: 'usd',
-      customer: custId,
-      payment_method: pmId as string,
-      off_session: true,
-      confirm: true,
-      description: `Auto top-up $${(topupAmountCents / 100).toFixed(2)}`,
-    })
-
-    if (pi.status === 'succeeded') {
-      await stripe.billing.creditGrants.create({
-        customer: custId,
-        name: `Auto top-up $${(topupAmountCents / 100).toFixed(2)}`,
-        category: 'paid',
-        amount: { type: 'monetary', monetary: { currency: 'usd', value: topupAmountCents } },
-        applicability_config: { scope: { price_type: 'metered' } },
-      } as Stripe.Billing.CreditGrantCreateParams)
-      console.log(`[WEBHOOK] Auto-topup +$${(topupAmountCents / 100).toFixed(2)} for ${cust.email}`)
-    }
+    await checkAutoTopup(stripe, custId, email)
   } catch (err) {
     console.error('[WEBHOOK] Auto-topup failed:', err)
   }

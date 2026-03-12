@@ -3,10 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import { getAdminAPIClient } from '@/lib/admin-api-client'
 
-const BILLING_URL = process.env.BILLING_URL
-
 // POST /api/admin/tokens
-// Creates a new API token via Billing service (which will also handle 1-hour trial if needed)
+// Creates a new API token via Admin API
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,13 +18,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    if (!BILLING_URL) {
-      return NextResponse.json({ error: 'Server misconfiguration: BILLING_URL is not set' }, { status: 500 })
-    }
-    const resp = await fetch(`${BILLING_URL}/v1/trials/api-key`, {
+    const adminAPI = getAdminAPIClient()
+    const resp = await adminAPI.fetch(`/admin/users/${userId}/tokens`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: session.user.email, userId })
+      body: JSON.stringify({ email: session.user.email, userId }),
     })
     const data = await resp.json().catch(() => ({}))
     if (!resp.ok) {
@@ -34,8 +30,8 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error creating token via Billing service:', error)
-    return NextResponse.json({ error: 'Failed to create API token via billing.' }, { status: 500 })
+    console.error('Error creating token via Admin API:', error)
+    return NextResponse.json({ error: 'Failed to create API token.' }, { status: 500 })
   }
 }
 

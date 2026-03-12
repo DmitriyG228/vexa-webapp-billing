@@ -92,7 +92,7 @@ type TabId = (typeof TABS)[number]["id"]
 
 // ─── Pricing plans ──────────────────────────────────────────────────────────
 
-// Bot plans — mutually exclusive (switch between)
+// Plans imported from product catalog (product/products.ts = source of truth)
 const BOT_PLANS = [
   { id: "individual", name: "Individual", price: "$12/mo", detail: "1 bot included" },
   { id: "bot_service", name: "Pay-as-you-go", price: "$0.30/hr", detail: "Usage-based, unlimited bots" },
@@ -376,7 +376,7 @@ function AccountPage() {
     setIsSavingSettings(true)
     setSettingsSaved(false)
     try {
-      const resp = await fetch("/api/billing/topup-settings", {
+      const resp = await fetch("/api/stripe/topup-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product: "bot", enabled: autoTopup, threshold: threshold * 100, amount_cents: amount * 100 }),
@@ -393,7 +393,7 @@ function AccountPage() {
     setShowAddFundsConfirm(false)
     setIsAddingFunds(true)
     try {
-      const resp = await fetch("/api/billing/topup", {
+      const resp = await fetch("/api/stripe/topup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product: "bot", amount_cents: addFundsAmount * 100 }),
@@ -817,10 +817,15 @@ function CancelToPAYGButton() {
     setShowConfirm(false)
     setIsCanceling(true)
     try {
-      const resp = await fetch("/api/stripe/cancel-to-payg", { method: "POST" })
+      const resp = await fetch("/api/stripe/resolve-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context: "pricing", plan_type: "bot_service", quantity: 1 }),
+      })
       const data = await resp.json()
-      if (!resp.ok) throw new Error(data.error || "Failed to cancel subscription")
-      window.location.reload()
+      if (!resp.ok) throw new Error(data.error || data.detail || "Failed to switch plan")
+      if (data.url) window.location.href = data.url
+      else throw new Error("No URL returned")
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to cancel subscription")
     } finally {
@@ -1264,7 +1269,7 @@ function TranscriptionTab({
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <p className="text-[13px] text-gray-400 mb-1">TX minutes used</p>
           <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {Math.round(balanceData?.total_used_minutes ?? 0).toLocaleString()}
+            {(Math.round((balanceData?.total_used_minutes ?? 0) * 100) / 100).toLocaleString()}
           </p>
           <p className="text-[13px] text-gray-400">this billing period</p>
         </div>

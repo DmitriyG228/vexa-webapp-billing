@@ -7,13 +7,11 @@ so the account page shows actual stats instead of empty states.
 
 Requires:
   - DATABASE_URL or DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD env vars
-  - BILLING_URL env var (e.g. http://localhost:19000)
   - ADMIN_API_URL + ADMIN_API_TOKEN env vars
 
 Usage:
   # Against green (SSH tunnel or run on green directly)
   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/vexa \
-  BILLING_URL=http://localhost:19000 \
   ADMIN_API_URL=http://localhost:8000 \
   ADMIN_API_TOKEN=your-token \
   python3 product/seed_test_data.py
@@ -33,8 +31,6 @@ import sys
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-import requests
-
 try:
     import psycopg2
 except ImportError:
@@ -50,7 +46,6 @@ DB_NAME = os.getenv("DB_NAME", "vexa")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 
-BILLING_URL = os.getenv("BILLING_URL", "http://localhost:19000")
 ADMIN_API_URL = os.getenv("ADMIN_API_URL", "http://localhost:8000")
 ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN", "")
 
@@ -285,24 +280,6 @@ def seed_billing_state(conn, email: str, config: Dict[str, Any]):
           f"usage=${patch.get('bot_monthly_spent_cents', 0)/100:.2f}")
 
 
-def seed_billing_via_api(email: str, config: Dict[str, Any]):
-    """Also update billing service via API if it's running."""
-    if config.get("bot_balance_cents", 0) <= 0:
-        return
-
-    try:
-        resp = requests.post(
-            f"{BILLING_URL}/v1/balance/credit",
-            json={"product": "bot", "email": email, "amount": config["bot_balance_cents"]},
-            timeout=5,
-        )
-        if resp.ok:
-            print(f"  {email}: billing API credited ${config['bot_balance_cents']/100:.2f}")
-        else:
-            print(f"  {email}: billing API error: {resp.status_code} {resp.text[:100]}")
-    except Exception as e:
-        print(f"  {email}: billing API unreachable ({e})")
-
 
 # ── Transcription Samples ─────────────────────────────────────────────────────
 
@@ -388,7 +365,6 @@ def main():
         seed_meetings(conn, user_id, email, config)
         seed_transcriptions(conn, user_id, email)
         seed_billing_state(conn, email, config)
-        seed_billing_via_api(email, config)
         print()
 
     conn.close()
