@@ -29,6 +29,9 @@ export function MarketingFooter() {
             <Link href="/contact" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               Contact
             </Link>
+            <Link href="https://github.com/Vexa-ai/vexa/issues/new?labels=bug,hosted&title=[Hosted]%20&body=%23%23%20Environment%0AHosted%20service%20(app.vexa.ai)%0A%0A%23%23%20Description%0A%0A%23%23%20Steps%20to%20reproduce%0A1.%20%0A%0A%23%23%20Expected%20behavior%0A%0A%23%23%20Actual%20behavior%0A" target="_blank" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              Report a Bug
+            </Link>
           </div>
         </div>
         {/* Legal */}
