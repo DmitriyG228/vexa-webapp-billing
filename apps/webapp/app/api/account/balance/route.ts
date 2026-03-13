@@ -7,7 +7,6 @@ import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 export const dynamic = 'force-dynamic'
 
 // TX rate: $0.002/min = 0.2 cents/min
-// Rate from product catalog: PRODUCTS.transcription_api.rate_cents_per_min
 const TX_CENTS_PER_MIN = 0.2
 
 const EMPTY = {
@@ -29,7 +28,7 @@ async function getTxMeterUsage(
 ): Promise<number> {
   try {
     const meters = await stripe.billing.meters.list({ limit: 10 })
-    const meter = meters.data.find(m => m.event_name === 'vexa_tx_api_minutes')
+    const meter = meters.data.find(m => m.event_name === 'vexa_tx_minutes')
     if (!meter) return 0
     const summaries = await stripe.billing.meters.listEventSummaries(meter.id, {
       customer: customerId,
@@ -115,6 +114,8 @@ export async function GET() {
     const usageCents = Math.round(txMinutesUsed * TX_CENTS_PER_MIN)
     const effectiveCents = Math.max(totalCreditCents - usageCents, 0)
     const balanceMinutes = effectiveCents / TX_CENTS_PER_MIN
+
+    console.log('[ACCOUNT/BALANCE] DEBUG', { creditBalanceCents, customerBalanceCents, periodStart, periodEnd, txMinutesUsed, totalCreditCents, effectiveCents })
 
     return NextResponse.json({
       balance_minutes: Math.round(balanceMinutes),

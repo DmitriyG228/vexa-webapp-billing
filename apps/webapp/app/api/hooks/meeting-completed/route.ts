@@ -1,3 +1,4 @@
+import { computeUsageCents } from '@/lib/billing-rates'
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 import { checkAutoTopup } from '@/lib/auto-topup'
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     if (meeting.transcription_enabled) {
       try {
         await stripe.billing.meterEvents.create({
-          event_name: 'vexa_tx_minutes',
+          event_name: 'vexa_tx_addon_minutes',
           payload: {
             stripe_customer_id: customerId,
             value: String(durationMinutes),
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check auto-topup threshold after reporting usage (don't block response)
-    checkAutoTopup(stripe, customerId, meeting.user_email).catch(err =>
+    checkAutoTopup(stripe, customerId, meeting.user_email, computeUsageCents(durationMinutes, meeting.transcription_enabled ? durationMinutes : 0)).catch(err =>
       console.error(`[MEETING-HOOK] Auto-topup background check failed:`, err)
     )
 

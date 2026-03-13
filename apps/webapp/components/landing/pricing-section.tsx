@@ -129,7 +129,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets + Dashboard</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -140,16 +140,11 @@ export function PricingSection() {
 
           {/* ── Individual ────────────────────────────── */}
           <div
-            className="rounded-2xl border-2 border-gray-950 dark:border-gray-200 bg-white dark:bg-neutral-900 p-6 relative flex flex-col"
+            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 flex flex-col"
             style={{
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.10)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px -8px rgba(0,0,0,0.06)',
             }}
           >
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="inline-block px-3 py-0.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[11px] font-medium tracking-wide">
-                START HERE
-              </span>
-            </div>
             <div className="mb-5">
               <div className="text-[13px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-[0.06em] mb-2">
                 Individual
@@ -169,7 +164,7 @@ export function PricingSection() {
             </div>
 
             <div className="mb-1">
-              <GetStartedButton buttonText="Start here" planType="individual" botCount={1} currentTier={currentTier} currentStatus={currentStatus} />
+              <GetStartedButton buttonText="Get started" planType="individual" botCount={1} currentTier={currentTier} currentStatus={currentStatus} />
             </div>
             <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center mb-4">No credit card required</p>
             <div className="space-y-2.5 mt-auto">
@@ -195,6 +190,10 @@ export function PricingSection() {
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
                 <span className="text-[13px] text-gray-600 dark:text-gray-300">Recording + Bot API</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckIcon className="text-gray-900 dark:text-gray-100" />
+                <span className="text-[13px] text-gray-600 dark:text-gray-300">12-month audio storage</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon className="text-gray-900 dark:text-gray-100" />
@@ -234,7 +233,7 @@ export function PricingSection() {
             <div className="space-y-2.5 mt-auto">
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] font-semibold text-gray-500 dark:text-gray-400">Unlimited concurrent bots</span>
+                <span className="text-[13px] font-semibold text-gray-500 dark:text-gray-400">Up to 5 concurrent bots</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -257,7 +256,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">REST API + WebSockets + Dashboard</span>
               </div>
             </div>
           </div>
@@ -327,44 +326,16 @@ export function PricingSection() {
             </div>
           </div>
 
-          {/* Priority Support */}
-          <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-5 py-4 flex items-start gap-4">
-            <div className="flex-shrink-0 mt-0.5">
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
-                  <path d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                </svg>
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[13px] font-semibold text-gray-900 dark:text-gray-100">
-                    Priority Support
-                  </div>
-                  <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
-                    Dedicated help building with Vexa &mdash; from <span className="font-semibold text-gray-950 dark:text-gray-50">$240</span>/hr.
-                  </p>
-                </div>
-                <Link
-                  href="/support"
-                  className="flex-shrink-0 ml-4 inline-flex items-center h-[32px] px-4 rounded-full border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 text-[12px] font-medium hover:border-gray-400 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all"
-                >
-                  Learn more
-                </Link>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ── Competitive comparison ────────────────── */}
         <div className="mt-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm">
             <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">
-              Vexa bot: $0.30/hr vs Recall.ai $0.65/hr &mdash;
+              Vexa: $0.40/hr vs Recall.ai $0.65/hr (bot + transcription) &mdash;
             </span>
             <span className="text-[13px] text-gray-950 dark:text-gray-50 font-semibold">
-              54% cheaper
+              38% cheaper
             </span>
           </div>
         </div>

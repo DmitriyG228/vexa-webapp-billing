@@ -53,6 +53,7 @@ async function getMeterUsage(
         customer: customerId,
         start_time: periodStart,
         end_time: periodEnd,
+        value_grouping_window: 'day',
       },
     )
     let total = 0
@@ -181,6 +182,8 @@ export async function GET() {
       topup_amount_cents: topupAmountCents,
       bot_minutes: botMinutes,
       tx_minutes: txMinutes,
+      period_start: periodStart || null,
+      period_end: periodEnd || null,
     })
   } catch (error) {
     console.error('[BOT-BALANCE] Error:', error)

@@ -91,7 +91,9 @@ export function computeEntitlements(sub: Stripe.Subscription, planType: string) 
     if (['canceled', 'incomplete_expired', 'unpaid'].includes(normalizedStatus)) {
       maxBots = 0
     } else if (['active', 'trialing', 'scheduled_to_cancel'].includes(normalizedStatus)) {
-      maxBots = planType === 'individual' ? 1 : 5
+      // Use subscription metadata override if set (e.g. enterprise users with custom limits)
+      const metaMax = parseInt(sub.metadata?.max_concurrent_bots || '0', 10)
+      maxBots = metaMax > 0 ? metaMax : (planType === 'individual' ? 1 : 5)
     } else {
       maxBots = 0
     }

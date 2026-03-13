@@ -111,7 +111,7 @@ export function createMockStripe() {
       },
       creditBalanceSummary: {
         retrieve: vi.fn().mockResolvedValue({
-          balances: [{ monetary: { available: { amount: 350 } } }],
+          balances: [{ available_balance: { monetary: { value: 350 } } }],
         }),
       },
       meterEvents: {

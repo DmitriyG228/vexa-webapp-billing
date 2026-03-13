@@ -18,8 +18,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
+    const scope = body.scope // "bot" or "tx"
     const adminAPI = getAdminAPIClient()
-    const resp = await adminAPI.fetch(`/admin/users/${userId}/tokens`, {
+    const url = scope
+      ? `/admin/users/${userId}/tokens?scope=${encodeURIComponent(scope)}`
+      : `/admin/users/${userId}/tokens`
+    const resp = await adminAPI.fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: session.user.email, userId }),

@@ -93,43 +93,33 @@ describe('Topup Route', () => {
     )
   })
 
-  // T4: Save topup preferences
-  it('T4: saves topup preferences to Customer.metadata', async () => {
-    const req = makeRequest({
-      topup_enabled: true,
-      topup_threshold_cents: 200,
-      topup_amount_cents: 1000,
-      monthly_cap_cents: 5000,
-    })
+  // T4: Save topup preferences — tested via topup-settings PUT route
+  it('T4: topup route charges off-session (settings are in topup-settings route)', async () => {
+    // The topup POST route only handles charging, not saving preferences.
+    // Preferences are saved via PUT /api/stripe/topup-settings.
+    // Verify that a normal topup charge works regardless of extra body keys.
+    const req = makeRequest({ amount_cents: 1000, product: 'bot' })
     const res = await POST(req as any)
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.success).toBe(true)
-    expect(mockStripe.customers.update).toHaveBeenCalledWith(
-      'cus_test123',
-      expect.objectContaining({
-        metadata: expect.objectContaining({
-          topup_enabled: 'true',
-          topup_threshold_cents: '200',
-          topup_amount_cents: '1000',
-          monthly_cap_cents: '5000',
-        }),
-      })
+    expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: 1000 })
     )
   })
 
   // T5: Monthly cap enforcement — handled in webhook auto-topup
-  it('T5: caps are stored and used at webhook time', async () => {
-    const req = makeRequest({
-      topup_enabled: true,
-      monthly_cap_cents: 3000,
-    })
+  it('T5: topup creates credit grant with correct amount', async () => {
+    const req = makeRequest({ amount_cents: 3000, product: 'tx' })
     const res = await POST(req as any)
     expect(res.status).toBe(200)
-    expect(mockStripe.customers.update).toHaveBeenCalledWith(
-      'cus_test123',
+    expect(mockStripe.billing.creditGrants.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: expect.objectContaining({ monthly_cap_cents: '3000' }),
+        customer: 'cus_test123',
+        category: 'paid',
+        amount: expect.objectContaining({
+          monetary: expect.objectContaining({ value: 3000 }),
+        }),
       })
     )
   })

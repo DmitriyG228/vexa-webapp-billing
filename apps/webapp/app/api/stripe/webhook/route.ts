@@ -8,6 +8,7 @@ import {
   subFieldPrefix,
   upsertUser,
   patchUser,
+  getUserByEmail,
   BOT_PLANS,
   TX_PLANS,
   INITIAL_BOT_CREDIT_CENTS,
@@ -219,11 +220,14 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
   }
 
   // Welcome credit for new TX subscriptions
+  // F4: Use Stripe customer.metadata for idempotency (avoids JSONB race conditions)
   if (TX_PLANS.has(planType) && ['active', 'trialing'].includes(sub.status)) {
     const custId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
-    const creditKey = planType === 'transcription_api' ? 'tx_standalone_welcome_given' : 'tx_addon_welcome_given'
-    if (!user.data?.[creditKey]) {
-      try {
+    const metaKey = 'tx_welcome_credit_given'
+    try {
+      const cust = await stripe.customers.retrieve(custId)
+      const alreadyGranted = !cust.deleted && !!(cust as Stripe.Customer).metadata?.[metaKey]
+      if (!alreadyGranted) {
         await stripe.billing.creditGrants.create({
           customer: custId,
           name: planType === 'transcription_api'
@@ -233,11 +237,13 @@ async function handleSubscriptionEvent(stripe: Stripe, sub: Stripe.Subscription)
           amount: { type: 'monetary', monetary: { currency: 'usd', value: TX_WELCOME_CREDIT_CENTS } },
           applicability_config: { scope: { price_type: 'metered' } },
         } as Stripe.Billing.CreditGrantCreateParams)
-        await patchUser(userId, { data: { [creditKey]: true } })
+        await stripe.customers.update(custId, {
+          metadata: { [metaKey]: String(TX_WELCOME_CREDIT_CENTS) },
+        })
         console.log(`[WEBHOOK] Applied TX welcome credit for ${email} (${planType})`)
-      } catch (err) {
-        console.error(`[WEBHOOK] TX welcome credit failed for ${email}:`, err)
       }
+    } catch (err) {
+      console.error(`[WEBHOOK] TX welcome credit failed for ${email}:`, err)
     }
   }
 
@@ -300,6 +306,9 @@ async function handleCheckoutCompleted(stripe: Stripe, session: Stripe.Checkout.
       applicability_config: { scope: { price_type: 'metered' } },
     } as Stripe.Billing.CreditGrantCreateParams)
     console.log(`[WEBHOOK] Topup credit grant for ${topupEmail}: +${topupCents}c (${topupProduct})`)
+
+    // M2: Restore bots if user was disabled due to depleted credits
+    await restoreBotsIfDisabled(topupEmail)
   } catch (err) {
     console.error(`[WEBHOOK] Topup credit grant failed for ${topupEmail}:`, err)
   }
@@ -317,8 +326,52 @@ async function handleCreditDepleted(stripe: Stripe, creditGrant: Record<string, 
     const cust = customer as Stripe.Customer
     const email = cust.email || custId
 
-    await checkAutoTopup(stripe, custId, email)
+    const result = await checkAutoTopup(stripe, custId, email)
+
+    // If auto-topup did not succeed, disable bots (PAYG user with $0 balance)
+    if (!result?.topped_up) {
+      await disableBotsForCustomer(email, custId)
+    }
   } catch (err) {
     console.error('[WEBHOOK] Auto-topup failed:', err)
+    // Auto-topup threw — also disable bots
+    try {
+      const customer = await stripe.customers.retrieve(custId)
+      if (!customer.deleted) {
+        const email = (customer as Stripe.Customer).email || custId
+        await disableBotsForCustomer(email, custId)
+      }
+    } catch (innerErr) {
+      console.error('[WEBHOOK] Failed to disable bots after topup error:', innerErr)
+    }
+  }
+}
+
+/** Disable bots for a customer by setting max_concurrent_bots=0 */
+async function disableBotsForCustomer(email: string, _custId: string) {
+  try {
+    const user = await getUserByEmail(email)
+    if (user && user.max_concurrent_bots > 0) {
+      await patchUser(user.id, { max_concurrent_bots: 0 })
+      console.log(`[WEBHOOK] Disabled bots for ${email} (credit depleted, no topup)`)
+    }
+  } catch (err) {
+    console.error(`[WEBHOOK] Failed to disable bots for ${email}:`, err)
+  }
+}
+
+/** M2: Restore max_concurrent_bots to plan default if currently 0 (was disabled by credit depletion) */
+async function restoreBotsIfDisabled(email: string) {
+  try {
+    const user = await getUserByEmail(email)
+    if (!user || user.max_concurrent_bots !== 0) return
+
+    // Determine plan default: individual=1, bot_service=5
+    const tier = user.data?.subscription_tier as string | undefined
+    const defaultBots = tier === 'individual' ? 1 : 5
+    await patchUser(user.id, { max_concurrent_bots: defaultBots })
+    console.log(`[WEBHOOK] Restored max_concurrent_bots=${defaultBots} for ${email} after topup`)
+  } catch (err) {
+    console.error(`[WEBHOOK] Failed to restore bots for ${email}:`, err)
   }
 }

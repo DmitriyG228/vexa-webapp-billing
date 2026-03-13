@@ -29,7 +29,7 @@ describe('Balance Route', () => {
     vi.clearAllMocks()
     mockGetServerSession.mockResolvedValue({ user: { email: 'test@vexa.ai' } })
     mockStripe.billing.creditBalanceSummary.retrieve.mockResolvedValue({
-      balances: [{ monetary: { available: { amount: 350 } } }],
+      balances: [{ available_balance: { monetary: { value: 350 } } }],
     })
     mockStripe.customers.retrieve.mockResolvedValue({
       id: 'cus_test123', email: 'test@vexa.ai', deleted: false,
@@ -69,7 +69,7 @@ describe('Balance Route', () => {
   // B3: TX user balance
   it('B3: returns TX balance in cents', async () => {
     mockStripe.billing.creditBalanceSummary.retrieve.mockResolvedValue({
-      balances: [{ monetary: { available: { amount: 1500 } } }],
+      balances: [{ available_balance: { monetary: { value: 1500 } } }],
     })
     mockGetUserByEmail.mockResolvedValue(mockUser({
       data: { stripe_customer_id: 'cus_test123', transcription_enabled: true },

@@ -1,66 +1,88 @@
-# Product Pricing Configuration
+# Billing Product Catalog
 
-This directory contains the pricing configuration and utilities for the Vexa webapp billing system.
+## Architecture
 
-## Files
-
-### `pricing_tiers.json`
-The single source of truth for all pricing configuration including:
-- Product details
-- Stripe price configuration with tiered pricing
-- Pricing slider configuration for the frontend
-
-### `stripe_sync.py`
-Updated Stripe synchronization script that now loads configuration from `pricing_tiers.json` instead of hardcoded values.
-
-### `pricing_utils.py`
-Utility module providing functions to:
-- Calculate pricing for any number of users based on tiered pricing
-- Get detailed pricing breakdowns
-- Format prices for display
-- Access slider configuration
-
-## Pricing Tiers Structure
-
-The current pricing structure uses graduated tiered pricing:
-
-| Users | Price per User | Notes |
-|-------|----------------|-------|
-| 1     | $12.00        | First user |
-| 2-5   | $24.00        | Small team |
-| 6-50  | $20.00        | Growing team |
-| 51-200| $15.00        | Medium team |
-| 201+  | $10.00        | Large team |
-
-## Usage Examples
-
-### Backend (Python)
-```python
-from pricing_utils import calculate_price_for_users, get_tiers
-
-tiers = get_tiers()
-price = calculate_price_for_users(25, tiers)  # Returns price in cents
+```
+products.ts                        Stripe API
+(definition source of truth)       (billing source of truth)
+         │                              ▲         │
+         │ reads                        │ creates │ runtime queries
+         ▼                              │         ▼
+provision-stripe.ts ────────────────────┘   webapp runtime code
+         │                                   │  billing-rates.ts
+         │ writes                            │  auto-topup.ts
+         ▼                                   │  meeting-completed hook
+stripe_ids.{env}.json ──────────────────────►│  bot-balance route
+(maps vexa IDs → Stripe IDs)                │  account/balance route
+                                             │  resolve-url route
 ```
 
-### Frontend (JavaScript)
-```javascript
-// Load pricing_tiers.json and use the pricing_slider config
-const sliderConfig = config.pricing_slider;
-// Use min_users, max_users, step, default_value for slider behavior
-```
+### Two sources of truth
 
-## Configuration Updates
+| Source | What it owns | Files |
+|--------|-------------|-------|
+| `products.ts` | Product definitions, rates, meters, welcome credits | Single file, checked into git |
+| Stripe | Billing state: subscriptions, balances, invoices, usage | Queried at runtime via API |
 
-To modify pricing:
-1. Edit `pricing_tiers.json`
-2. Run `stripe_sync.py` to sync changes to Stripe
-3. Frontend will automatically use the new configuration
+`stripe_ids.{env}.json` is the bridge — maps our product IDs to Stripe object IDs per environment.
 
-## Testing
+## Products
 
-Test the pricing calculations:
+| ID | Name | Type | Price | Meter |
+|----|------|------|-------|-------|
+| `individual` | Individual | subscription | $12/mo | — |
+| `bot_service` | Pay-as-you-go | metered | $0.30/hr | `vexa_bot_minutes` |
+| `transcription_addon` | Real-time transcription | metered_addon | +$0.10/hr | `vexa_tx_addon_minutes` |
+| `transcription_api` | Transcription API | metered | $0.002/min | `vexa_tx_api_minutes` |
+| `consultation` | Consultation | one_time | $240/hr | — |
+| `enterprise` | Enterprise | custom | Custom | — |
+
+### Product relationships
+
+- `transcription_addon` requires `bot_service` — it's an add-on to bot meetings
+- `transcription_api` is standalone — no bot needed, separate meter and balance
+
+## Meters
+
+| Meter event name | Product | Unit | Aggregation |
+|-----------------|---------|------|-------------|
+| `vexa_bot_minutes` | bot_service | minutes | sum |
+| `vexa_tx_addon_minutes` | transcription_addon | minutes | sum |
+| `vexa_tx_api_minutes` | transcription_api | minutes | sum |
+
+## Provisioning
+
+`provision-stripe.ts` creates all Stripe products, prices, and meters from `products.ts`. Idempotent — safe to re-run.
+
 ```bash
-python pricing_utils.py
+# Test mode (BBB dev, K8s staging)
+STRIPE_SECRET_KEY=sk_test_xxx npx tsx product/provision-stripe.ts
+
+# Live mode (production) — requires explicit flag
+STRIPE_SECRET_KEY=sk_live_xxx npx tsx product/provision-stripe.ts --confirm-live
 ```
 
-This will show example calculations for various user counts and verify the tiered pricing logic works correctly.
+Output: `stripe_ids.test.json` or `stripe_ids.live.json`
+
+### How idempotency works
+
+1. Lists all existing Stripe products, searches for `metadata.vexa_product_id`
+2. If a product with matching metadata exists → skip (log "already exists")
+3. If not → create product + price, tag with `metadata.vexa_product_id`
+4. Same logic for meters: match by `event_name`
+
+## Environment flow
+
+```
+TEST:  sk_test_xxx → provision-stripe.ts → stripe_ids.test.json → BBB dev + K8s staging
+LIVE:  sk_live_xxx → provision-stripe.ts --confirm-live → stripe_ids.live.json → K8s production
+```
+
+## Legacy files
+
+These predate the current architecture and are kept for reference:
+- `pricing_tiers.json` — old tiered per-seat pricing (replaced by products.ts)
+- `pricing_utils.py` — old Python pricing calculator
+- `stripe_sync.py` — old Stripe sync script (replaced by provision-stripe.ts)
+- `setup-stripe.sh` — old shell-based setup
+- `seed_test_data.py` — test data seeder

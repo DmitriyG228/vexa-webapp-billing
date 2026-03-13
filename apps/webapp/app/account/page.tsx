@@ -3,11 +3,11 @@
 import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle } from "lucide-react"
+import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle, AlertTriangle } from "lucide-react"
 import { getDashboardUrl } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { NotificationsBanner } from "@/components/notifications-banner"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -135,16 +135,6 @@ function formatDate(value?: number | string) {
   }
 }
 
-function formatRelativeTime(dateString: string | null | undefined) {
-  if (!dateString) return "-"
-  const diffInSeconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000)
-  if (diffInSeconds < 60) return "just now"
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
-  return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-}
-
 function getPlanLabel(tier?: string): string {
   const plan = PRICING_PLANS.find(p => p.id === tier)
   return plan ? `${plan.name} (${plan.price})` : "Free Plan"
@@ -215,6 +205,7 @@ function AccountPage() {
   const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null>(null)
   const [meetingsData, setMeetingsData] = useState<MeetingsData | null>(null)
 
+
   // Loading states
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -233,6 +224,7 @@ function AccountPage() {
   const [autoTopup, setAutoTopup] = useState(true)
   const [topupThresholdStr, setTopupThresholdStr] = useState("1")
   const [topupAmountStr, setTopupAmountStr] = useState("5")
+  const [monthlyCapStr, setMonthlyCapStr] = useState("50")
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsSaved, setSettingsSaved] = useState(false)
   const [isAddingFunds, setIsAddingFunds] = useState(false)
@@ -320,6 +312,7 @@ function AccountPage() {
     }
   }, [])
 
+
   const [hasAutoProvisioned, setHasAutoProvisioned] = useState(false)
 
   useEffect(() => {
@@ -363,6 +356,9 @@ function AccountPage() {
       setAutoTopup(botBalanceData.topup_enabled ?? true)
       setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
       setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
+      if ((botBalanceData as any).monthly_cap_cents) {
+        setMonthlyCapStr(String(Math.round((botBalanceData as any).monthly_cap_cents / 100)))
+      }
     }
   }, [botBalanceData])
 
@@ -371,6 +367,7 @@ function AccountPage() {
   const handleSaveSettings = async () => {
     const threshold = parseInt(topupThresholdStr, 10) || 0
     const amount = parseInt(topupAmountStr, 10) || 0
+    const cap = parseInt(monthlyCapStr, 10) || 0
     if (autoTopup && threshold < 1) { alert("Threshold must be at least $1."); return }
     if (autoTopup && amount < 2) { alert("Top-up amount must be at least $2."); return }
     setIsSavingSettings(true)
@@ -379,7 +376,7 @@ function AccountPage() {
       const resp = await fetch("/api/stripe/topup-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "bot", enabled: autoTopup, threshold: threshold * 100, amount_cents: amount * 100 }),
+        body: JSON.stringify({ product: "bot", enabled: autoTopup, threshold: threshold * 100, amount_cents: amount * 100, monthly_cap_cents: cap * 100 }),
       })
       if (!resp.ok) { const data = await resp.json().catch(() => ({})); throw new Error(data.detail || data.error || "Failed to save settings") }
       setSettingsSaved(true)
@@ -408,14 +405,16 @@ function AccountPage() {
 
   // ─── API Key actions ─────────────────────────────────────────────────────
 
-  const createApiKey = async () => {
+  const [createKeyType, setCreateKeyType] = useState<"bot" | "tx">("bot")
+
+  const createApiKey = async (scope?: string) => {
     if (!userId) return
     setIsCreatingKey(true)
     try {
       const resp = await fetch("/api/admin/tokens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: Number(userId) }),
+        body: JSON.stringify({ userId: Number(userId), scope: scope || createKeyType }),
       })
       if (!resp.ok) {
         const errData = await resp.json().catch(() => ({}))
@@ -528,6 +527,9 @@ function AccountPage() {
           </div>
         )}
 
+        {/* System notifications */}
+        <NotificationsBanner />
+
         {/* Page heading */}
         <div className="mb-8 flex items-start justify-between">
           <div>
@@ -602,70 +604,71 @@ function AccountPage() {
             onShowCreateDialog={setShowCreateDialog}
             onShowRevokeDialog={setShowRevokeDialog}
             hasActiveSubscription={!!userData?.data?.subscription_status && ["active", "trialing", "scheduled_to_cancel"].includes(userData.data.subscription_status)}
+            createKeyType={createKeyType}
+            onCreateKeyTypeChange={setCreateKeyType}
           />
         )}
 
-        {/* Shared Usage Controls — shown on Bots + Transcription tabs, not Individual or API Keys */}
-        {(activeTab === "bots" || activeTab === "transcription") && userData?.data?.subscription_tier !== "individual" && (
-          <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 mt-6" style={{ boxShadow: cardShadow }}>
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Usage Controls</h3>
-            <p className="text-[13px] text-gray-400 mb-5">Manage spending limits and auto-topup for usage-based billing.</p>
+        {/* Shared Balance & Usage — shown on Bots + Transcription tabs (all tiers, not just PAYG) */}
+        {(activeTab === "bots" || activeTab === "transcription") && (
+          <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 mt-8" style={{ boxShadow: cardShadow }}>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Balance & Usage</h3>
+            <p className="text-[13px] text-gray-400 mb-5">Shared credit balance across bots and transcription.</p>
 
-            {/* Balance & usage display */}
+            {/* Balance + period info */}
             <div className="mb-5">
-              <div className="flex items-center justify-between text-[14px] mb-2">
-                <span className="text-gray-400">Balance</span>
-                <span className="text-gray-950 dark:text-gray-50 font-semibold text-[16px]">
+              <div className="flex items-center justify-between text-[14px] mb-3">
+                <span className="text-gray-400">Credit balance</span>
+                <span className={`font-semibold text-[16px] ${botBalanceData?.balance_cents === 0 ? "text-red-500 dark:text-red-400" : "text-gray-950 dark:text-gray-50"}`}>
                   {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[13px] mb-1">
-                <span className="text-gray-400">Initial credit</span>
-                <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.initial_credit_usd : "$5.00"}</span>
-              </div>
-              <div className="flex items-center justify-between text-[13px]">
-                <span className="text-gray-400">Usage this period</span>
-                <span className="text-gray-500">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
-              </div>
-              {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes) ? (
-                <div className="mt-2 space-y-0.5">
-                  {(botBalanceData.bot_minutes ?? 0) > 0 && (
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="text-gray-400 pl-2">Bot minutes</span>
-                      <span className="text-gray-400">{botBalanceData.bot_minutes} min</span>
-                    </div>
-                  )}
-                  {(botBalanceData.tx_minutes ?? 0) > 0 && (
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="text-gray-400 pl-2">Transcription minutes</span>
-                      <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
-                    </div>
-                  )}
+              <div className="rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3">
+                <div className="flex items-center justify-between text-[13px] mb-2">
+                  <span className="text-gray-400">Current period</span>
+                  <span className="text-gray-500">
+                    {botBalanceData?.has_subscription && (botBalanceData as any).period_start && (botBalanceData as any).period_end
+                      ? `${formatDate((botBalanceData as any).period_start)} — ${formatDate((botBalanceData as any).period_end)}`
+                      : "—"}
+                  </span>
                 </div>
-              ) : null}
-              {botBalanceData?.has_subscription && (
-                <div className="h-2 rounded-full bg-gray-100 dark:bg-neutral-800 mt-3 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gray-950 dark:bg-gray-200"
-                    style={{ width: `${(botBalanceData.usage_cents + botBalanceData.balance_cents) > 0 ? Math.min((botBalanceData.usage_cents / (botBalanceData.usage_cents + botBalanceData.balance_cents)) * 100, 100) : 0}%` }}
-                  />
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-gray-400">Usage this period</span>
+                  <span className="font-medium text-gray-950 dark:text-gray-50">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
                 </div>
-              )}
+                {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes) ? (
+                  <>
+                    {(botBalanceData.bot_minutes ?? 0) > 0 && (
+                      <div className="flex items-center justify-between text-[12px] mt-1 pl-3">
+                        <span className="text-gray-400">Bot minutes</span>
+                        <span className="text-gray-400">{botBalanceData.bot_minutes} min</span>
+                      </div>
+                    )}
+                    {(botBalanceData.tx_minutes ?? 0) > 0 && (
+                      <div className="flex items-center justify-between text-[12px] pl-3">
+                        <span className="text-gray-400">TX minutes</span>
+                        <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
+                      </div>
+                    )}
+                  </>
+                ) : null}
+              </div>
             </div>
 
             {/* Add Funds */}
             <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5">
-              <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds amount</label>
+              <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds</label>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-[14px] text-gray-400">$</span>
                   <input
+                    id="add-funds-input"
                     type="text"
                     inputMode="numeric"
                     value={addFundsAmountStr}
                     onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
                     placeholder="5"
-                    className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                    className="w-20 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
                   />
                 </div>
                 <button
@@ -673,25 +676,18 @@ function AccountPage() {
                   disabled={isAddingFunds || addFundsAmount < 2}
                   className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
                 >
-                  {isAddingFunds ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Add Funds"
-                  )}
+                  {isAddingFunds ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</> : "Add Funds"}
                 </button>
+                <span className="text-[12px] text-gray-400">min $2</span>
               </div>
-              <p className="text-[12px] text-gray-400 mt-2">Minimum $2. Charges your saved payment method.</p>
             </div>
 
-            {/* Auto-topup toggle */}
+            {/* Auto-topup */}
             <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
-                  <p className="text-[13px] text-gray-400">Automatically charge your payment method as usage accrues.</p>
+                  <p className="text-[13px] text-gray-400">Automatically charge when balance is low.</p>
                 </div>
                 <button
                   onClick={() => setAutoTopup(!autoTopup)}
@@ -701,52 +697,88 @@ function AccountPage() {
                 </button>
               </div>
 
-              {/* Auto-topup settings */}
               {autoTopup && (
-                <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 space-y-4">
-                  <div>
-                    <label className="text-[13px] text-gray-500 mb-1.5 block">Top up when balance drops below</label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px] text-gray-400">$</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={topupThresholdStr}
-                        onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
-                        placeholder="1"
-                        className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                      />
+                <>
+                  <div className="grid grid-cols-3 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-4">
+                    <div>
+                      <label className="text-[13px] text-gray-500 mb-1.5 block">When below</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px] text-gray-400">$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={topupThresholdStr}
+                          onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
+                          placeholder="1"
+                          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px] text-gray-400">$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={topupAmountStr}
+                          onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                          placeholder="5"
+                          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[13px] text-gray-500 mb-1.5 block">Monthly cap</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px] text-gray-400">$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={monthlyCapStr}
+                          onChange={(e) => setMonthlyCapStr(e.target.value.replace(/[^0-9]/g, ""))}
+                          placeholder="50"
+                          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px] text-gray-400">$</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={topupAmountStr}
-                        onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                        placeholder="5"
-                        className="w-24 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                      />
-                      <span className="text-[13px] text-gray-400">min $2</span>
+
+                  {/* Monthly cap progress */}
+                  {(botBalanceData as any)?.monthly_topup_cents != null && parseInt(monthlyCapStr) > 0 && (
+                    <div className="mt-3 rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3">
+                      <div className="flex justify-between items-center text-[13px]">
+                        <span className="text-gray-400">Auto-topped up this month</span>
+                        <span className="font-medium text-gray-950 dark:text-gray-50">
+                          ${(((botBalanceData as any)?.monthly_topup_cents ?? 0) / 100).toFixed(2)}
+                          {" "}<span className="text-gray-400 font-normal">/ ${monthlyCapStr}.00</span>
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-200 dark:bg-neutral-700 rounded-full mt-2">
+                        <div
+                          className="h-full bg-gray-950 dark:bg-gray-200 rounded-full"
+                          style={{ width: `${Math.min((((botBalanceData as any)?.monthly_topup_cents ?? 0) / 100) / parseInt(monthlyCapStr || "1") * 100, 100)}%` }}
+                        />
+                      </div>
                     </div>
+                  )}
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={handleSaveSettings}
+                      disabled={isSavingSettings}
+                      className="h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                    >
+                      {isSavingSettings ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
+                      ) : settingsSaved ? (
+                        <><Check className="h-3 w-3" /> Saved</>
+                      ) : (
+                        "Save Settings"
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={handleSaveSettings}
-                    disabled={isSavingSettings}
-                    className="mt-3 h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
-                  >
-                    {isSavingSettings ? (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
-                    ) : settingsSaved ? (
-                      <><Check className="h-3 w-3" /> Saved</>
-                    ) : (
-                      "Save Settings"
-                    )}
-                  </button>
-                </div>
+                </>
               )}
             </div>
 
@@ -778,31 +810,30 @@ function AccountPage() {
           </div>
         )}
 
-        {/* Priority Support — shown on Bots + Transcription tabs */}
+        {/* Enterprise CTA — shown on Bots + Transcription tabs */}
         {(activeTab === "bots" || activeTab === "transcription") && (
-          <Link
-            href="/support"
-            className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors group"
+          <a
+            href="mailto:dmitry@vexa.ai?subject=Enterprise%20plan%20inquiry"
+            className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors group mt-6"
             style={{ boxShadow: cardShadow }}
           >
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="19" x2="19" y1="8" y2="14" />
-                <line x1="22" x2="16" y1="11" y2="11" />
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600 dark:text-purple-400">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
               </svg>
             </div>
             <div className="flex-1">
-              <p className="text-[14px] font-semibold text-gray-950 dark:text-gray-50">Priority Support</p>
+              <p className="text-[14px] font-semibold text-gray-950 dark:text-gray-50">Enterprise Plan</p>
               <p className="text-[13px] text-gray-400 dark:text-gray-500">
-                Get dedicated help building with Vexa — $240/hr
+                Custom pricing, dedicated support, higher limits. Contact us to get started.
               </p>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
               <path d="m9 18 6-6-6-6" />
             </svg>
-          </Link>
+          </a>
         )}
       </div>
     </section>
@@ -968,6 +999,22 @@ function BotsTab({
 
   return (
     <div className="space-y-6">
+      {/* Credit depletion banner — Bots tab */}
+      {botCount === 0 && subStatus === "active" && (
+        <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <p className="text-[14px] font-medium text-red-800 dark:text-red-300">Credits depleted — bots disabled</p>
+          </div>
+          <button
+            onClick={() => document.getElementById("add-funds-input")?.focus()}
+            className="h-9 px-4 rounded-full bg-red-600 text-white text-[13.5px] font-medium hover:bg-red-500 transition-colors flex-shrink-0 ml-4"
+          >
+            Add Funds
+          </button>
+        </div>
+      )}
+
       {/* Subscription + Bot limit row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
@@ -1248,96 +1295,74 @@ function TranscriptionTab({
 
   return (
     <div className="space-y-6">
-      {/* Product explanation */}
-      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-gray-50 to-white dark:from-neutral-900 dark:to-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Transcription API</h3>
-        <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-relaxed">
+      {/* Hero card */}
+      <div className="rounded-2xl bg-gradient-to-br from-cyan-950 to-blue-950 border border-cyan-800/30 p-6">
+        <h3 className="text-[17px] font-semibold text-white mb-1">Transcription API</h3>
+        <p className="text-[14px] text-cyan-200/70">
           Offload transcription to Vexa&apos;s cloud — no need to self-host GPU infrastructure.
         </p>
       </div>
 
-      {/* Balance cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <p className="text-[13px] text-gray-400 mb-1">Credit balance</p>
-          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {balanceData?.balance_usd ?? '$0.00'}
-          </p>
-          <p className="text-[13px] text-gray-400">~{Math.round(balanceData?.balance_minutes ?? 0).toLocaleString()} minutes at $0.002/min</p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-          <p className="text-[13px] text-gray-400 mb-1">TX minutes used</p>
-          <p className="text-[28px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">
-            {(Math.round((balanceData?.total_used_minutes ?? 0) * 100) / 100).toLocaleString()}
-          </p>
-          <p className="text-[13px] text-gray-400">this billing period</p>
-        </div>
-      </div>
-
-
-      {/* Usage chart (last 30 days) */}
+      {/* Daily Usage Chart with inline stats */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[15px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Daily Usage</h3>
-        <p className="text-[13px] text-gray-400 mb-4">Minutes transcribed per day</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">TX Usage</h3>
+            <p className="text-[13px] text-gray-400">
+              {stats?.period_days ? `Last ${stats.period_days} days` : "Last 30 days"} · $0.002/min
+            </p>
+          </div>
+          {stats && (
+            <div className="flex items-center gap-6 text-right">
+              <div>
+                <p className="text-[11px] text-gray-400">Total</p>
+                <p className="text-[16px] font-semibold text-gray-950 dark:text-gray-50">
+                  {stats.total_minutes != null ? stats.total_minutes.toFixed(1) : "--"}{" "}
+                  <span className="text-[12px] font-normal text-gray-400">min</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-400">Avg/day</p>
+                <p className="text-[16px] font-semibold text-gray-950 dark:text-gray-50">
+                  {stats.average_daily_minutes != null ? stats.average_daily_minutes.toFixed(1) : "--"}{" "}
+                  <span className="text-[12px] font-normal text-gray-400">min</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-400">Active</p>
+                <p className="text-[16px] font-semibold text-gray-950 dark:text-gray-50">
+                  {stats.days_with_usage ?? "--"}{" "}
+                  <span className="text-[12px] font-normal text-gray-400">days</span>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
         {history.length > 0 ? (
-          <div className="flex items-end gap-[3px] h-48">
-            {history.map((day, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+          <>
+            <div className="flex items-end gap-1 h-24">
+              {history.map((day, i) => (
                 <div
-                  className="w-full rounded-sm bg-gray-950 dark:bg-gray-200 min-h-[2px] transition-all hover:bg-gray-700 dark:hover:bg-gray-400"
+                  key={i}
+                  className="flex-1 bg-cyan-500/20 dark:bg-cyan-500/20 rounded-t hover:bg-cyan-500/40 dark:hover:bg-cyan-500/40 transition-colors min-h-[2px]"
                   style={{ height: `${Math.max((day.minutes / maxMinutes) * 100, 1)}%` }}
                   title={`${day.date}: ${day.minutes.toFixed(1)} min`}
                 />
-                {i % 5 === 0 && (
-                  <span className="text-[9px] text-gray-300 whitespace-nowrap">
-                    {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            <div className="flex justify-between text-[11px] text-gray-400 mt-1">
+              {history.length > 4 && [0, Math.floor(history.length / 4), Math.floor(history.length / 2), Math.floor(3 * history.length / 4), history.length - 1].map(idx => (
+                <span key={idx}>
+                  {new Date(history[idx].date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="h-48 flex items-center justify-center">
-            <p className="text-[14px] text-gray-300">No usage data available</p>
+          <div className="h-24 flex items-center justify-center">
+            <p className="text-[14px] text-gray-300 dark:text-gray-600">No usage data available</p>
           </div>
         )}
-      </div>
-
-      {/* Stats row */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "Total Minutes", value: stats.total_minutes != null ? `${stats.total_minutes.toFixed(1)}` : "--" },
-            { label: "Avg Daily", value: stats.average_daily_minutes != null ? `${stats.average_daily_minutes.toFixed(1)}` : "--" },
-            { label: "Active Days", value: stats.days_with_usage != null ? `${stats.days_with_usage}` : "--" },
-            { label: "Period", value: stats.period_days != null ? `${stats.period_days} days` : "--" },
-          ].map(({ label, value }) => (
-            <div key={label} className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5" style={{ boxShadow: cardShadow }}>
-              <p className="text-[12px] text-gray-400 mb-1">{label}</p>
-              <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Pricing info */}
-      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Pricing</h3>
-        <div className="space-y-3 text-[14px]">
-          <div className="flex justify-between">
-            <span className="text-gray-400">Rate</span>
-            <span className="text-gray-950 dark:text-gray-50 font-semibold">$0.002 / minute</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Minimum purchase</span>
-            <span className="text-gray-700">$5.00 (2,500 minutes)</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Free credit</span>
-            <span className="text-gray-700">10,000 minutes</span>
-          </div>
-        </div>
       </div>
     </div>
   )
@@ -1361,6 +1386,8 @@ function ApiKeysTab({
   onShowCreateDialog,
   onShowRevokeDialog,
   hasActiveSubscription,
+  createKeyType,
+  onCreateKeyTypeChange,
 }: {
   apiKeys: ApiKey[]
   visibleKeys: Record<number, boolean>
@@ -1370,11 +1397,13 @@ function ApiKeysTab({
   showRevokeDialog: number | null
   onToggleVisibility: (id: number) => void
   onCopy: (id: number, value: string) => void
-  onCreate: () => void
+  onCreate: (scope?: string) => void
   onRevoke: (id: number) => void
   onShowCreateDialog: (v: boolean) => void
   onShowRevokeDialog: (v: number | null) => void
   hasActiveSubscription?: boolean
+  createKeyType: "bot" | "tx"
+  onCreateKeyTypeChange: (v: "bot" | "tx") => void
 }) {
   const activeKeys = apiKeys.filter((k) => k.active !== false && k.is_active !== false)
 
@@ -1427,14 +1456,18 @@ function ApiKeysTab({
               className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5"
               style={{ boxShadow: cardShadow }}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="text-[15px] font-medium text-gray-950 dark:text-gray-50">
-                    {key.name || `API Key ${key.id}`}
-                  </p>
-                  <p className="text-[13px] text-gray-400 font-mono">
-                    {key.prefix || "sk_"}...{key.token.slice(-4)}
-                  </p>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {key.token.startsWith("vxa_bot_") ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Bot</span>
+                  ) : key.token.startsWith("vxa_tx_") ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300">Transcription</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-gray-50 text-gray-600 dark:bg-neutral-800 dark:text-gray-400">Key</span>
+                  )}
+                  <span className="text-[12px] text-gray-400 font-mono">
+                    {key.prefix || key.token.slice(0, 8)}...
+                  </span>
                 </div>
                 <button
                   onClick={() => onShowRevokeDialog(key.id)}
@@ -1473,50 +1506,70 @@ function ApiKeysTab({
                 </button>
               </div>
 
-              {/* Trial badge for recently created keys */}
-              {key.created_at && new Date(key.created_at).getTime() > Date.now() - 5 * 60 * 1000 && (
-                <div className="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                  <p className="text-[12px] font-medium text-emerald-800">Free Credit Active</p>
-                  <p className="text-[12px] text-emerald-600 mt-0.5">
-                    Your $5 free credit is ready to use. Add a payment method to continue after it runs out.
-                  </p>
-                </div>
-              )}
-
               {/* Footer */}
-              <div className="flex justify-between mt-3 pt-3 border-t border-gray-100 dark:border-neutral-800">
-                <span className="text-[12px] text-gray-400">Created {formatDate(key.created_at)}</span>
-                <span className="text-[12px] text-gray-400">
-                  Last used {formatRelativeTime(key.last_used_at || key.lastUsed)}
-                </span>
+              <div className="flex items-center gap-4 mt-3 text-[12px] text-gray-400">
+                <span>Created {formatDate(key.created_at)}</span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Create dialog */}
+      {/* Create dialog with key type selection */}
       {showCreateDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={(e) => { if (e.target === e.currentTarget) onShowCreateDialog(false) }}>
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Create new API key</h3>
-            <p className="text-[14px] text-gray-500 mb-6">
-              Click create to generate a new API key. You will only be able to view the key once.
-            </p>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Create API Key</h3>
+            <p className="text-[13px] text-gray-400 mb-5">Choose key type. You will only be able to view the key once.</p>
+
+            <div className="space-y-2 mb-5">
+              <label
+                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors ${createKeyType === "bot" ? "border-2 border-gray-950 dark:border-white" : "border border-gray-100 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600"}`}
+                onClick={() => onCreateKeyTypeChange("bot")}
+              >
+                <div className="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600 dark:text-purple-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Bot Key</p>
+                  <p className="text-[12px] text-gray-400">For sending bots to meetings. Prefix: <span className="font-mono">vxa_bot_</span></p>
+                </div>
+                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${createKeyType === "bot" ? "border-gray-950 dark:border-white" : "border-gray-200 dark:border-neutral-700"}`}>
+                  {createKeyType === "bot" && <span className="w-2.5 h-2.5 rounded-full bg-gray-950 dark:bg-white" />}
+                </span>
+              </label>
+
+              <label
+                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-colors ${createKeyType === "tx" ? "border-2 border-gray-950 dark:border-white" : "border border-gray-100 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-600"}`}
+                onClick={() => onCreateKeyTypeChange("tx")}
+              >
+                <div className="w-10 h-10 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-600 dark:text-cyan-400"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Transcription Key</p>
+                  <p className="text-[12px] text-gray-400">For the Transcription API. Prefix: <span className="font-mono">vxa_tx_</span></p>
+                </div>
+                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${createKeyType === "tx" ? "border-gray-950 dark:border-white" : "border-gray-200 dark:border-neutral-700"}`}>
+                  {createKeyType === "tx" && <span className="w-2.5 h-2.5 rounded-full bg-gray-950 dark:bg-white" />}
+                </span>
+              </label>
+            </div>
+
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => onShowCreateDialog(false)}
-                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={onCreate}
+                onClick={() => onCreate(createKeyType)}
                 disabled={isCreatingKey}
                 className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 {isCreatingKey && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Create API key
+                Create Key
               </button>
             </div>
           </div>

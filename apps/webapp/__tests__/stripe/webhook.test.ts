@@ -31,6 +31,12 @@ const mockExtractEmail = vi.fn(async (sub: any) => {
   return sub.metadata?.userEmail || null
 })
 
+const mockCheckAutoTopup = vi.fn()
+
+vi.mock('@/lib/auto-topup', () => ({
+  checkAutoTopup: (...args: any[]) => mockCheckAutoTopup(...args),
+}))
+
 vi.mock('@/lib/stripe-billing', () => ({
   getStripe: () => mockStripe,
   getStripeIds: () => MOCK_STRIPE_IDS,
@@ -121,6 +127,8 @@ describe('Webhook Handler', () => {
     mockStripe.paymentIntents.create.mockResolvedValue({ id: 'pi_test', status: 'succeeded' })
     mockStripe.paymentMethods.list.mockResolvedValue({ data: [] })
     mockStripe.customers.update.mockResolvedValue({ id: 'cus_test123' })
+    mockCheckAutoTopup.mockClear()
+    mockCheckAutoTopup.mockResolvedValue(undefined)
   })
 
   // W1
@@ -156,7 +164,18 @@ describe('Webhook Handler', () => {
 
   // W4
   it('W4: does not create duplicate welcome credit', async () => {
-    currentUserData = { bot_welcome_credit_given: true }
+    // First retrieve: payment method check
+    mockStripe.customers.retrieve.mockResolvedValueOnce({
+      id: 'cus_test123', email: 'test@vexa.ai', deleted: false,
+      metadata: { welcome_credit_cents: '500' },
+      invoice_settings: { default_payment_method: 'pm_test123' },
+    })
+    // Second retrieve: bot welcome credit idempotency check
+    mockStripe.customers.retrieve.mockResolvedValueOnce({
+      id: 'cus_test123', email: 'test@vexa.ai', deleted: false,
+      metadata: { welcome_credit_cents: '500' },
+      invoice_settings: { default_payment_method: 'pm_test123' },
+    })
     const sub = mockSubscription({
       metadata: { userEmail: 'test@vexa.ai', tier: 'bot_service' },
       items: { data: [{ price: { id: 'price_bot_service' } }] },
@@ -359,15 +378,16 @@ describe('Webhook Handler', () => {
   })
 
   // W23
-  it('W23: auto-topup charges and creates credit grant when enabled', async () => {
+  it('W23: auto-topup is invoked when credit depleted', async () => {
     mockStripe.customers.retrieve.mockResolvedValueOnce({
       id: 'cus_test123', email: 'test@vexa.ai', deleted: false,
       metadata: { topup_enabled: 'true', topup_amount_cents: '500' },
       invoice_settings: { default_payment_method: 'pm_test123' },
     })
+    mockCheckAutoTopup.mockResolvedValue({ topped_up: true, amount_cents: 500 })
     await sendWebhook('billing.credit_grant.depleted', { customer: 'cus_test123' })
-    expect(mockStripe.paymentIntents.create).toHaveBeenCalled()
-    expect(mockStripe.billing.creditGrants.create).toHaveBeenCalled()
+    // Webhook delegates to checkAutoTopup module
+    expect(mockCheckAutoTopup).toHaveBeenCalled()
   })
 
   // W24
