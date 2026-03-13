@@ -220,7 +220,7 @@ export function PricingSection() {
                 <span className="text-[14px] text-gray-400 dark:text-gray-500">/hr</span>
               </div>
               <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-1">
-                Bot infrastructure &middot; +$0.10/hr transcription
+                Bot infrastructure &middot; +$0.20/hr transcription
               </p>
               <p className="text-[12px] text-gray-400 dark:text-gray-500 italic mt-1">
                 Best for teams &amp; API builders &middot; $5 free credit
@@ -252,7 +252,7 @@ export function PricingSection() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
-                <span className="text-[13px] text-gray-500 dark:text-gray-400">Transcription add-on: +$0.10/hr</span>
+                <span className="text-[13px] text-gray-500 dark:text-gray-400">Transcription add-on: +$0.20/hr</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckIcon />
@@ -351,7 +351,7 @@ export function PricingSection() {
                 What&apos;s included in the $0.30/hr Bot Service?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                The base rate covers bot infrastructure: audio capture, webhooks, and 12 months of audio storage across Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for +$0.10/hr ($0.40/hr total).
+                The base rate covers bot infrastructure: audio capture, webhooks, and 12 months of audio storage across Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for +$0.20/hr ($0.50/hr total).
               </p>
             </div>
             <div className="py-5">
@@ -413,7 +413,7 @@ export function PricingSection() {
                   name: "What's included in the $0.30/hr Bot Service?",
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'The base rate covers bot infrastructure: audio capture, webhooks, and 12 months of audio storage across Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for +$0.10/hr ($0.40/hr total).',
+                    text: 'The base rate covers bot infrastructure: audio capture, webhooks, and 12 months of audio storage across Google Meet, Microsoft Teams, and Zoom. Add real-time transcription for +$0.20/hr ($0.50/hr total).',
                   },
                 },
                 {

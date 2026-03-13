@@ -3,20 +3,20 @@ import { PricingSection } from '@/components/landing/pricing-section'
 
 export const metadata: Metadata = {
   title: 'Pricing | Vexa — Meeting Bot API',
-  description: 'Bot infrastructure from $0.30/hr. Transcription add-on +$0.10/hr. Self-host free, or use our managed cloud. 40% cheaper than Recall.ai.',
+  description: 'Bot infrastructure from $0.30/hr. Transcription add-on +$0.20/hr. Self-host free, or use our managed cloud. 40% cheaper than Recall.ai.',
   alternates: {
     canonical: 'https://vexa.ai/pricing',
   },
   openGraph: {
     title: 'Vexa Pricing — Meeting Bot API',
-    description: 'Open source free forever. Individual $12/mo. Bot Service from $0.30/hr + $0.10/hr transcription. 40% cheaper than alternatives.',
+    description: 'Open source free forever. Individual $12/mo. Bot Service from $0.30/hr + $0.20/hr transcription. 40% cheaper than alternatives.',
     url: 'https://vexa.ai/pricing',
     images: [{ url: '/images/og-default.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Vexa Pricing — Meeting Bot API',
-    description: 'Bot infrastructure from $0.30/hr. Transcription +$0.10/hr. Self-host free or use our managed cloud.',
+    description: 'Bot infrastructure from $0.30/hr. Transcription +$0.20/hr. Self-host free or use our managed cloud.',
   },
 }
 
@@ -29,7 +29,7 @@ const faqJsonLd = {
       name: 'How much does Vexa cost?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Vexa offers four tiers: Open Source (free, self-host), Individual ($12/mo for 1 bot with transcription included), Bot Service ($0.30/hr bot infrastructure + $0.10/hr transcription add-on), and Enterprise (custom pricing). New accounts get $5 free credit — no credit card required.',
+        text: 'Vexa offers four tiers: Open Source (free, self-host), Individual ($12/mo for 1 bot with transcription included), Bot Service ($0.30/hr bot infrastructure + $0.20/hr transcription add-on), and Enterprise (custom pricing). New accounts get $5 free credit — no credit card required.',
       },
     },
     {

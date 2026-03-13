@@ -84,12 +84,12 @@ type TabId = (typeof TABS)[number]["id"]
 // Plans imported from product catalog (product/products.ts = source of truth)
 const BOT_PLANS = [
   { id: "individual", name: "Individual", price: "$12", period: "/mo", features: ["1 concurrent bot", "Real-time transcription included"] },
-  { id: "bot_service", name: "Pay-as-you-go", price: "$0.30", period: "/hr", features: ["Unlimited concurrent bots", "+$0.10/hr real-time transcription (optional)"] },
+  { id: "bot_service", name: "Pay-as-you-go", price: "$0.30", period: "/hr", features: ["Unlimited concurrent bots", "+$0.20/hr real-time transcription", "+$0.12/hr post-meeting transcription"], featureNote: "Transcription is optional — choose one per meeting" },
 ]
 
 // Add-on products — can be added alongside any bot plan
 const ADDON_PRODUCTS = [
-  { id: "transcription_addon", name: "Real-time transcription", price: "+$0.10/hr", detail: "Enabled per meeting via API" },
+  { id: "transcription_addon", name: "Real-time transcription", price: "+$0.20/hr", detail: "Enabled per meeting via API" },
 ]
 
 // All plans for display in getPlanLabel
@@ -613,26 +613,26 @@ function CancelToPAYGButton() {
       </button>
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Cancel subscription</h3>
-            <p className="text-[14px] text-gray-500 mb-2">
-              Your Individual subscription will be canceled immediately and you&apos;ll be switched to the Pay-as-you-go plan.
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 p-7 shadow-xl">
+            <h3 className="text-[18px] font-semibold text-gray-950 dark:text-gray-50 mb-3">Switch to Pay-as-you-go</h3>
+            <p className="text-[14px] text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
+              Your Individual subscription will be canceled immediately. Any unused time will be prorated as credit on your account.
             </p>
-            <p className="text-[13px] text-gray-400 mb-4">
-              Any remaining balance from your subscription will be prorated as credit on your account.
+            <p className="text-[13px] text-gray-400 leading-relaxed mb-6">
+              You&apos;ll switch to pay-as-you-go billing — bots at $0.30/hr with optional transcription.
             </p>
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                className="h-10 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Keep subscription
               </button>
               <button
                 onClick={handleConfirm}
-                className="h-9 px-4 rounded-full bg-red-600 text-white text-[13.5px] font-medium hover:bg-red-700 transition-colors"
+                className="h-10 px-5 rounded-full bg-red-600 text-white text-[13.5px] font-medium hover:bg-red-700 transition-colors"
               >
-                Cancel &amp; switch to PAYG
+                Switch to PAYG
               </button>
             </div>
           </div>
@@ -889,6 +889,9 @@ function BotsTab({
                       {f}
                     </li>
                   ))}
+                  {(plan as any).featureNote && (
+                    <li className="text-[11px] text-gray-400 dark:text-gray-500 pl-5.5 italic">{(plan as any).featureNote}</li>
+                  )}
                 </ul>
                 {canSwitch && (
                   <button
@@ -910,9 +913,17 @@ function BotsTab({
                 )}
                 {/* Show usage credit under PAYG card when user is on a non-PAYG plan */}
                 {plan.id === 'bot_service' && !isCurrent && botBalanceData && botBalanceData.balance_cents > 0 && (
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-neutral-700">
-                    <span className="text-[12px] text-gray-400">Credit available</span>
-                    <span className="text-[12px] font-medium text-gray-500">{botBalanceData.balance_usd}</span>
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-neutral-700 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] text-gray-400">Balance</span>
+                      <span className="text-[12px] font-medium text-gray-500">${((botBalanceData.balance_cents - ((botBalanceData as any).proration_credit_cents || 0)) / 100).toFixed(2)}</span>
+                    </div>
+                    {(botBalanceData as any).proration_credit_cents > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] text-gray-400">+ unused subscription credit</span>
+                        <span className="text-[12px] font-medium text-gray-500">{(botBalanceData as any).proration_credit_usd}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

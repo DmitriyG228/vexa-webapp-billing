@@ -33,11 +33,11 @@ export const PRODUCTS = {
     id: "transcription_addon",
     name: "Real-time transcription",
     type: "metered_addon" as const,
-    price_display: "+$0.10/hr",
+    price_display: "+$0.20/hr",
     detail: "Add-on to bot — enabled per meeting via API",
     meter: "vexa_tx_addon_minutes",
-    rate_cents_per_min: 0.1667,    // $0.10/hr = $0.001667/min ≈ 0.1667c/min
-    rate_dollars_per_hr: 0.10,
+    rate_cents_per_min: 0.3333,    // $0.20/hr = $0.003333/min ≈ 0.3333c/min
+    rate_dollars_per_hr: 0.20,
     requires: "bot_service",       // only meaningful alongside a bot
   },
   transcription_api: {
@@ -104,7 +104,7 @@ export type MeterName = keyof typeof METERS
 
 export const RATES = {
   bot_cents_per_min: PRODUCTS.bot_service.rate_cents_per_min,           // 0.5
-  tx_addon_cents_per_min: PRODUCTS.transcription_addon.rate_cents_per_min, // 0.1667
+  tx_addon_cents_per_min: PRODUCTS.transcription_addon.rate_cents_per_min, // 0.3333
   tx_api_cents_per_min: PRODUCTS.transcription_api.rate_cents_per_min,    // 0.2
 } as const
 

@@ -192,6 +192,8 @@ export async function GET() {
       topup_enabled: topupEnabled,
       topup_threshold_cents: topupThresholdCents,
       topup_amount_cents: topupAmountCents,
+      proration_credit_cents: customerBalanceCents,
+      proration_credit_usd: formatUsd(customerBalanceCents),
       bot_minutes: botMinutes,
       tx_minutes: txMinutes,
       tx_api_minutes: txApiMinutes,

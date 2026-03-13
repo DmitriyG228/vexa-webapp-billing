@@ -9,8 +9,8 @@
 // Bot service: $0.30/hr = 0.5 cents/min
 export const BOT_RATE_CENTS_PER_MIN = 0.5
 
-// Transcription add-on: $0.10/hr = 0.1667 cents/min (add-on to bot)
-export const TX_ADDON_RATE_CENTS_PER_MIN = 0.1667
+// Transcription add-on: $0.20/hr = 0.3333 cents/min (add-on to bot)
+export const TX_ADDON_RATE_CENTS_PER_MIN = 0.3333
 
 // Transcription API: $0.002/min = 0.2 cents/min (standalone)
 export const TX_API_RATE_CENTS_PER_MIN = 0.2

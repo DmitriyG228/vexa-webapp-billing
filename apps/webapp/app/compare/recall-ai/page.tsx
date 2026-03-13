@@ -113,11 +113,11 @@ export default function CompareRecallAiPage() {
             </span>
           </div>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-4">
-            Bot infrastructure + 12-month audio storage. Transcription: +$0.10/hr
+            Bot infrastructure + 12-month audio storage. Transcription: +$0.20/hr
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-300">
-              <CheckIcon active /> Transcription add-on: +$0.10/hr
+              <CheckIcon active /> Transcription add-on: +$0.20/hr
             </div>
             <div className="flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-300">
               <CheckIcon active /> Open source — self-host free

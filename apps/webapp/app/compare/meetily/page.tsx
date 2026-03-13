@@ -75,7 +75,7 @@ export default function CompareMeetilyPage() {
             <span className="text-[14px] text-gray-400 dark:text-gray-500">/hr</span>
           </div>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-4">
-            Cloud API + meeting bots + storage. Transcription: +$0.10/hr. Self-host free.
+            Cloud API + meeting bots + storage. Transcription: +$0.20/hr. Self-host free.
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-300"><CheckIcon active /> REST API, WebSocket, MCP, n8n</div>

@@ -79,7 +79,7 @@ export default function CompareMeetingBaasPage() {
             <span className="text-[14px] text-gray-400 dark:text-gray-500">/hr</span>
           </div>
           <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-4">
-            Bot infrastructure + storage. Transcription: +$0.10/hr. Self-host free.
+            Bot infrastructure + storage. Transcription: +$0.20/hr. Self-host free.
           </p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[13px] text-gray-600 dark:text-gray-300"><CheckIcon active /> Apache 2.0 (true open source)</div>
@@ -146,7 +146,7 @@ export default function CompareMeetingBaasPage() {
           </div>
           <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
             <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Transparent pricing</h3>
-            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6]">$0.30/hr bot, $0.10/hr transcription. No hidden fees, no volume commitments, no sales calls required to get pricing.</p>
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.6]">$0.30/hr bot, $0.20/hr transcription. No hidden fees, no volume commitments, no sales calls required to get pricing.</p>
           </div>
           <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
             <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-2">Community Helm charts</h3>

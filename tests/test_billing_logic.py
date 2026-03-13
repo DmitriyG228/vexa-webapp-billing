@@ -1,6 +1,6 @@
 """
 Tests for billing logic changes:
-- Separated bot ($0.30/hr) + transcription ($0.10/hr) deduction
+- Separated bot ($0.30/hr) + transcription ($0.20/hr) deduction
 - Free credit model (replaces trials)
 - Updated TaaS rate ($0.002/min)
 - Removed realtime add-on
@@ -22,7 +22,7 @@ def test_bot_only_cost_1hr():
     transcription_enabled = False
     duration_hours = duration_seconds / 3600.0
     bot_cost_cents = int(duration_hours * 30 + 0.5)
-    tx_cost_cents = int(duration_hours * 10 + 0.5) if transcription_enabled else 0
+    tx_cost_cents = int(duration_hours * 20 + 0.5) if transcription_enabled else 0
     total = bot_cost_cents + tx_cost_cents
     assert bot_cost_cents == 30
     assert tx_cost_cents == 0
@@ -30,29 +30,29 @@ def test_bot_only_cost_1hr():
 
 
 def test_bot_with_transcription_1hr():
-    """T3: 1 hour meeting with transcription → 40 cents."""
+    """T3: 1 hour meeting with transcription → 50 cents."""
     duration_seconds = 3600
     transcription_enabled = True
     duration_hours = duration_seconds / 3600.0
     bot_cost_cents = int(duration_hours * 30 + 0.5)
-    tx_cost_cents = int(duration_hours * 10 + 0.5) if transcription_enabled else 0
+    tx_cost_cents = int(duration_hours * 20 + 0.5) if transcription_enabled else 0
     total = bot_cost_cents + tx_cost_cents
     assert bot_cost_cents == 30
-    assert tx_cost_cents == 10
-    assert total == 40
+    assert tx_cost_cents == 20
+    assert total == 50
 
 
 def test_short_meeting_rounding():
-    """T5: 10 minute meeting with transcription → ~7 cents."""
+    """T5: 10 minute meeting with transcription → ~9 cents."""
     duration_seconds = 600
     transcription_enabled = True
     duration_hours = duration_seconds / 3600.0
     bot_cost_cents = int(duration_hours * 30 + 0.5)
-    tx_cost_cents = int(duration_hours * 10 + 0.5) if transcription_enabled else 0
+    tx_cost_cents = int(duration_hours * 20 + 0.5) if transcription_enabled else 0
     total = bot_cost_cents + tx_cost_cents
     assert bot_cost_cents == 5  # 0.1667 * 30 = 5.0 → 5
-    assert tx_cost_cents == 2   # 0.1667 * 10 = 1.667 → 2
-    assert total == 7
+    assert tx_cost_cents == 3   # 0.1667 * 20 = 3.333 → 3
+    assert total == 8
 
 
 def test_30min_meeting_costs():
@@ -62,10 +62,10 @@ def test_30min_meeting_costs():
 
     # With transcription
     bot = int(duration_hours * 30 + 0.5)
-    tx = int(duration_hours * 10 + 0.5)
+    tx = int(duration_hours * 20 + 0.5)
     assert bot == 15  # 0.5 * 30 = 15
-    assert tx == 5    # 0.5 * 10 = 5
-    assert bot + tx == 20
+    assert tx == 10   # 0.5 * 20 = 10
+    assert bot + tx == 25
 
     # Without
     tx_off = 0

@@ -36,9 +36,9 @@ async def handle_meeting_completed(payload: Dict[str, Any]):
     duration_hours = duration_seconds / 3600.0
     duration_minutes = duration_seconds / 60.0
 
-    # $0.30/hr bot + $0.10/hr transcription (if enabled)
+    # $0.30/hr bot + $0.20/hr transcription (if enabled)
     bot_cost_cents = int(duration_hours * 30 + 0.5)
-    tx_cost_cents = int(duration_hours * 10 + 0.5) if transcription_enabled else 0
+    tx_cost_cents = int(duration_hours * 20 + 0.5) if transcription_enabled else 0
     total_cost_cents = bot_cost_cents + tx_cost_cents
 
     result = {
