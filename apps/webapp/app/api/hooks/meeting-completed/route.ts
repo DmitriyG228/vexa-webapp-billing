@@ -2,6 +2,7 @@ import { computeUsageCents } from '@/lib/billing-rates'
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe, getUserByEmail } from '@/lib/stripe-billing'
 import { checkAutoTopup } from '@/lib/auto-topup'
+import { recordMeterEvent } from '@/lib/meter-ledger'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +46,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Individual plan ($12/mo flat) includes bot + transcription — no metering needed.
+    // Meter events are harmless (Stripe ignores them without metered subscription items),
+    // but skipping avoids polluting the usage display.
+    const subTier = user.data?.subscription_tier as string | undefined
+    if (subTier === 'individual') {
+      console.log(`[MEETING-HOOK] Skipping metering for Individual plan user ${meeting.user_email}`)
+      return NextResponse.json({
+        success: true,
+        meeting_id: meeting.id,
+        plan: 'individual',
+        bot_minutes: 0,
+        tx_minutes: 0,
+      })
+    }
+
     // Report bot minutes
     try {
       await stripe.billing.meterEvents.create({
@@ -54,6 +70,7 @@ export async function POST(request: NextRequest) {
           value: String(durationMinutes),
         },
       })
+      await recordMeterEvent(customerId, 'vexa_bot_minutes', durationMinutes)
       console.log(`[MEETING-HOOK] Reported ${durationMinutes} bot minutes for ${meeting.user_email}`)
     } catch (err) {
       console.error(`[MEETING-HOOK] Bot MeterEvent failed for ${meeting.user_email}:`, err)
@@ -73,6 +90,7 @@ export async function POST(request: NextRequest) {
             value: String(durationMinutes),
           },
         })
+        await recordMeterEvent(customerId, 'vexa_tx_addon_minutes', durationMinutes)
         console.log(`[MEETING-HOOK] Reported ${durationMinutes} TX minutes for ${meeting.user_email}`)
       } catch (err) {
         console.error(`[MEETING-HOOK] TX MeterEvent failed for ${meeting.user_email}:`, err)

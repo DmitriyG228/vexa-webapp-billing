@@ -1,4 +1,4 @@
-import { BOT_RATE_CENTS_PER_MIN, TX_RATE_CENTS_PER_MIN } from '@/lib/billing-rates'
+import { BOT_RATE_CENTS_PER_MIN, TX_RATE_CENTS_PER_MIN, TX_API_RATE_CENTS_PER_MIN } from '@/lib/billing-rates'
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
@@ -11,9 +11,10 @@ function formatUsd(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
 }
 
-// Meter event names — must match what meeting-completed hook reports
+// Meter event names — must match what meeting-completed hook / TX gateway reports
 const BOT_METER = 'vexa_bot_minutes'
 const TX_METER = 'vexa_tx_addon_minutes'
+const TX_API_METER = 'vexa_tx_api_minutes'
 
 // Pricing per minute (in cents) — must match Stripe price configuration
 
@@ -31,6 +32,7 @@ const EMPTY = {
   topup_amount_cents: 500,
   bot_minutes: 0,
   tx_minutes: 0,
+  tx_api_minutes: 0,
 }
 
 // Query Stripe Meter event summaries for a customer in the current billing period
@@ -97,8 +99,12 @@ export async function GET() {
       cancelAtPeriodEnd = subs.data.some(s => s.cancel_at_period_end)
       // Use the first active subscription's billing period
       if (subs.data.length > 0) {
-        periodStart = subs.data[0].items.data[0].current_period_start
-        periodEnd = subs.data[0].items.data[0].current_period_end
+        const rawStart = subs.data[0].items.data[0].current_period_start
+        // Stripe Meter summaries require timestamps aligned to daily boundaries
+        periodStart = rawStart - (rawStart % 86400)
+        const rawEnd = subs.data[0].items.data[0].current_period_end
+        const endRem = rawEnd % 86400
+        periodEnd = endRem === 0 ? rawEnd : rawEnd + (86400 - endRem)
       }
     } catch (err) {
       console.error('[BOT-BALANCE] Subscription list error:', err)
@@ -150,15 +156,21 @@ export async function GET() {
     // Query actual metered usage from Stripe Meters for the current billing period
     let botMinutes = 0
     let txMinutes = 0
+    let txApiMinutes = 0
     if (periodStart > 0 && periodEnd > 0) {
-      ;[botMinutes, txMinutes] = await Promise.all([
+      ;[botMinutes, txMinutes, txApiMinutes] = await Promise.all([
         getMeterUsage(stripe, customerId, BOT_METER, periodStart, periodEnd),
         getMeterUsage(stripe, customerId, TX_METER, periodStart, periodEnd),
+        getMeterUsage(stripe, customerId, TX_API_METER, periodStart, periodEnd),
       ])
     }
 
     // Calculate accrued usage cost from meter data
-    const meteredUsageCents = Math.round(botMinutes * BOT_RATE_CENTS_PER_MIN + txMinutes * TX_RATE_CENTS_PER_MIN)
+    const meteredUsageCents = Math.round(
+      botMinutes * BOT_RATE_CENTS_PER_MIN +
+      txMinutes * TX_RATE_CENTS_PER_MIN +
+      txApiMinutes * TX_API_RATE_CENTS_PER_MIN
+    )
 
     // Total balance = credit grants + proration credits
     // initial_credit stays as welcome credit only (not inflated by prorations)
@@ -182,6 +194,7 @@ export async function GET() {
       topup_amount_cents: topupAmountCents,
       bot_minutes: botMinutes,
       tx_minutes: txMinutes,
+      tx_api_minutes: txApiMinutes,
       period_start: periodStart || null,
       period_end: periodEnd || null,
     })

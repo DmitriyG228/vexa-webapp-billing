@@ -80,11 +80,24 @@ interface MeetingsData {
   }
 }
 
+interface BillingEvent {
+  id: string
+  date: string
+  type: string
+  description: string
+  amount_cents: number
+  amount_usd: string
+  status: string
+  meter?: string
+  minutes?: number
+}
+
 // ─── Tabs (service-based) ───────────────────────────────────────────────────
 
 const TABS = [
   { id: "bots", label: "Bots" },
   { id: "transcription", label: "Transcription" },
+  { id: "billing", label: "Billing" },
   { id: "api-keys", label: "API Keys" },
 ] as const
 
@@ -202,9 +215,10 @@ function AccountPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [balanceData, setBalanceData] = useState<BalanceData | null>(null)
-  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null>(null)
+  const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number; tx_api_minutes?: number } | null>(null)
   const [meetingsData, setMeetingsData] = useState<MeetingsData | null>(null)
-
+  const [billingEvents, setBillingEvents] = useState<BillingEvent[]>([])
+  const [meterEvents, setMeterEvents] = useState<BillingEvent[]>([])
 
   // Loading states
   const [isLoading, setIsLoading] = useState(true)
@@ -312,6 +326,19 @@ function AccountPage() {
     }
   }, [])
 
+  const fetchBillingEvents = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/account/billing-events", { cache: "no-store" })
+      if (resp.ok) {
+        const data = await resp.json()
+        setBillingEvents(data.events || [])
+        setMeterEvents(data.meter_events || [])
+      }
+    } catch (err) {
+      console.error("Error fetching billing events:", err)
+    }
+  }, [])
+
 
   const [hasAutoProvisioned, setHasAutoProvisioned] = useState(false)
 
@@ -322,11 +349,11 @@ function AccountPage() {
     }
     const loadAll = async () => {
       setIsLoading(true)
-      await Promise.all([fetchUserData(), fetchUsage(), fetchBalance(), fetchBotBalance(), fetchMeetings()])
+      await Promise.all([fetchUserData(), fetchUsage(), fetchBalance(), fetchBotBalance(), fetchMeetings(), fetchBillingEvents()])
       setIsLoading(false)
     }
     loadAll()
-  }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBalance, fetchBotBalance, fetchMeetings])
+  }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBalance, fetchBotBalance, fetchMeetings, fetchBillingEvents])
 
   // Auto-provision: if user has no subscription, create PAYG + $5 credit
   useEffect(() => {
@@ -600,6 +627,10 @@ function AccountPage() {
           />
         )}
 
+        {activeTab === "billing" && (
+          <BillingTab events={billingEvents} meterEvents={meterEvents} />
+        )}
+
         {activeTab === "api-keys" && (
           <ApiKeysTab
             apiKeys={apiKeys}
@@ -647,7 +678,7 @@ function AccountPage() {
                   <span className="text-gray-400">Usage this period</span>
                   <span className="font-medium text-gray-950 dark:text-gray-50">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
                 </div>
-                {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes) ? (
+                {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes || botBalanceData.tx_api_minutes) ? (
                   <>
                     {(botBalanceData.bot_minutes ?? 0) > 0 && (
                       <div className="flex items-center justify-between text-[12px] mt-1 pl-3">
@@ -657,8 +688,14 @@ function AccountPage() {
                     )}
                     {(botBalanceData.tx_minutes ?? 0) > 0 && (
                       <div className="flex items-center justify-between text-[12px] pl-3">
-                        <span className="text-gray-400">TX minutes</span>
+                        <span className="text-gray-400">TX addon minutes</span>
                         <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
+                      </div>
+                    )}
+                    {(botBalanceData.tx_api_minutes ?? 0) > 0 && (
+                      <div className="flex items-center justify-between text-[12px] pl-3">
+                        <span className="text-gray-400">Transcription minutes</span>
+                        <span className="text-gray-400">{botBalanceData.tx_api_minutes} min</span>
                       </div>
                     )}
                   </>
@@ -1372,6 +1409,142 @@ function TranscriptionTab({
         ) : (
           <div className="h-24 flex items-center justify-center">
             <p className="text-[14px] text-gray-300 dark:text-gray-600">No usage data available</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAB: Billing
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function BillingTab({ events, meterEvents }: { events: BillingEvent[]; meterEvents: BillingEvent[] }) {
+  const meterStyles: Record<string, { bg: string; text: string; label: string }> = {
+    vexa_bot_minutes: { bg: "bg-purple-50 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300", label: "Bot" },
+    vexa_tx_addon_minutes: { bg: "bg-cyan-50 dark:bg-cyan-900/30", text: "text-cyan-700 dark:text-cyan-300", label: "TX Addon" },
+    vexa_tx_api_minutes: { bg: "bg-teal-50 dark:bg-teal-900/30", text: "text-teal-700 dark:text-teal-300", label: "TX API" },
+  }
+
+  const typeStyles: Record<string, { bg: string; text: string; label: string }> = {
+    charge: { bg: "bg-blue-50 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300", label: "Payment" },
+    invoice: { bg: "bg-gray-50 dark:bg-neutral-800", text: "text-gray-600 dark:text-gray-400", label: "Invoice" },
+    credit_grant: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-300", label: "Credit" },
+    refund: { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-300", label: "Refund" },
+  }
+
+  const statusStyles: Record<string, string> = {
+    succeeded: "text-emerald-600 dark:text-emerald-400",
+    paid: "text-emerald-600 dark:text-emerald-400",
+    active: "text-emerald-600 dark:text-emerald-400",
+    recorded: "text-emerald-600 dark:text-emerald-400",
+    open: "text-amber-600 dark:text-amber-400",
+    draft: "text-gray-400",
+    void: "text-gray-400",
+    voided: "text-gray-400",
+    uncollectible: "text-red-500",
+    failed: "text-red-500",
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Metering Events */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Metering Events</h3>
+        <p className="text-[13px] text-gray-400 mb-5">Daily usage recorded by Stripe meters (last 90 days).</p>
+
+        {meterEvents.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-[14px] text-gray-300 dark:text-gray-600">No metering events yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-neutral-800">
+                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Date</th>
+                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Meter</th>
+                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Minutes</th>
+                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {meterEvents.map((event) => {
+                  const style = meterStyles[event.meter || ""] || { bg: "bg-gray-50 dark:bg-neutral-800", text: "text-gray-600 dark:text-gray-400", label: event.meter || "Unknown" }
+                  return (
+                    <tr key={event.id} className="border-b border-gray-50 dark:border-neutral-800/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                      <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
+                        {new Date(event.date).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
+                          {style.label}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-medium text-gray-950 dark:text-gray-50 whitespace-nowrap">
+                        {(event.minutes ?? 0).toFixed(2)} min
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-gray-500 whitespace-nowrap">
+                        {event.amount_usd}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Billing History */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Billing History</h3>
+        <p className="text-[13px] text-gray-400 mb-5">Charges, invoices, and credit grants from Stripe.</p>
+
+        {events.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-[14px] text-gray-300 dark:text-gray-600">No billing events yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-neutral-800">
+                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Date</th>
+                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Type</th>
+                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Description</th>
+                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Amount</th>
+                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {events.map((event) => {
+                  const style = typeStyles[event.type] || typeStyles.invoice
+                  return (
+                    <tr key={event.id} className="border-b border-gray-50 dark:border-neutral-800/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                      <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
+                        {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
+                          {style.label}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-700 dark:text-gray-300 max-w-[300px] truncate">
+                        {event.description}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-medium text-gray-950 dark:text-gray-50 whitespace-nowrap">
+                        {event.amount_usd}
+                      </td>
+                      <td className={`py-2.5 px-3 text-right capitalize whitespace-nowrap ${statusStyles[event.status] || "text-gray-400"}`}>
+                        {event.status}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

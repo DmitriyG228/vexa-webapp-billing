@@ -97,8 +97,12 @@ export async function GET() {
     try {
       const subs = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 10 })
       if (subs.data.length > 0) {
-        periodStart = subs.data[0].items.data[0].current_period_start
-        periodEnd = subs.data[0].items.data[0].current_period_end
+        const rawStart = subs.data[0].items.data[0].current_period_start
+        // Stripe Meter summaries require timestamps aligned to daily boundaries
+        periodStart = rawStart - (rawStart % 86400)
+        const rawEnd = subs.data[0].items.data[0].current_period_end
+        const endRem = rawEnd % 86400
+        periodEnd = endRem === 0 ? rawEnd : rawEnd + (86400 - endRem)
       }
     } catch (err) {
       console.error('[ACCOUNT/BALANCE] Subscription list error:', err)
