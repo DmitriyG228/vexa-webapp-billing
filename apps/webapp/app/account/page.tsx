@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
-import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle, AlertTriangle } from "lucide-react"
+import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle, AlertTriangle, Bug } from "lucide-react"
 import { getDashboardUrl } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -538,13 +538,24 @@ function AccountPage() {
               Manage your services, usage, and billing.
             </p>
           </div>
-          <a
-            href={getDashboardUrl()}
-            className="hidden sm:inline-flex items-center gap-2 h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-          >
-            Go to Dashboard
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+          <div className="hidden sm:flex items-center gap-2">
+            <a
+              href="https://github.com/Vexa-ai/vexa/issues/new?labels=bug,hosted&title=[Hosted]%20&body=%23%23%20Environment%0AHosted%20service%20(app.vexa.ai)%0A%0A%23%23%20Description%0A%0A%23%23%20Steps%20to%20reproduce%0A1.%20%0A%0A%23%23%20Expected%20behavior%0A%0A%23%23%20Actual%20behavior%0A"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+            >
+              Report a Bug
+              <Bug className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href={getDashboardUrl()}
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+            >
+              Go to Dashboard
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
         </div>
 
         {/* Tab bar */}
