@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSession, signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
-import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle, AlertTriangle, Bug } from "lucide-react"
+import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2, ExternalLink, HelpCircle, AlertTriangle, Bug, Download } from "lucide-react"
 import { getDashboardUrl } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -56,30 +56,6 @@ interface UsageData {
   }
 }
 
-interface BalanceData {
-  balance_minutes: number
-  remaining_minutes: number
-  total_purchased_minutes: number
-  total_used_minutes: number
-  balance_cents?: number
-  balance_usd?: string
-  topup_enabled?: boolean
-  topup_threshold_cents?: number
-  topup_amount_cents?: number
-}
-
-interface MeetingsData {
-  meeting_stats?: {
-    total: number
-    completed: number
-    failed: number
-  }
-  usage_patterns?: {
-    platforms: Record<string, number>
-    peak_hours: number[]
-  }
-}
-
 interface BillingEvent {
   id: string
   date: string
@@ -97,7 +73,7 @@ interface BillingEvent {
 const TABS = [
   { id: "bots", label: "Bots" },
   { id: "transcription", label: "Transcription" },
-  { id: "billing", label: "Billing" },
+  { id: "balance", label: "Balance" },
   { id: "api-keys", label: "API Keys" },
 ] as const
 
@@ -107,8 +83,8 @@ type TabId = (typeof TABS)[number]["id"]
 
 // Plans imported from product catalog (product/products.ts = source of truth)
 const BOT_PLANS = [
-  { id: "individual", name: "Individual", price: "$12/mo", detail: "1 bot included" },
-  { id: "bot_service", name: "Pay-as-you-go", price: "$0.30/hr", detail: "Usage-based, unlimited bots" },
+  { id: "individual", name: "Individual", price: "$12", period: "/mo", features: ["1 concurrent bot", "Real-time transcription included"] },
+  { id: "bot_service", name: "Pay-as-you-go", price: "$0.30", period: "/hr", features: ["Unlimited concurrent bots", "+$0.10/hr real-time transcription (optional)"] },
 ]
 
 // Add-on products — can be added alongside any bot plan
@@ -118,9 +94,9 @@ const ADDON_PRODUCTS = [
 
 // All plans for display in getPlanLabel
 const PRICING_PLANS = [
-  ...BOT_PLANS,
-  ...ADDON_PRODUCTS,
-  { id: "enterprise", name: "Enterprise", price: "Custom", detail: "On-premises" },
+  ...BOT_PLANS.map(p => ({ id: p.id, name: p.name, price: `${p.price}${p.period}` })),
+  ...ADDON_PRODUCTS.map(p => ({ id: p.id, name: p.name, price: p.price })),
+  { id: "enterprise", name: "Enterprise", price: "Custom" },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -214,9 +190,7 @@ function AccountPage() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [usageData, setUsageData] = useState<UsageData | null>(null)
-  const [balanceData, setBalanceData] = useState<BalanceData | null>(null)
   const [botBalanceData, setBotBalanceData] = useState<{ balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number; tx_api_minutes?: number } | null>(null)
-  const [meetingsData, setMeetingsData] = useState<MeetingsData | null>(null)
   const [billingEvents, setBillingEvents] = useState<BillingEvent[]>([])
   const [meterEvents, setMeterEvents] = useState<BillingEvent[]>([])
 
@@ -234,16 +208,6 @@ function AccountPage() {
   // Billing states
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
 
-  // Shared usage controls state (shown on Bots + Transcription tabs)
-  const [autoTopup, setAutoTopup] = useState(true)
-  const [topupThresholdStr, setTopupThresholdStr] = useState("1")
-  const [topupAmountStr, setTopupAmountStr] = useState("5")
-  const [monthlyCapStr, setMonthlyCapStr] = useState("50")
-  const [isSavingSettings, setIsSavingSettings] = useState(false)
-  const [settingsSaved, setSettingsSaved] = useState(false)
-  const [isAddingFunds, setIsAddingFunds] = useState(false)
-  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
-  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
 
   const userId = (session?.user as any)?.id
 
@@ -299,30 +263,12 @@ function AccountPage() {
     }
   }, [])
 
-  const fetchBalance = useCallback(async () => {
-    try {
-      const resp = await fetch("/api/account/balance", { cache: "no-store" })
-      if (resp.ok) setBalanceData(await resp.json())
-    } catch (err) {
-      console.error("Error fetching balance:", err)
-    }
-  }, [])
-
   const fetchBotBalance = useCallback(async () => {
     try {
       const resp = await fetch("/api/stripe/bot-balance", { cache: "no-store" })
       if (resp.ok) setBotBalanceData(await resp.json())
     } catch (err) {
       console.error("Error fetching bot balance:", err)
-    }
-  }, [])
-
-  const fetchMeetings = useCallback(async () => {
-    try {
-      const resp = await fetch("/api/account/meetings", { cache: "no-store" })
-      if (resp.ok) setMeetingsData(await resp.json())
-    } catch (err) {
-      console.error("Error fetching meetings:", err)
     }
   }, [])
 
@@ -349,11 +295,11 @@ function AccountPage() {
     }
     const loadAll = async () => {
       setIsLoading(true)
-      await Promise.all([fetchUserData(), fetchUsage(), fetchBalance(), fetchBotBalance(), fetchMeetings(), fetchBillingEvents()])
+      await Promise.all([fetchUserData(), fetchUsage(), fetchBotBalance(), fetchBillingEvents()])
       setIsLoading(false)
     }
     loadAll()
-  }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBalance, fetchBotBalance, fetchMeetings, fetchBillingEvents])
+  }, [sessionStatus, userId, fetchUserData, fetchUsage, fetchBotBalance, fetchBillingEvents])
 
   // Auto-provision: if user has no subscription, create PAYG + $5 credit
   useEffect(() => {
@@ -376,59 +322,6 @@ function AccountPage() {
     provision()
   }, [userData, hasAutoProvisioned, fetchUserData, fetchBotBalance])
 
-  // ─── Shared usage controls (synced from botBalanceData) ─────────────────
-
-  useEffect(() => {
-    if (botBalanceData) {
-      setAutoTopup(botBalanceData.topup_enabled ?? true)
-      setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
-      setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
-      if ((botBalanceData as any).monthly_cap_cents) {
-        setMonthlyCapStr(String(Math.round((botBalanceData as any).monthly_cap_cents / 100)))
-      }
-    }
-  }, [botBalanceData])
-
-  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
-
-  const handleSaveSettings = async () => {
-    const threshold = parseInt(topupThresholdStr, 10) || 0
-    const amount = parseInt(topupAmountStr, 10) || 0
-    const cap = parseInt(monthlyCapStr, 10) || 0
-    if (autoTopup && threshold < 1) { alert("Threshold must be at least $1."); return }
-    if (autoTopup && amount < 2) { alert("Top-up amount must be at least $2."); return }
-    setIsSavingSettings(true)
-    setSettingsSaved(false)
-    try {
-      const resp = await fetch("/api/stripe/topup-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "bot", enabled: autoTopup, threshold: threshold * 100, amount_cents: amount * 100, monthly_cap_cents: cap * 100 }),
-      })
-      if (!resp.ok) { const data = await resp.json().catch(() => ({})); throw new Error(data.detail || data.error || "Failed to save settings") }
-      setSettingsSaved(true)
-      setTimeout(() => setSettingsSaved(false), 2000)
-      await fetchBotBalance()
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed to save settings") }
-    finally { setIsSavingSettings(false) }
-  }
-
-  const handleAddFundsConfirmed = async () => {
-    setShowAddFundsConfirm(false)
-    setIsAddingFunds(true)
-    try {
-      const resp = await fetch("/api/stripe/topup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: "bot", amount_cents: addFundsAmount * 100 }),
-      })
-      const data = await resp.json()
-      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
-      if (data.url) { window.location.href = data.url; return }
-      await fetchBotBalance()
-    } catch (err) { alert(err instanceof Error ? err.message : "Failed to add funds") }
-    finally { setIsAddingFunds(false) }
-  }
 
   // ─── API Key actions ─────────────────────────────────────────────────────
 
@@ -613,7 +506,6 @@ function AccountPage() {
         {activeTab === "bots" && (
           <BotsTab
             userData={userData}
-            meetingsData={meetingsData}
             botBalanceData={botBalanceData}
             onOpenPortal={handleOpenStripePortal}
             isOpeningPortal={isOpeningPortal}
@@ -622,13 +514,18 @@ function AccountPage() {
 
         {activeTab === "transcription" && (
           <TranscriptionTab
-            balanceData={balanceData}
             usageData={usageData}
+            botBalanceData={botBalanceData}
           />
         )}
 
-        {activeTab === "billing" && (
-          <BillingTab events={billingEvents} meterEvents={meterEvents} />
+        {activeTab === "balance" && (
+          <BalanceTab
+            botBalanceData={botBalanceData}
+            events={billingEvents}
+            meterEvents={meterEvents}
+            fetchBotBalance={fetchBotBalance}
+          />
         )}
 
         {activeTab === "api-keys" && (
@@ -651,215 +548,8 @@ function AccountPage() {
           />
         )}
 
-        {/* Shared Balance & Usage — shown on Bots + Transcription tabs (all tiers, not just PAYG) */}
-        {(activeTab === "bots" || activeTab === "transcription") && (
-          <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 mt-8" style={{ boxShadow: cardShadow }}>
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Balance & Usage</h3>
-            <p className="text-[13px] text-gray-400 mb-5">Shared credit balance across bots and transcription.</p>
-
-            {/* Balance + period info */}
-            <div className="mb-5">
-              <div className="flex items-center justify-between text-[14px] mb-3">
-                <span className="text-gray-400">Credit balance</span>
-                <span className={`font-semibold text-[16px] ${botBalanceData?.balance_cents === 0 ? "text-red-500 dark:text-red-400" : "text-gray-950 dark:text-gray-50"}`}>
-                  {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
-                </span>
-              </div>
-              <div className="rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3">
-                <div className="flex items-center justify-between text-[13px] mb-2">
-                  <span className="text-gray-400">Current period</span>
-                  <span className="text-gray-500">
-                    {botBalanceData?.has_subscription && (botBalanceData as any).period_start && (botBalanceData as any).period_end
-                      ? `${formatDate((botBalanceData as any).period_start)} — ${formatDate((botBalanceData as any).period_end)}`
-                      : "—"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[13px]">
-                  <span className="text-gray-400">Usage this period</span>
-                  <span className="font-medium text-gray-950 dark:text-gray-50">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
-                </div>
-                {botBalanceData?.has_subscription && (botBalanceData.bot_minutes || botBalanceData.tx_minutes || botBalanceData.tx_api_minutes) ? (
-                  <>
-                    {(botBalanceData.bot_minutes ?? 0) > 0 && (
-                      <div className="flex items-center justify-between text-[12px] mt-1 pl-3">
-                        <span className="text-gray-400">Bot minutes</span>
-                        <span className="text-gray-400">{botBalanceData.bot_minutes} min</span>
-                      </div>
-                    )}
-                    {(botBalanceData.tx_minutes ?? 0) > 0 && (
-                      <div className="flex items-center justify-between text-[12px] pl-3">
-                        <span className="text-gray-400">TX addon minutes</span>
-                        <span className="text-gray-400">{botBalanceData.tx_minutes} min</span>
-                      </div>
-                    )}
-                    {(botBalanceData.tx_api_minutes ?? 0) > 0 && (
-                      <div className="flex items-center justify-between text-[12px] pl-3">
-                        <span className="text-gray-400">Transcription minutes</span>
-                        <span className="text-gray-400">{botBalanceData.tx_api_minutes} min</span>
-                      </div>
-                    )}
-                  </>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Add Funds */}
-            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5">
-              <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds</label>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] text-gray-400">$</span>
-                  <input
-                    id="add-funds-input"
-                    type="text"
-                    inputMode="numeric"
-                    value={addFundsAmountStr}
-                    onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                    placeholder="5"
-                    className="w-20 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                  />
-                </div>
-                <button
-                  onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
-                  disabled={isAddingFunds || addFundsAmount < 2}
-                  className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
-                >
-                  {isAddingFunds ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</> : "Add Funds"}
-                </button>
-                <span className="text-[12px] text-gray-400">min $2</span>
-              </div>
-            </div>
-
-            {/* Auto-topup */}
-            <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
-                  <p className="text-[13px] text-gray-400">Automatically charge when balance is low.</p>
-                </div>
-                <button
-                  onClick={() => setAutoTopup(!autoTopup)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
-                </button>
-              </div>
-
-              {autoTopup && (
-                <>
-                  <div className="grid grid-cols-3 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-4">
-                    <div>
-                      <label className="text-[13px] text-gray-500 mb-1.5 block">When below</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[14px] text-gray-400">$</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={topupThresholdStr}
-                          onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
-                          placeholder="1"
-                          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[14px] text-gray-400">$</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={topupAmountStr}
-                          onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
-                          placeholder="5"
-                          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[13px] text-gray-500 mb-1.5 block">Monthly cap</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[14px] text-gray-400">$</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={monthlyCapStr}
-                          onChange={(e) => setMonthlyCapStr(e.target.value.replace(/[^0-9]/g, ""))}
-                          placeholder="50"
-                          className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Monthly cap progress */}
-                  {(botBalanceData as any)?.monthly_topup_cents != null && parseInt(monthlyCapStr) > 0 && (
-                    <div className="mt-3 rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3">
-                      <div className="flex justify-between items-center text-[13px]">
-                        <span className="text-gray-400">Auto-topped up this month</span>
-                        <span className="font-medium text-gray-950 dark:text-gray-50">
-                          ${(((botBalanceData as any)?.monthly_topup_cents ?? 0) / 100).toFixed(2)}
-                          {" "}<span className="text-gray-400 font-normal">/ ${monthlyCapStr}.00</span>
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 bg-gray-200 dark:bg-neutral-700 rounded-full mt-2">
-                        <div
-                          className="h-full bg-gray-950 dark:bg-gray-200 rounded-full"
-                          style={{ width: `${Math.min((((botBalanceData as any)?.monthly_topup_cents ?? 0) / 100) / parseInt(monthlyCapStr || "1") * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={handleSaveSettings}
-                      disabled={isSavingSettings}
-                      className="h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
-                    >
-                      {isSavingSettings ? (
-                        <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
-                      ) : settingsSaved ? (
-                        <><Check className="h-3 w-3" /> Saved</>
-                      ) : (
-                        "Save Settings"
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Add Funds confirmation dialog */}
-            {showAddFundsConfirm && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
-                  <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
-                  <p className="text-[14px] text-gray-500 mb-4">
-                    This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method.
-                  </p>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setShowAddFundsConfirm(false)}
-                      className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleAddFundsConfirmed}
-                      className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                    >
-                      Confirm — ${addFundsAmount}.00
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Enterprise CTA — shown on Bots + Transcription tabs */}
-        {(activeTab === "bots" || activeTab === "transcription") && (
+        {/* Enterprise CTA — shown on Bots tab */}
+        {activeTab === "bots" && (
           <a
             href="mailto:dmitry@vexa.ai?subject=Enterprise%20plan%20inquiry"
             className="flex items-center gap-4 rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors group mt-6"
@@ -958,13 +648,11 @@ function CancelToPAYGButton() {
 
 function BotsTab({
   userData,
-  meetingsData,
   botBalanceData,
   onOpenPortal,
   isOpeningPortal,
 }: {
   userData: UserData | null
-  meetingsData: MeetingsData | null
   botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number } | null
   onOpenPortal: () => void
   isOpeningPortal: boolean
@@ -1063,8 +751,8 @@ function BotsTab({
         </div>
       )}
 
-      {/* Subscription + Bot limit row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Subscription + Bot limit */}
+      <div>
         <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Subscription</h3>
@@ -1160,130 +848,76 @@ function BotsTab({
           )}
         </div>
 
-        {/* Meeting stats card — only show when there's actual data */}
-        {meetingsData?.meeting_stats && (meetingsData.meeting_stats.total > 0) ? (
-          <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-4">Meeting Stats</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Total", value: meetingsData.meeting_stats.total },
-                { label: "Completed", value: meetingsData.meeting_stats.completed ?? 0 },
-                { label: "Failed", value: meetingsData.meeting_stats.failed ?? 0 },
-              ].map(({ label, value }) => (
-                <div key={label}>
-                  <p className="text-[12px] text-gray-400 mb-0.5">{label}</p>
-                  <p className="text-[22px] font-semibold tracking-[-0.02em] text-gray-950 dark:text-gray-50">{value}</p>
-                </div>
-              ))}
-            </div>
-            {meetingsData?.usage_patterns?.platforms && Object.keys(meetingsData.usage_patterns.platforms).length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
-                <p className="text-[12px] text-gray-400 mb-2">Platforms</p>
-                <div className="flex gap-2 flex-wrap">
-                  {Object.entries(meetingsData.usage_patterns.platforms).map(([platform, count]) => (
-                    <span
-                      key={platform}
-                      className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-medium bg-gray-50 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-neutral-700"
-                    >
-                      {platform} ({count})
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 p-6 text-center" style={{ boxShadow: cardShadow }}>
-            <p className="text-[14px] text-gray-400">No meetings yet. Send a bot to a meeting to see stats here.</p>
-          </div>
-        )}
       </div>
 
       {/* Bot plans — mutually exclusive */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <div className="mb-4">
+        <div className="mb-5">
           <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Bot Plans</h3>
           <p className="text-[13px] text-gray-400 mt-0.5">
             Choose one — switch anytime
           </p>
         </div>
-        <div className="divide-y divide-gray-100 dark:divide-neutral-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {BOT_PLANS.map((plan) => {
             const hasActiveSub = subStatus && ["active", "trialing", "scheduled_to_cancel"].includes(subStatus)
             const isCurrent = plan.id === subTier && hasActiveSub
             const canSwitch = hasActiveSub && !isCurrent
             const canSubscribe = !hasActiveSub
             return (
-              <div key={plan.id}>
-                <div className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
-                    <span className={`text-[14px] font-medium ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-500 dark:text-gray-400"}`}>
-                      {plan.name}
-                    </span>
-                    <span className="text-[12px] text-gray-400 dark:text-gray-500">{plan.detail}</span>
-                    {isCurrent && (
-                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950">
-                        Current
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-[14px] font-semibold ${isCurrent ? "text-gray-950 dark:text-gray-50" : "text-gray-400 dark:text-gray-500"}`}>
-                      {plan.price}
-                    </span>
-                    {canSwitch && (
-                      <button
-                        onClick={() => setShowSwitchConfirm(plan.id)}
-                        disabled={isSwitching}
-                        className="text-[12px] font-medium px-3 py-1 rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
-                      >
-                        {isSwitching ? "Switching..." : "Switch"}
-                      </button>
-                    )}
-                    {canSubscribe && (
-                      <button
-                        onClick={() => handleSubscribe(plan.id)}
-                        disabled={isSubscribing}
-                        className="text-[12px] font-medium px-3 py-1 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all disabled:opacity-50"
-                      >
-                        {isSubscribing ? "Loading..." : "Subscribe"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {/* Show usage credit under PAYG row when user is on a non-PAYG plan */}
+              <div
+                key={plan.id}
+                className={`relative rounded-xl border-2 p-5 transition-all ${
+                  isCurrent
+                    ? "border-gray-950 dark:border-white bg-gray-50/50 dark:bg-neutral-800/30"
+                    : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
+                }`}
+              >
+                {isCurrent && (
+                  <span className="absolute -top-2.5 left-4 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950">
+                    Current
+                  </span>
+                )}
+                <p className="text-[15px] font-semibold text-gray-950 dark:text-gray-50 mb-1">{plan.name}</p>
+                <p className="text-[24px] font-semibold tracking-tight text-gray-950 dark:text-gray-50 mb-3">
+                  {plan.price}<span className="text-[14px] font-normal text-gray-400">{plan.period}</span>
+                </p>
+                <ul className="space-y-1.5 mb-4">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[13px] text-gray-500 dark:text-gray-400">
+                      <Check className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {canSwitch && (
+                  <button
+                    onClick={() => setShowSwitchConfirm(plan.id)}
+                    disabled={isSwitching}
+                    className="w-full h-9 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50"
+                  >
+                    {isSwitching ? "Switching..." : "Switch to this plan"}
+                  </button>
+                )}
+                {canSubscribe && (
+                  <button
+                    onClick={() => handleSubscribe(plan.id)}
+                    disabled={isSubscribing}
+                    className="w-full h-9 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-all disabled:opacity-50"
+                  >
+                    {isSubscribing ? "Loading..." : "Subscribe"}
+                  </button>
+                )}
+                {/* Show usage credit under PAYG card when user is on a non-PAYG plan */}
                 {plan.id === 'bot_service' && !isCurrent && botBalanceData && botBalanceData.balance_cents > 0 && (
-                  <div className="flex items-center justify-between pb-3 -mt-1">
-                    <span className="text-[12px] text-gray-400 pl-0">Usage credit available</span>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-neutral-700">
+                    <span className="text-[12px] text-gray-400">Credit available</span>
                     <span className="text-[12px] font-medium text-gray-500">{botBalanceData.balance_usd}</span>
                   </div>
                 )}
               </div>
             )
           })}
-          {/* Add-on: transcription — inline row, hidden for Individual (included) */}
-          {subTier !== 'individual' && ADDON_PRODUCTS.map((product) => (
-            <div key={product.id} className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] font-medium text-gray-500 dark:text-gray-400">{product.name}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] font-semibold text-gray-400 dark:text-gray-500">{product.price}</span>
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                        <HelpCircle className="w-3.5 h-3.5" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs max-w-[200px]">
-                      {product.detail}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Switch plan confirmation dialog */}
@@ -1331,11 +965,11 @@ function BotsTab({
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function TranscriptionTab({
-  balanceData,
   usageData,
+  botBalanceData,
 }: {
-  balanceData: BalanceData | null
   usageData: UsageData | null
+  botBalanceData: { balance_cents: number; balance_usd: string; has_subscription: boolean } | null
 }) {
   const history = usageData?.usage_history || []
   const maxMinutes = Math.max(...history.map((d) => d.minutes), 1)
@@ -1343,21 +977,84 @@ function TranscriptionTab({
 
   return (
     <div className="space-y-6">
-      {/* Hero card */}
-      <div className="rounded-2xl bg-gradient-to-br from-cyan-950 to-blue-950 border border-cyan-800/30 p-6">
-        <h3 className="text-[17px] font-semibold text-white mb-1">Transcription API</h3>
-        <p className="text-[14px] text-cyan-200/70">
-          Offload transcription to Vexa&apos;s cloud — no need to self-host GPU infrastructure.
+      {/* What is Transcription */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Transcription</h3>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] text-gray-400">Balance</span>
+            <span className={`text-[16px] font-semibold ${botBalanceData?.balance_cents === 0 ? "text-red-500 dark:text-red-400" : "text-gray-950 dark:text-gray-50"}`}>
+              {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
+            </span>
+          </div>
+        </div>
+        <p className="text-[13px] text-gray-500 mb-4">
+          Vexa&apos;s cloud transcription service. Powers post-meeting recording transcription, real-time transcription with bots, and standalone API transcription. Connect your self-hosted instance to offload GPU work, or call directly via API.
         </p>
+        <div className="flex items-center gap-4 text-[13px]">
+          <span className="text-gray-950 dark:text-gray-50 font-semibold">$0.002<span className="font-normal text-gray-400">/min</span></span>
+          <span className="text-gray-300 dark:text-gray-600">·</span>
+          <span className="text-gray-400">mp3, wav, webm, ogg, flac, m4a</span>
+        </div>
+      </div>
+
+      {/* How to use (API) */}
+      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">API Access</h3>
+        <p className="text-[13px] text-gray-400 mb-4">Use the Transcription Gateway directly via API.</p>
+
+        <div className="rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] text-gray-400">Base URL</span>
+            <button
+              onClick={() => {
+                const url = process.env.NEXT_PUBLIC_TX_GATEWAY_URL || "https://transcription-gateway.dev.vexa.ai"
+                navigator.clipboard.writeText(url)
+              }}
+              className="group flex items-center gap-1.5"
+              title="Click to copy"
+            >
+              <code className="text-[13px] font-mono text-gray-700 dark:text-gray-300">
+                {process.env.NEXT_PUBLIC_TX_GATEWAY_URL || "https://transcription-gateway.dev.vexa.ai"}
+              </code>
+              <Copy className="h-3 w-3 flex-shrink-0 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div className="flex gap-2.5">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-[11px] font-semibold text-gray-500">1</span>
+            <p className="text-[13px] text-gray-500">Create a <span className="font-mono text-[12px]">vxa_tx_</span> key in API Keys tab</p>
+          </div>
+          <div className="flex gap-2.5">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-[11px] font-semibold text-gray-500">2</span>
+            <p className="text-[13px] text-gray-500">POST audio to <span className="font-mono text-[12px] bg-gray-100 dark:bg-neutral-800 px-1 py-0.5 rounded">/v1/transcribe</span></p>
+          </div>
+          <div className="flex gap-2.5">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-[11px] font-semibold text-gray-500">3</span>
+            <p className="text-[13px] text-gray-500">Get JSON with segments, timestamps &amp; speakers</p>
+          </div>
+        </div>
+
+        <a
+          href="https://docs.vexa.ai/api-reference/transcription"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-50 transition-colors"
+        >
+          Read the docs
+          <ExternalLink className="h-3 w-3" />
+        </a>
       </div>
 
       {/* Daily Usage Chart with inline stats */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">TX Usage</h3>
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50">Usage</h3>
             <p className="text-[13px] text-gray-400">
-              {stats?.period_days ? `Last ${stats.period_days} days` : "Last 30 days"} · $0.002/min
+              {stats?.period_days ? `Last ${stats.period_days} days` : "Last 30 days"}
             </p>
           </div>
           {stats && (
@@ -1417,10 +1114,85 @@ function TranscriptionTab({
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TAB: Billing
+// TAB: Balance
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function BillingTab({ events, meterEvents }: { events: BillingEvent[]; meterEvents: BillingEvent[] }) {
+function BalanceTab({
+  botBalanceData,
+  events,
+  meterEvents,
+  fetchBotBalance,
+}: {
+  botBalanceData: { balance_cents: number; initial_credit_cents: number; usage_cents: number; balance_usd: string; usage_usd: string; initial_credit_usd: string; has_subscription: boolean; cancel_at_period_end?: boolean; topup_enabled?: boolean; topup_threshold_cents?: number; topup_amount_cents?: number; bot_minutes?: number; tx_minutes?: number; tx_api_minutes?: number } | null
+  events: BillingEvent[]
+  meterEvents: BillingEvent[]
+  fetchBotBalance: () => Promise<void>
+}) {
+  // Auto-topup state
+  const [autoTopup, setAutoTopup] = useState(true)
+  const [topupThresholdStr, setTopupThresholdStr] = useState("1")
+  const [topupAmountStr, setTopupAmountStr] = useState("5")
+  const [monthlyCapStr, setMonthlyCapStr] = useState("50")
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
+  const [settingsSaved, setSettingsSaved] = useState(false)
+
+  // Add funds state
+  const [isAddingFunds, setIsAddingFunds] = useState(false)
+  const [showAddFundsConfirm, setShowAddFundsConfirm] = useState(false)
+  const [addFundsAmountStr, setAddFundsAmountStr] = useState("5")
+  const addFundsAmount = parseInt(addFundsAmountStr, 10) || 0
+
+  // Sync from botBalanceData
+  useEffect(() => {
+    if (botBalanceData) {
+      setAutoTopup(botBalanceData.topup_enabled ?? true)
+      setTopupThresholdStr(String(Math.round((botBalanceData.topup_threshold_cents ?? 100) / 100)))
+      setTopupAmountStr(String(Math.round((botBalanceData.topup_amount_cents ?? 500) / 100)))
+      if ((botBalanceData as any).monthly_cap_cents) {
+        setMonthlyCapStr(String(Math.round((botBalanceData as any).monthly_cap_cents / 100)))
+      }
+    }
+  }, [botBalanceData])
+
+  const handleSaveSettings = async () => {
+    const threshold = parseInt(topupThresholdStr, 10) || 0
+    const amount = parseInt(topupAmountStr, 10) || 0
+    const cap = parseInt(monthlyCapStr, 10) || 0
+    if (autoTopup && threshold < 1) { alert("Threshold must be at least $1."); return }
+    if (autoTopup && amount < 2) { alert("Top-up amount must be at least $2."); return }
+    setIsSavingSettings(true)
+    setSettingsSaved(false)
+    try {
+      const resp = await fetch("/api/stripe/topup-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: "bot", enabled: autoTopup, threshold: threshold * 100, amount_cents: amount * 100, monthly_cap_cents: cap * 100 }),
+      })
+      if (!resp.ok) { const data = await resp.json().catch(() => ({})); throw new Error(data.detail || data.error || "Failed to save settings") }
+      setSettingsSaved(true)
+      setTimeout(() => setSettingsSaved(false), 2000)
+      await fetchBotBalance()
+    } catch (err) { alert(err instanceof Error ? err.message : "Failed to save settings") }
+    finally { setIsSavingSettings(false) }
+  }
+
+  const handleAddFundsConfirmed = async () => {
+    setShowAddFundsConfirm(false)
+    setIsAddingFunds(true)
+    try {
+      const resp = await fetch("/api/stripe/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: "bot", amount_cents: addFundsAmount * 100 }),
+      })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.detail || data.error || "Failed to add funds")
+      if (data.url) { window.location.href = data.url; return }
+      await fetchBotBalance()
+    } catch (err) { alert(err instanceof Error ? err.message : "Failed to add funds") }
+    finally { setIsAddingFunds(false) }
+  }
+
   const meterStyles: Record<string, { bg: string; text: string; label: string }> = {
     vexa_bot_minutes: { bg: "bg-purple-50 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300", label: "Bot" },
     vexa_tx_addon_minutes: { bg: "bg-cyan-50 dark:bg-cyan-900/30", text: "text-cyan-700 dark:text-cyan-300", label: "TX Addon" },
@@ -1428,10 +1200,10 @@ function BillingTab({ events, meterEvents }: { events: BillingEvent[]; meterEven
   }
 
   const typeStyles: Record<string, { bg: string; text: string; label: string }> = {
-    charge: { bg: "bg-blue-50 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-300", label: "Payment" },
-    invoice: { bg: "bg-gray-50 dark:bg-neutral-800", text: "text-gray-600 dark:text-gray-400", label: "Invoice" },
     credit_grant: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-300", label: "Credit" },
-    refund: { bg: "bg-amber-50 dark:bg-amber-900/30", text: "text-amber-700 dark:text-amber-300", label: "Refund" },
+    refund: { bg: "bg-emerald-50 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-300", label: "Refund" },
+    invoice: { bg: "bg-red-50 dark:bg-red-900/30", text: "text-red-600 dark:text-red-400", label: "Usage" },
+    subscription: { bg: "bg-blue-50 dark:bg-blue-900/30", text: "text-blue-600 dark:text-blue-400", label: "Subscription" },
   }
 
   const statusStyles: Record<string, string> = {
@@ -1449,105 +1221,370 @@ function BillingTab({ events, meterEvents }: { events: BillingEvent[]; meterEven
 
   return (
     <div className="space-y-6">
-      {/* Metering Events */}
+      {/* Balance + Period info */}
       <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Metering Events</h3>
-        <p className="text-[13px] text-gray-400 mb-5">Daily usage recorded by Stripe meters (last 90 days).</p>
+        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Credit Balance</h3>
+        <p className="text-[13px] text-gray-400 mb-5">Shared credit balance across bots and transcription.</p>
 
-        {meterEvents.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-[14px] text-gray-300 dark:text-gray-600">No metering events yet.</p>
+        <div className="mb-5">
+          <div className="flex items-center justify-between text-[14px] mb-3">
+            <span className="text-gray-400">Credit balance</span>
+            <span className={`font-semibold text-[16px] ${botBalanceData?.balance_cents === 0 ? "text-red-500 dark:text-red-400" : "text-gray-950 dark:text-gray-50"}`}>
+              {botBalanceData?.has_subscription ? botBalanceData.balance_usd : "$0.00"}
+            </span>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-neutral-800">
-                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Date</th>
-                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Meter</th>
-                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Minutes</th>
-                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {meterEvents.map((event) => {
-                  const style = meterStyles[event.meter || ""] || { bg: "bg-gray-50 dark:bg-neutral-800", text: "text-gray-600 dark:text-gray-400", label: event.meter || "Unknown" }
-                  return (
-                    <tr key={event.id} className="border-b border-gray-50 dark:border-neutral-800/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                      <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
-                        {new Date(event.date).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
-                          {style.label}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-medium text-gray-950 dark:text-gray-50 whitespace-nowrap">
-                        {(event.minutes ?? 0).toFixed(2)} min
-                      </td>
-                      <td className="py-2.5 px-3 text-right text-gray-500 whitespace-nowrap">
-                        {event.amount_usd}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <div className="rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3">
+            <div className="flex items-center justify-between text-[13px] mb-2">
+              <span className="text-gray-400">Current period</span>
+              <span className="text-gray-500">
+                {botBalanceData?.has_subscription && (botBalanceData as any).period_start && (botBalanceData as any).period_end
+                  ? `${formatDate((botBalanceData as any).period_start)} — ${formatDate((botBalanceData as any).period_end)}`
+                  : "—"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[13px]">
+              <span className="text-gray-400">Usage this period</span>
+              <span className="font-medium text-gray-950 dark:text-gray-50">{botBalanceData?.has_subscription ? botBalanceData.usage_usd : "$0.00"}</span>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Add Funds */}
+        <div className="border-t border-gray-100 dark:border-neutral-800 pt-5 mb-5">
+          <label className="text-[13px] text-gray-500 mb-1.5 block">Add funds</label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] text-gray-400">$</span>
+              <input
+                id="add-funds-input"
+                type="text"
+                inputMode="numeric"
+                value={addFundsAmountStr}
+                onChange={(e) => setAddFundsAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                placeholder="5"
+                className="w-20 h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+              />
+            </div>
+            <button
+              onClick={() => addFundsAmount >= 2 && setShowAddFundsConfirm(true)}
+              disabled={isAddingFunds || addFundsAmount < 2}
+              className="h-10 px-6 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[14px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {isAddingFunds ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</> : "Add Funds"}
+            </button>
+            <span className="text-[12px] text-gray-400">min $2</span>
+          </div>
+        </div>
+
+        {/* Auto-topup */}
+        <div className="border-t border-gray-100 dark:border-neutral-800 pt-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-[14px] font-medium text-gray-950 dark:text-gray-50">Auto-topup</p>
+              <p className="text-[13px] text-gray-400">Automatically charge when balance is low.</p>
+            </div>
+            <button
+              onClick={() => setAutoTopup(!autoTopup)}
+              className={`relative w-11 h-6 rounded-full transition-colors ${autoTopup ? "bg-gray-950 dark:bg-white" : "bg-gray-200 dark:bg-neutral-700"}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white dark:bg-neutral-900 shadow transition-transform ${autoTopup ? "translate-x-5" : ""}`} />
+            </button>
+          </div>
+
+          {autoTopup && (
+            <>
+              <div className="grid grid-cols-3 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-4">
+                <div>
+                  <label className="text-[13px] text-gray-500 mb-1.5 block">When below</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] text-gray-400">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={topupThresholdStr}
+                      onChange={(e) => setTopupThresholdStr(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder="1"
+                      className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[13px] text-gray-500 mb-1.5 block">Top-up amount</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] text-gray-400">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={topupAmountStr}
+                      onChange={(e) => setTopupAmountStr(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder="5"
+                      className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[13px] text-gray-500 mb-1.5 block">Monthly cap</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] text-gray-400">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={monthlyCapStr}
+                      onChange={(e) => setMonthlyCapStr(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder="50"
+                      className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-[14px] text-gray-950 dark:text-gray-50 font-medium outline-none focus:border-gray-400 dark:focus:border-neutral-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly cap progress */}
+              {(botBalanceData as any)?.monthly_topup_cents != null && parseInt(monthlyCapStr) > 0 && (
+                <div className="mt-3 rounded-lg bg-gray-50 dark:bg-neutral-800/50 border border-gray-100 dark:border-neutral-700/50 p-3">
+                  <div className="flex justify-between items-center text-[13px]">
+                    <span className="text-gray-400">Auto-topped up this month</span>
+                    <span className="font-medium text-gray-950 dark:text-gray-50">
+                      ${(((botBalanceData as any)?.monthly_topup_cents ?? 0) / 100).toFixed(2)}
+                      {" "}<span className="text-gray-400 font-normal">/ ${monthlyCapStr}.00</span>
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-200 dark:bg-neutral-700 rounded-full mt-2">
+                    <div
+                      className="h-full bg-gray-950 dark:bg-gray-200 rounded-full"
+                      style={{ width: `${Math.min((((botBalanceData as any)?.monthly_topup_cents ?? 0) / 100) / parseInt(monthlyCapStr || "1") * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleSaveSettings}
+                  disabled={isSavingSettings}
+                  className="h-9 px-5 rounded-full border border-gray-200 dark:border-neutral-700 text-[13px] font-medium text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-neutral-500 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  {isSavingSettings ? (
+                    <><Loader2 className="h-3 w-3 animate-spin" /> Saving...</>
+                  ) : settingsSaved ? (
+                    <><Check className="h-3 w-3" /> Saved</>
+                  ) : (
+                    "Save Settings"
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Add Funds confirmation dialog */}
+      {showAddFundsConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-neutral-900 p-6 shadow-xl">
+            <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Add Funds</h3>
+            <p className="text-[14px] text-gray-500 mb-4">
+              This will charge <span className="font-medium text-gray-950 dark:text-gray-50">${addFundsAmount}.00</span> to your saved payment method.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowAddFundsConfirm(false)}
+                className="h-9 px-4 rounded-full border border-gray-200 dark:border-neutral-700 text-[13.5px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddFundsConfirmed}
+                className="h-9 px-4 rounded-full bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[13.5px] font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+              >
+                Confirm — ${addFundsAmount}.00
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Billing History + Metering Events — tabbed */}
+      <HistoryTabs
+        events={events}
+        meterEvents={meterEvents}
+        typeStyles={typeStyles}
+        statusStyles={statusStyles}
+        meterStyles={meterStyles}
+      />
+    </div>
+  )
+}
+
+// ─── History sub-tabs (Billing History / Metering Events) ────────────────────
+
+const HISTORY_TABS = [
+  { id: "billing", label: "Billing History" },
+  { id: "metering", label: "Metering Events" },
+] as const
+
+type HistoryTabId = (typeof HISTORY_TABS)[number]["id"]
+
+function HistoryTabs({
+  events,
+  meterEvents,
+  typeStyles,
+  statusStyles,
+  meterStyles,
+}: {
+  events: BillingEvent[]
+  meterEvents: BillingEvent[]
+  typeStyles: Record<string, { bg: string; text: string; label: string }>
+  statusStyles: Record<string, string>
+  meterStyles: Record<string, { bg: string; text: string; label: string }>
+}) {
+  const [activeTab, setActiveTab] = useState<HistoryTabId>("billing")
+
+  return (
+    <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
+      {/* Sub-tab bar */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-1">
+          {HISTORY_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-all ${
+                activeTab === tab.id
+                  ? "bg-gray-100 dark:bg-neutral-800 text-gray-950 dark:text-gray-50"
+                  : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => {
+            const rows = activeTab === "billing"
+              ? [["Date", "Type", "Description", "Amount", "Status"], ...events.map(e => [e.date, e.type, e.description, e.amount_usd, e.status])]
+              : [["Date", "Meter", "Minutes", "Cost"], ...meterEvents.map(e => [e.date, e.meter || "", String((e.minutes ?? 0).toFixed(2)), e.amount_usd])]
+            const csv = rows.map(r => r.map(c => `"${(c || "").replace(/"/g, '""')}"`).join(",")).join("\n")
+            const blob = new Blob([csv], { type: "text/csv" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `${activeTab === "billing" ? "billing-history" : "metering-events"}-${new Date().toISOString().slice(0, 10)}.csv`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          disabled={(activeTab === "billing" ? events : meterEvents).length === 0}
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-gray-200 dark:border-neutral-700 text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-neutral-600 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export CSV
+        </button>
       </div>
 
       {/* Billing History */}
-      <div className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6" style={{ boxShadow: cardShadow }}>
-        <h3 className="text-[17px] font-semibold text-gray-950 dark:text-gray-50 mb-1">Billing History</h3>
-        <p className="text-[13px] text-gray-400 mb-5">Charges, invoices, and credit grants from Stripe.</p>
+      {activeTab === "billing" && (() => {
+        return (
+          <>
+            {events.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-[14px] text-gray-300 dark:text-gray-600">No billing events yet.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                  <table className="w-full text-[13px]">
+                    <thead>
+                      <tr className="border-b border-gray-100 dark:border-neutral-800">
+                        <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Date</th>
+                        <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Type</th>
+                        <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Description</th>
+                        <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Amount</th>
+                        <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {events.map((event) => {
+                        const style = typeStyles[event.type] || typeStyles.invoice
+                        const isInflow = (event.type === "credit_grant" || event.type === "refund") && event.amount_cents > 0
+                        const isOutflow = event.type === "invoice" && event.amount_cents > 0
+                        const isNeutral = event.type === "subscription"
+                        return (
+                          <tr key={event.id} className={`border-b border-gray-50 dark:border-neutral-800/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors ${isNeutral ? "opacity-60" : ""}`}>
+                            <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
+                              {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </td>
+                            <td className="py-2.5 px-3">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
+                                {style.label}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-gray-700 dark:text-gray-300 max-w-[300px] truncate">
+                              {event.description}
+                            </td>
+                            <td className={`py-2.5 px-3 text-right font-medium whitespace-nowrap ${
+                              isInflow ? "text-emerald-600 dark:text-emerald-400" : isOutflow ? "text-red-500 dark:text-red-400" : "text-gray-500"
+                            }`}>
+                              {isInflow ? "+" : isOutflow ? "−" : ""}{event.amount_usd}
+                            </td>
+                            <td className={`py-2.5 px-3 text-right capitalize whitespace-nowrap ${statusStyles[event.status] || "text-gray-400"}`}>
+                              {event.status}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+            )}
+          </>
+        )
+      })()}
 
-        {events.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="text-[14px] text-gray-300 dark:text-gray-600">No billing events yet.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-neutral-800">
-                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Date</th>
-                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Type</th>
-                  <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Description</th>
-                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Amount</th>
-                  <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.map((event) => {
-                  const style = typeStyles[event.type] || typeStyles.invoice
-                  return (
-                    <tr key={event.id} className="border-b border-gray-50 dark:border-neutral-800/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                      <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
-                        {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
-                          {style.label}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-gray-700 dark:text-gray-300 max-w-[300px] truncate">
-                        {event.description}
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-medium text-gray-950 dark:text-gray-50 whitespace-nowrap">
-                        {event.amount_usd}
-                      </td>
-                      <td className={`py-2.5 px-3 text-right capitalize whitespace-nowrap ${statusStyles[event.status] || "text-gray-400"}`}>
-                        {event.status}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Metering Events */}
+      {activeTab === "metering" && (
+        <>
+          <p className="text-[12px] text-gray-400 mb-4">Usage recorded by Stripe meters — retained for 30 days.</p>
+          {meterEvents.length === 0 ? (
+            <div className="py-8 text-center">
+              <p className="text-[14px] text-gray-300 dark:text-gray-600">No metering events yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-neutral-800">
+                    <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Date</th>
+                    <th className="text-left py-2.5 px-3 text-gray-400 font-medium">Meter</th>
+                    <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Minutes</th>
+                    <th className="text-right py-2.5 px-3 text-gray-400 font-medium">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {meterEvents.map((event) => {
+                    const style = meterStyles[event.meter || ""] || { bg: "bg-gray-50 dark:bg-neutral-800", text: "text-gray-600 dark:text-gray-400", label: event.meter || "Unknown" }
+                    return (
+                      <tr key={event.id} className="border-b border-gray-50 dark:border-neutral-800/50 hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                        <td className="py-2.5 px-3 text-gray-500 whitespace-nowrap">
+                          {new Date(event.date).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${style.bg} ${style.text}`}>
+                            {style.label}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-medium text-gray-950 dark:text-gray-50 whitespace-nowrap">
+                          {(event.minutes ?? 0).toFixed(2)} min
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-gray-500 whitespace-nowrap">
+                          {event.amount_usd}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

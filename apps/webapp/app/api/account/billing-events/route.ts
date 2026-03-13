@@ -47,11 +47,12 @@ export async function GET(request: NextRequest) {
     const meterEvents: BillingEvent[] = []
 
     // Fetch billing data and meter ledger in parallel
-    const [charges, invoices, creditGrants, ledgerEntries] = await Promise.all([
+    const [charges, invoices, creditGrants, ledgerEntries, customerBalanceTxns] = await Promise.all([
       stripe.charges.list({ customer: customerId, limit }),
       stripe.invoices.list({ customer: customerId, limit }),
       stripe.billing.creditGrants.list({ customer: customerId as any, limit } as any).catch(() => ({ data: [] as any[] })),
       getLedgerEntries(customerId, 30),
+      stripe.customers.listBalanceTransactions(customerId, { limit }).catch(() => ({ data: [] as any[] })),
     ])
 
     // Meter events from Redis ledger (exact timestamps)
@@ -74,29 +75,34 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Charges (top-ups, one-time payments)
+    // Refunds from charges (standalone charges are omitted — they duplicate credit_grants)
     for (const charge of charges.data) {
       if (charge.invoice) continue
-      events.push({
-        id: charge.id,
-        date: new Date(charge.created * 1000).toISOString(),
-        type: charge.refunded ? 'refund' : 'charge',
-        description: charge.description || 'Payment',
-        amount_cents: charge.refunded ? -charge.amount_refunded : charge.amount,
-        amount_usd: formatCents(charge.refunded ? -charge.amount_refunded : charge.amount),
-        status: charge.status,
-      })
+      if (charge.refunded) {
+        events.push({
+          id: charge.id,
+          date: new Date(charge.created * 1000).toISOString(),
+          type: 'refund',
+          description: charge.description || 'Refund',
+          amount_cents: charge.amount_refunded,
+          amount_usd: formatCents(charge.amount_refunded),
+          status: 'refunded',
+        })
+      }
     }
 
-    // Invoices
+    // Invoices — classify as subscription (card-paid, no balance impact) vs usage
     for (const inv of invoices.data) {
       const desc = inv.lines?.data?.length === 1
         ? inv.lines.data[0].description || 'Invoice'
         : `Invoice — ${inv.lines?.data?.length || 0} items`
+      const isSubscription = (inv.billing_reason || '').startsWith('subscription')
+      // Skip $0 subscription invoices (prorations that netted to zero)
+      if (isSubscription && (inv.amount_due || 0) === 0) continue
       events.push({
         id: inv.id,
         date: new Date((inv.created || 0) * 1000).toISOString(),
-        type: 'invoice',
+        type: isSubscription ? 'subscription' : 'invoice',
         description: desc,
         amount_cents: inv.amount_due || 0,
         amount_usd: formatCents(inv.amount_due || 0),
@@ -116,6 +122,28 @@ export async function GET(request: NextRequest) {
         amount_usd: formatCents(amt),
         status: grant.voided ? 'voided' : 'active',
       })
+    }
+
+    // Customer balance credit (net proration credits from plan switches)
+    // Stripe customer.balance: negative = customer has credit, positive = customer owes
+    // Show as a single consolidated line if the customer has credit
+    const customerBalanceTxnsList = (customerBalanceTxns as any).data || []
+    if (customerBalanceTxnsList.length > 0) {
+      // Net balance = sum of all transactions (negative = credit for customer)
+      const netBalance = customerBalanceTxnsList.reduce((s: number, t: any) => s + t.amount, 0)
+      if (netBalance < 0) {
+        const creditCents = Math.abs(netBalance)
+        const latestTxn = customerBalanceTxnsList[0] // sorted newest first
+        events.push({
+          id: 'customer_balance_credit',
+          date: new Date((latestTxn.created || 0) * 1000).toISOString(),
+          type: 'credit_grant',
+          description: 'Plan switch credit',
+          amount_cents: creditCents,
+          amount_usd: formatCents(creditCents),
+          status: 'active',
+        })
+      }
     }
 
     events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
