@@ -124,26 +124,36 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Customer balance credit (net proration credits from plan switches)
-    // Stripe customer.balance: negative = customer has credit, positive = customer owes
-    // Show as a single consolidated line if the customer has credit
-    const customerBalanceTxnsList = (customerBalanceTxns as any).data || []
-    if (customerBalanceTxnsList.length > 0) {
-      // Net balance = sum of all transactions (negative = credit for customer)
-      const netBalance = customerBalanceTxnsList.reduce((s: number, t: any) => s + t.amount, 0)
-      if (netBalance < 0) {
-        const creditCents = Math.abs(netBalance)
-        const latestTxn = customerBalanceTxnsList[0] // sorted newest first
-        events.push({
-          id: 'customer_balance_credit',
-          date: new Date((latestTxn.created || 0) * 1000).toISOString(),
-          type: 'credit_grant',
-          description: 'Plan switch credit',
-          amount_cents: creditCents,
-          amount_usd: formatCents(creditCents),
-          status: 'active',
-        })
-      }
+    // Customer balance transactions — split manual adjustments from prorations
+    const cbtList = (customerBalanceTxns as any).data || []
+    // Manual adjustments: show each individually
+    for (const txn of cbtList) {
+      if (txn.type !== 'adjustment' || txn.amount >= 0) continue
+      events.push({
+        id: txn.id,
+        date: new Date((txn.created || 0) * 1000).toISOString(),
+        type: 'credit_grant',
+        description: txn.description || 'Manual credit',
+        amount_cents: Math.abs(txn.amount),
+        amount_usd: formatCents(Math.abs(txn.amount)),
+        status: 'active',
+      })
+    }
+    // Prorations: net all non-adjustment transactions into one line
+    const prorationNet = cbtList
+      .filter((t: any) => t.type !== 'adjustment')
+      .reduce((s: number, t: any) => s + t.amount, 0)
+    if (prorationNet < 0) {
+      const latestProration = cbtList.find((t: any) => t.type !== 'adjustment')
+      events.push({
+        id: 'proration_credit',
+        date: new Date((latestProration?.created || Date.now() / 1000) * 1000).toISOString(),
+        type: 'credit_grant',
+        description: 'Plan switch credit',
+        amount_cents: Math.abs(prorationNet),
+        amount_usd: formatCents(Math.abs(prorationNet)),
+        status: 'active',
+      })
     }
 
     events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
