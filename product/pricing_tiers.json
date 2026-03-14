@@ -66,9 +66,9 @@
       },
       "comparison": {
         "vexa_bot_only": "$0.30/hr",
-        "vexa_with_transcription": "$0.40/hr",
-        "competitor": "Recall.ai $0.65/hr",
-        "savings": "38% cheaper (with transcription)"
+        "vexa_with_transcription": "$0.30 + $0.20 = $0.50/hr",
+        "competitor": "Recall.ai $0.50 + $0.15 = $0.65/hr",
+        "savings": "Bot 40% cheaper, combined 23% cheaper"
       },
       "stripe": {
         "product_name": "Vexa Bot Service",

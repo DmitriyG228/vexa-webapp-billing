@@ -9,7 +9,7 @@
   },
   "transcription_addon": {
     "product_id": "prod_U7n438MAhY38fj",
-    "price_id": "price_1T9XU9FKEqzvZq6x4Lhv2hG5"
+    "price_id": "price_1TAZgWFKEqzvZq6x076NOIbv"
   },
   "transcription_api": {
     "product_id": "prod_U4yLWCodeIUG1j",
@@ -18,5 +18,8 @@
   "consultation": {
     "product_id": "prod_U4yLaKgNopnFu3",
     "price_id": "price_1T9XU9FKEqzvZq6xKf4rhCou"
+  },
+  "enterprise": {
+    "product_id": "prod_U8qbAL8a2Bz0fz"
   }
 }

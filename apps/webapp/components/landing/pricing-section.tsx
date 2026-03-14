@@ -332,10 +332,10 @@ export function PricingSection() {
         <div className="mt-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm">
             <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">
-              Vexa: $0.40/hr vs Recall.ai $0.65/hr (bot + transcription) &mdash;
+              Bot: Vexa $0.30/hr vs Recall.ai $0.50/hr &mdash;
             </span>
             <span className="text-[13px] text-gray-950 dark:text-gray-50 font-semibold">
-              38% cheaper
+              40% cheaper
             </span>
           </div>
         </div>
@@ -383,7 +383,7 @@ export function PricingSection() {
                 How does Vexa compare to Recall.ai?
               </h4>
               <p className="text-[14px] text-gray-500 dark:text-gray-400 leading-[1.7]">
-                Vexa is open source, self-hostable, and 40% cheaper. Bot infrastructure: Vexa $0.30/hr vs Recall.ai ~$0.50/hr. With transcription: Vexa $0.40/hr vs Recall.ai ~$0.72/hr. See our{' '}
+                Vexa is open source, self-hostable, and up to 40% cheaper. Bot: $0.30/hr vs Recall.ai ~$0.50/hr. Transcription add-on: $0.20/hr vs ~$0.15/hr. See our{' '}
                 <Link href="/compare/recall-ai" className="text-gray-700 dark:text-gray-300 underline underline-offset-2">
                   detailed comparison
                 </Link>.
@@ -445,7 +445,7 @@ export function PricingSection() {
                   name: 'How does Vexa compare to Recall.ai?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: "Vexa is open source, self-hostable, and 40% cheaper. Bot infrastructure: Vexa $0.30/hr vs Recall.ai approximately $0.50/hr. With transcription: Vexa $0.40/hr vs Recall.ai approximately $0.72/hr. See the detailed comparison at vexa.ai/compare/recall-ai.",
+                    text: "Vexa is open source, self-hostable, and up to 40% cheaper. Bot: Vexa $0.30/hr vs Recall.ai approximately $0.50/hr. Transcription add-on: Vexa $0.20/hr vs approximately $0.15/hr. See the detailed comparison at vexa.ai/compare/recall-ai.",
                   },
                 },
                 {

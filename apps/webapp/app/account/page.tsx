@@ -1206,8 +1206,8 @@ function BalanceTab({
 
   const meterStyles: Record<string, { bg: string; text: string; label: string }> = {
     vexa_bot_minutes: { bg: "bg-purple-50 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-300", label: "Bot" },
-    vexa_tx_addon_minutes: { bg: "bg-cyan-50 dark:bg-cyan-900/30", text: "text-cyan-700 dark:text-cyan-300", label: "TX Addon" },
-    vexa_tx_api_minutes: { bg: "bg-teal-50 dark:bg-teal-900/30", text: "text-teal-700 dark:text-teal-300", label: "TX API" },
+    vexa_tx_addon_minutes: { bg: "bg-cyan-50 dark:bg-cyan-900/30", text: "text-cyan-700 dark:text-cyan-300", label: "Real-time transcription" },
+    vexa_tx_api_minutes: { bg: "bg-teal-50 dark:bg-teal-900/30", text: "text-teal-700 dark:text-teal-300", label: "Transcription" },
   }
 
   const typeStyles: Record<string, { bg: string; text: string; label: string }> = {

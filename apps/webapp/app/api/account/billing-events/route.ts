@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic'
 
 const RATE_MAP: Record<string, { label: string; rate: number }> = {
   vexa_bot_minutes: { label: 'Bot minutes', rate: BOT_RATE_CENTS_PER_MIN },
-  vexa_tx_addon_minutes: { label: 'TX addon minutes', rate: TX_RATE_CENTS_PER_MIN },
-  vexa_tx_api_minutes: { label: 'TX API minutes', rate: TX_API_RATE_CENTS_PER_MIN },
+  vexa_tx_addon_minutes: { label: 'Real-time transcription', rate: TX_RATE_CENTS_PER_MIN },
+  vexa_tx_api_minutes: { label: 'Transcription', rate: TX_API_RATE_CENTS_PER_MIN },
 }
 
 interface BillingEvent {

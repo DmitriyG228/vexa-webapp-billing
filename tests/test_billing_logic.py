@@ -117,11 +117,11 @@ def test_old_tx_rate_removed():
 # ── Test: free credit hours calculation ──────────────────────────────────────
 
 def test_free_credit_hours_with_transcription():
-    """$5 free credit at $0.40/hr (bot+tx) = 12.5 hours."""
+    """$5 free credit at $0.50/hr (bot+RT tx) = 10 hours."""
     credit = 500  # cents
-    rate_per_hour = 40  # cents ($0.30 + $0.10)
+    rate_per_hour = 50  # cents ($0.30 + $0.20)
     hours = credit / rate_per_hour
-    assert hours == 12.5
+    assert hours == 10.0
 
 
 def test_free_credit_hours_bot_only():
@@ -205,11 +205,11 @@ def test_bot_margin_baseline():
 
 
 def test_all_in_margin_baseline():
-    """Bot + transcription margin at $0.40/hr with baseline COGS $0.073/hr = 82%."""
-    price = 0.40
+    """Bot + RT transcription margin at $0.50/hr with baseline COGS $0.073/hr = 85%."""
+    price = 0.50
     cogs = 0.073
     margin = (price - cogs) / price
-    assert round(margin * 100) == 82
+    assert round(margin * 100) == 85
 
 
 def test_taas_margin_baseline():
